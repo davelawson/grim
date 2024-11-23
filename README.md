@@ -27,3 +27,5 @@ State is stored in a simple sqlite3 database.
 1. Run the app using go.
   Eg: `go run app.go`
 1. Issue requests against the api found at `http://localhost:8080`.
+
+sample commit
