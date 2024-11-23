@@ -8,15 +8,12 @@
 
 ## Database
 
-  Try and do it with both SQLite and MySql, and see which one does a better job.
-  Migration is a must!
-  Dumping is a must!
+- sqlite3
+  - how do we handle migration?
+  - how do we dump the database?
 
-- SQLite
-    Is there a flyway equivalent?
-    Is there a go driver for it?
-- MySql
---- Creating a Game Lobby ---
+## Between Game Functionality
+
 - Endpoints
       Create Lobby
       Join Lobby
@@ -24,7 +21,7 @@
       Update Game Settings
       Player Ready
       Launch Game
---- Ending a Game Turn ---
-- Endpoint to a Player's Turn
-- Processing the turn end
-- Sending new game state to players
+
+## During Game Functionality
+
+## End of Turn Functionality
