@@ -12,6 +12,7 @@
   - how do we handle migration?
   - how do we dump the database?
   - connecting MySql workbench (or some other GUI app)
+  - basic connectivity and repo layer
 
 ## Between Game Functionality
 
