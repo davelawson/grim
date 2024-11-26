@@ -4,12 +4,15 @@ import (
 	"database/sql"
 	"fmt"
 	"main/controller"
+	"main/docs"
 	"main/repo"
 	"main/service"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	_ "github.com/mattn/go-sqlite3"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func main() {
@@ -28,14 +31,24 @@ func main() {
 	userController := controller.NewUserController(userService)
 	addUserRoutes(router, userController)
 
+	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+
 	router.Run("localhost:8080")
 }
 
+func addSwaggerInfo() {
+	docs.SwaggerInfo.Title = "Grimoire Backend API"
+	docs.SwaggerInfo.Description = "This is the backend RESTful server for the Grimoire game."
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.Host = "localhost"
+	docs.SwaggerInfo.BasePath = "/v2"
+	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+}
+
 func addUserRoutes(router *gin.Engine, controller *controller.UserController) {
-	router.GET("/user", func(c *gin.Context) {
-		controller.GetUserByEmail(c)
-	})
-	router.POST("/user", func(c *gin.Context) {
-		controller.CreateUser(c)
-	})
+	group := router.Group("/user")
+	group.POST("", controller.CreateUser)
+
+	group = router.Group("/user/getbyemail")
+	group.POST("", controller.GetUserByEmail)
 }

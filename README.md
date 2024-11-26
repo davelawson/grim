@@ -33,3 +33,16 @@ State is stored in a simple sqlite3 database.
 ### Testing
 
 Currently, testing is extremely sparse.  There are a shell script files in the test folder that can be run, but they may require some hand holding, such as resetting the database before each run.
+
+### Swagger
+
+End points are documented using a swagger interface.  This also allows manual testing of the end points.
+Swaggo is the implementation we're using.  It derives meaning from comments in the code, which isn't great, but we'll stick with it a while longer.
+
+To setup Swagger:
+
+1. Install swagger: `go install github.com/swaggo/swag/cmd/swag@latest`
+1. Make sure that `$(go env GOPATH)/bin` is on your path
+1. Generate the swagger documentation: `swag init .`
+1. Run the application (detailed in earlier section)
+1. Open the web page: `http://localhost:8080/swagger/index.html`

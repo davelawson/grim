@@ -25,7 +25,6 @@
 
 ## Testing
 
-- Swagger would help a ton
 - Scripts for creating test data
 - unit testing
 - integration testing

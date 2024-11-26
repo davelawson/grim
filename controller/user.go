@@ -27,9 +27,18 @@ func NewUserController(userService *service.UserService) *UserController {
 	return &UserController{userService: userService}
 }
 
+// GetUserByEmail godoc
+//
+//	@Summary		Get user by email
+//	@Description	Lookup a specific user by email
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body		getUserRequest	true	"Request Object"
+//	@Success		200		{object}	model.User
+//	@Router			/user/getbyemail [post]
 func (us *UserController) GetUserByEmail(c *gin.Context) {
-	// Do we really want the controllers to be coupled to Gin-Gonic?  Maybe we can find a way to handle this more generically...
-	// Maybe creating a base class?  Maybe a delegate?  Maybe a wrapper for the context?
+	// TODO: find a re-usable way to translate the context into a typed request
 	// TODO: handle errors
 	req := getUserRequest{}
 	fmt.Println("GetUserByEmail(): {}", req)
@@ -52,6 +61,16 @@ func (us *UserController) GetUserByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, user)
 }
 
+// CreateUser godoc
+//
+//	@Summary		Create user
+//	@Description	Create a new user
+//	@Tags			user
+//	@Accept			json
+//	@Produce		json
+//	@Param			request	body	createUserRequest	true	"Request Object"
+//	@Success		200
+//	@Router			/user [post]
 func (us *UserController) CreateUser(c *gin.Context) {
 	req := createUserRequest{}
 	fmt.Println("CreateUser(): {}", req)
