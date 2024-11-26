@@ -1,24 +1,23 @@
-package controllers
+package controller
 
 import (
 	"encoding/json"
-	"main/models"
-	"main/services"
+	"main/model"
+	"main/service"
 
 	"github.com/gin-gonic/gin"
 )
 
 type albumService interface {
-	GetAlbums() ([]models.Album, error)
+	GetAlbums() ([]model.Album, error)
 }
 
 type AlbumController struct {
-	service *services.AlbumService
-	bob     int
+	service *service.AlbumService
 }
 
 func NewAlbumController() *AlbumController {
-	return &AlbumController{bob: 1}
+	return &AlbumController{}
 }
 
 func (ac *AlbumController) GetAlbums(c *gin.Context) {

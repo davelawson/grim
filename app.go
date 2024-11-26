@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"main/controllers"
+	"main/controller"
+	"main/repo"
+	"main/service"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -19,23 +21,30 @@ func main() {
 		return
 	}
 
-	results, err := db.Query("select * from players")
-	if err != nil {
-		fmt.Println("Error executing query: {}", DATABASE_FILE, err)
-		return
-	}
-	fmt.Println("Results from database: {}", results)
-
 	router := gin.Default()
 
-	albumController := controllers.NewAlbumController()
+	albumController := controller.NewAlbumController()
 	addAlbumRoutes(router, albumController)
+
+	userRepo := repo.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
+	userController := controller.NewUserController(userService)
+	addUserRoutes(router, userController)
 
 	router.Run("localhost:8080")
 }
 
-func addAlbumRoutes(router *gin.Engine, controller *controllers.AlbumController) {
+func addAlbumRoutes(router *gin.Engine, controller *controller.AlbumController) {
 	router.GET("/albums", func(c *gin.Context) {
 		controller.GetAlbums(c)
+	})
+}
+
+func addUserRoutes(router *gin.Engine, controller *controller.UserController) {
+	router.GET("/user", func(c *gin.Context) {
+		controller.GetUserByEmail(c)
+	})
+	router.POST("/user", func(c *gin.Context) {
+		controller.CreateUser(c)
 	})
 }

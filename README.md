@@ -20,10 +20,16 @@ State is stored in a simple sqlite3 database.
 1. Set the GRIM_DB environment variable to point to where you want the sqlite3 db stored.
   Eg: `export GRIM_DB=$HOME/sqlite/test.db`
 1. Create the database by executing the create-database.sql file.
-  Eg: `sqlite3 $GRIM_DB < ./sql/create-database.sql`.
+  Eg: `sqlite3 $GRIM_DB < ./sql/create-database.sql`
+1. Populate the database with some test data.
+  `sqlite3 $GRIM_DB < ./sql/create-test-data.sql`
 
 ### Run Service
 
 1. Run the app using go.
   Eg: `go run app.go`
 1. Issue requests against the api found at `http://localhost:8080`.
+
+### Testing
+
+Currently, testing is extremely sparse.  There are a shell script files in the test folder that can be run, but they may require some hand holding, such as resetting the database before each run.
