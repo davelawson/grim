@@ -23,21 +23,12 @@ func main() {
 
 	router := gin.Default()
 
-	albumController := controller.NewAlbumController()
-	addAlbumRoutes(router, albumController)
-
 	userRepo := repo.NewUserRepo(db)
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 	addUserRoutes(router, userController)
 
 	router.Run("localhost:8080")
-}
-
-func addAlbumRoutes(router *gin.Engine, controller *controller.AlbumController) {
-	router.GET("/albums", func(c *gin.Context) {
-		controller.GetAlbums(c)
-	})
 }
 
 func addUserRoutes(router *gin.Engine, controller *controller.UserController) {
