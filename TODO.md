@@ -2,9 +2,14 @@
 
 ## Authentication
 
-- User log in
-- Some kinda token on Endpoints
-- Access to particular games
+- how do we get https working?
+- authentication endpoint
+  - compares passHash
+  - updates sessions table with new authentication token
+  - returns authentication token
+- all other endpoints expect an authentication bearer token
+- How are we gonna handle permissions?
+  - For now, don't worry about deleting users and games.  That can be done in the console directly.
 
 ## Database
 
@@ -14,34 +19,25 @@
   - connecting MySql workbench (or some other GUI app)
   - a more elegant way of handling errors arising for queries gone awry
 
-## Passing Data to the Server
-
-- Use:
-  - path args (internal requests only, such as getting a player by id)
-  - request bodies (all external requests)
-
-- Avoid:
-  - query params (inconsistencies with encoding and marshalling scare me)
-
 ## Testing
 
 - Scripts for creating test data
 - unit testing
 - integration testing
 
-## Cleanup
-
-- Get rid of all the album crap once we have basic user routes working
-
 ## Between Game Functionality
 
 - Endpoints
+  - Create User
+  - Login
   - Create Lobby
+  - Get Lobbies
   - Join Lobby
   - Leave Lobby
   - Update Game Settings
   - Player Ready
   - Launch Game
+  - Generic Lobby following login screen?
 
 ## During Game Functionality
 
