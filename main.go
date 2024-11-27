@@ -23,6 +23,8 @@ func main() {
 		fmt.Println("Error opening database at {}: {}", DATABASE_FILE, err)
 		return
 	}
+	GRIM_SSL := os.Getenv("GRIM_SSL")
+	fmt.Println("SSL cert and key location: {}", GRIM_SSL)
 
 	router := gin.Default()
 
@@ -33,7 +35,8 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	router.Run("localhost:8080")
+	fmt.Println("Listening for requests on port 8080")
+	router.RunTLS("localhost:8080", GRIM_SSL+"/grim.crt", GRIM_SSL+"/grim.key")
 }
 
 func addSwaggerInfo() {

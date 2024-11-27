@@ -24,6 +24,23 @@ State is stored in a simple sqlite3 database.
 1. Populate the database with some test data.
   `sqlite3 $GRIM_DB < ./sql/create-test-data.sql`
 
+### Generate SSL key and cert
+
+To listen to https instead of just http, we need to generate a cert and key and serve them up.
+This needs to be done outside of the repo, since it obviously shouldn't be committed or shared, and also because it needs to be different for every machine that is running a server.
+
+1. Set the GRIM_SSL environment variable to point to a folder on the server that will contain the crt and key files generated below.
+  Eg: `export GRIM_SSL=$HOME/ssl`
+1. Move into the GRIM_SSL directory and create the cert and key files.
+    1. `cd $GRIM_SSL`
+    1. `openssl genrsa -out grim.key 2048`
+    1. `openssl ecparam -genkey -name secp384r1 -out grim.key`
+    1. `openssl req -new -x509 -sha256 -key grim.key -out grim.crt -days 3650`
+        - Just leave everything blank (default)
+    1. verify that the folder contains 2 files:
+        - `grim.key`
+        - `grim.crt`
+
 ### Run Service
 
 1. Run the app using go.
