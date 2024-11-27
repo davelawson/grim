@@ -2,7 +2,6 @@
 
 ## Authentication
 
-- how do we get https working?
 - authentication endpoint
   - compares passHash
   - updates sessions table with new authentication token

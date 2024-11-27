@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"main/controller"
 	"main/docs"
@@ -15,16 +17,22 @@ import (
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+type config struct {
+	DbLocation string `json:"GRIM_DB"`
+	SslFolder  string `json:"GRIM_SSL"`
+}
+
 func main() {
-	DATABASE_FILE := os.Getenv("GRIM_DB")
-	fmt.Println("Database location: " + DATABASE_FILE)
-	db, err := sql.Open("sqlite3", DATABASE_FILE)
-	if err != nil {
-		fmt.Println("Error opening database at {}: {}", DATABASE_FILE, err)
+	config, configErr := getConfig()
+	if configErr != nil {
+		fmt.Println("Config contains errors.  Aborting launch.", configErr)
 		return
 	}
-	GRIM_SSL := os.Getenv("GRIM_SSL")
-	fmt.Println("SSL cert and key location: {}", GRIM_SSL)
+	db, err := sql.Open("sqlite3", config.DbLocation)
+	if err != nil {
+		fmt.Println("Error opening database at {}: {}", config.DbLocation, err)
+		return
+	}
 
 	router := gin.Default()
 
@@ -35,8 +43,31 @@ func main() {
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	fmt.Println("Listening for requests on port 8080")
-	router.RunTLS("localhost:8080", GRIM_SSL+"/grim.crt", GRIM_SSL+"/grim.key")
+	router.RunTLS("localhost:8080", config.SslFolder+"/grim.crt", config.SslFolder+"/grim.key")
+}
+
+func getConfig() (*config, error) {
+	c := &config{
+		DbLocation: os.Getenv("GRIM_DB"),
+		SslFolder:  os.Getenv("GRIM_SSL"),
+	}
+	json, _ := json.MarshalIndent(*c, "", "  ")
+	fmt.Println("config:")
+	fmt.Println(string(json))
+
+	errorMessage := ""
+	if c.DbLocation == "" {
+		errorMessage += "GRIM_DB environment variable missing"
+	}
+	if c.SslFolder == "" {
+		errorMessage += "GRIM_SSL environment variable missing"
+	}
+
+	if errorMessage == "" {
+		return c, nil
+	} else {
+		return nil, errors.New(errorMessage)
+	}
 }
 
 func addSwaggerInfo() {
