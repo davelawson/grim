@@ -3,7 +3,7 @@ create table users(
   id integer primary key default(uuid()),
   email text not null unique,
   name text not null,
-  password_hash string not null,
+  password_hash binary(32) not null,
   created_at datetime not null default(datetime('now'))
 );
 

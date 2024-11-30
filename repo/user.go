@@ -13,7 +13,7 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 	return &UserRepo{db: db}
 }
 
-func (repo *UserRepo) CreateUser(email string, name string, passwordHash string) error {
+func (repo *UserRepo) CreateUser(email string, name string, passwordHash []byte) error {
 	_, err := repo.db.Exec(
 		"insert into users(email, name, password_hash) values(?, ?, ?)",
 		email, name, passwordHash)

@@ -14,7 +14,11 @@ func NewUserService(userRepo *repo.UserRepo) *UserService {
 	return instance
 }
 
-func (us *UserService) CreateUser(email string, name string, passwordHash string) error {
+func (us *UserService) CreateUser(email string, name string, password string) error {
+	passwordHash, err := Hash(password, email)
+	if err != nil {
+		return err
+	}
 	return us.userRepo.CreateUser(email, name, passwordHash)
 }
 

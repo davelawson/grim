@@ -28,15 +28,23 @@ func main() {
 		fmt.Println("Config contains errors.  Aborting launch.", configErr)
 		return
 	}
+
 	db, err := sql.Open("sqlite3", config.DbLocation)
 	if err != nil {
-		fmt.Println("Error opening database at {}: {}", config.DbLocation, err)
+		fmt.Println("Error opening database at ", config.DbLocation, ": ", err)
 		return
 	}
+
+	// TODO: handle auth tokens generically
 
 	router := gin.Default()
 
 	userRepo := repo.NewUserRepo(db)
+
+	authService := service.NewAuthService(userRepo)
+	authController := controller.NewAuthController(authService)
+	addAuthRoutes(router, authController)
+
 	userService := service.NewUserService(userRepo)
 	userController := controller.NewUserController(userService)
 	addUserRoutes(router, userController)
@@ -76,7 +84,12 @@ func addSwaggerInfo() {
 	docs.SwaggerInfo.Version = "1.0"
 	docs.SwaggerInfo.Host = "localhost"
 	docs.SwaggerInfo.BasePath = "/v2"
-	docs.SwaggerInfo.Schemes = []string{"http", "https"}
+	docs.SwaggerInfo.Schemes = []string{"https"}
+}
+
+func addAuthRoutes(router *gin.Engine, controller *controller.AuthController) {
+	group := router.Group("/login")
+	group.POST("", controller.Login)
 }
 
 func addUserRoutes(router *gin.Engine, controller *controller.UserController) {

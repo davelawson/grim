@@ -18,9 +18,9 @@ type getUserRequest struct {
 }
 
 type createUserRequest struct {
-	Email        string
-	Name         string
-	PasswordHash string
+	Email    string
+	Name     string
+	Password string
 }
 
 func NewUserController(userService *service.UserService) *UserController {
@@ -39,18 +39,18 @@ func NewUserController(userService *service.UserService) *UserController {
 //	@Router			/user/getbyemail [post]
 func (us *UserController) GetUserByEmail(c *gin.Context) {
 	// TODO: find a re-usable way to translate the context into a typed request
-	// TODO: handle errors
 	req := getUserRequest{}
-	fmt.Println("GetUserByEmail(): {}", req)
+	fmt.Println("GetUserByEmail(): ", req)
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
+		// TODO: Make this suck less
 		c.Error(reqErr)
 		return
 	}
 
 	user, err := us.userService.GetUserByEmail(req.Email)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "{}", err)
+		c.String(http.StatusInternalServerError, "Woops", err)
 		return
 	}
 	if user == nil {
@@ -81,7 +81,7 @@ func (us *UserController) CreateUser(c *gin.Context) {
 		return
 	}
 
-	err := us.userService.CreateUser(req.Email, req.Name, req.PasswordHash)
+	err := us.userService.CreateUser(req.Email, req.Name, req.Password)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create user. {}", err)
 	}

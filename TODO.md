@@ -2,25 +2,40 @@
 
 ## Authentication
 
-- authentication endpoint
-  - compares passHash
-  - updates sessions table with new authentication token
-  - returns authentication token
 - all other endpoints expect an authentication bearer token
-- How are we gonna handle permissions?
-  - For now, don't worry about deleting users and games.  That can be done in the console directly.
+- no permissions yet, access to anything is access to everything
+- How can we set up auth token verification in a re-usable manner?  Base controller class?
+
+## Cleanup Logging
+
+- fix calls to fmt.Println()
+  - remove the {}s, those come from another language somewhere
 
 ## Database
 
 - sqlite3
   - how do we handle migration?
+    - on hold for now
   - how do we dump the database?
   - connecting MySql workbench (or some other GUI app)
-  - a more elegant way of handling errors arising for queries gone awry
+
+## Error Handling
+
+- All errors need to result in appropriate http status
+- Ultimately, all errors should only be logged once
+
+## Project structure
+
+- Packages should be for domain concerns, not technology concerns.
+  - Example packages:
+    - user
+    - auth
 
 ## Testing
 
 - Scripts for creating test data
+  - No longer in raw SQL since the addition of the hashes
+  - Need to actually have scripts with curl commands to exercise the end points
 - unit testing
 - integration testing
 
