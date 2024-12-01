@@ -4,19 +4,20 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"main/user"
-	"main/utils"
+	"main/model"
+	"main/util"
 )
 
 type userRepo interface {
-	GetUserByEmail(email string) (*user.User, error)
+	GetUserByEmail(email string) (*model.User, error)
+	GetUserByToken(token string) (*model.User, error)
 }
 
 type Service struct {
-	userRepo *user.Repo
+	userRepo userRepo
 }
 
-func NewService(userRepo *user.Repo) *Service {
+func NewService(userRepo userRepo) *Service {
 	return &Service{userRepo}
 }
 
@@ -33,7 +34,7 @@ func (as *Service) Login(email string, password string) ([]byte, error) {
 		return nil, nil
 	}
 
-	hash, hashErr := utils.Hash(password, email)
+	hash, hashErr := util.Hash(password, email)
 	if hashErr != nil {
 		return nil, hashErr
 	}
@@ -53,6 +54,12 @@ func (as *Service) Login(email string, password string) ([]byte, error) {
 	return token, nil
 }
 
-func (as *Service) VerifyBearerToken(token string) (*user.User, error) {
-	return nil, nil
+func (as *Service) VerifyBearerToken(token string) (*model.User, error) {
+	user, err := as.userRepo.GetUserByToken(token)
+	if user == nil {
+		fmt.Println("Unable to verify auth token ", token)
+	} else {
+		fmt.Println("Verified auth token ", token)
+	}
+	return user, err
 }

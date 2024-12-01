@@ -8,8 +8,13 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
+type authService interface {
+	GetUserByToken(token string)
+}
+
 type Controller struct {
 	userService *Service
+	authService authService
 }
 
 type getUserRequest struct {
@@ -34,7 +39,7 @@ func NewController(userService *Service) *Controller {
 //	@Accept			json
 //	@Produce		json
 //	@Param			request	body		getUserRequest	true	"Request Object"
-//	@Success		200		{object}	User
+//	@Success		200		{object}	model.User
 //	@Router			/user/getbyemail [post]
 func (us *Controller) GetUserByEmail(c *gin.Context) {
 	// TODO: find a re-usable way to translate the context into a typed request

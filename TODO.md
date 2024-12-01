@@ -2,6 +2,7 @@
 
 ## Authentication
 
+- Make sure emails are always lower case.  Controllers will be responsible for making sure of this.
 - No authentication required:
   - create user
   - login

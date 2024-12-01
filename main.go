@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"main/auth"
 	"main/docs"
+	"main/repo"
 	"main/user"
 	"os"
 
@@ -37,7 +38,7 @@ func main() {
 	// TODO: handle auth tokens generically
 	router := gin.Default()
 
-	userRepo := user.NewRepo(db)
+	userRepo := repo.NewUserRepo(db)
 
 	authService := auth.NewService(userRepo)
 	authController := auth.NewController(authService)
