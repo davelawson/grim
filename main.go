@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"main/controller"
+	"main/auth"
 	"main/docs"
-	"main/repo"
-	"main/service"
+	"main/user"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -39,14 +38,14 @@ func main() {
 
 	router := gin.Default()
 
-	userRepo := repo.NewUserRepo(db)
+	userRepo := user.NewRepo(db)
 
-	authService := service.NewAuthService(userRepo)
-	authController := controller.NewAuthController(authService)
+	authService := auth.NewService(userRepo)
+	authController := auth.NewController(authService)
 	addAuthRoutes(router, authController)
 
-	userService := service.NewUserService(userRepo)
-	userController := controller.NewUserController(userService)
+	userService := user.NewService(userRepo)
+	userController := user.NewController(userService)
 	addUserRoutes(router, userController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -87,12 +86,12 @@ func addSwaggerInfo() {
 	docs.SwaggerInfo.Schemes = []string{"https"}
 }
 
-func addAuthRoutes(router *gin.Engine, controller *controller.AuthController) {
+func addAuthRoutes(router *gin.Engine, controller *auth.Controller) {
 	group := router.Group("/login")
 	group.POST("", controller.Login)
 }
 
-func addUserRoutes(router *gin.Engine, controller *controller.UserController) {
+func addUserRoutes(router *gin.Engine, controller *user.Controller) {
 	group := router.Group("/user")
 	group.POST("", controller.CreateUser)
 

@@ -1,26 +1,27 @@
-package service
+package auth
 
 import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"main/model"
+	"main/user"
+	"main/utils"
 )
 
-type userRepo interface {
-	GetUserByEmail(email string) (*model.User, error)
+// type userRepo interface {
+// 	GetUserByEmail(email string) (*user.User, error)
+// }
+
+type Service struct {
+	userRepo *user.Repo
 }
 
-type AuthService struct {
-	userRepo userRepo
-}
-
-func NewAuthService(userRepo userRepo) *AuthService {
-	return &AuthService{userRepo}
+func NewService(userRepo *user.Repo) *Service {
+	return &Service{userRepo}
 }
 
 // Always use lower-case for emails
-func (as *AuthService) Login(email string, password string) ([]byte, error) {
+func (as *Service) Login(email string, password string) ([]byte, error) {
 	user, err := as.userRepo.GetUserByEmail(email)
 	if err != nil {
 		// TODO: Bubble up the error -- should probably result in an InternalServerError
@@ -32,7 +33,7 @@ func (as *AuthService) Login(email string, password string) ([]byte, error) {
 		return nil, nil
 	}
 
-	hash, hashErr := Hash(password, email)
+	hash, hashErr := utils.Hash(password, email)
 	if hashErr != nil {
 		return nil, hashErr
 	}
@@ -52,6 +53,6 @@ func (as *AuthService) Login(email string, password string) ([]byte, error) {
 	return token, nil
 }
 
-func (as *AuthService) VerifyBearerToken(token string) (*model.User, error) {
+func (as *Service) VerifyBearerToken(token string) (*user.User, error) {
 	return nil, nil
 }

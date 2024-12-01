@@ -1,16 +1,15 @@
-package controller
+package auth
 
 import (
 	"fmt"
-	"main/service"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
 )
 
-type AuthController struct {
-	authService *service.AuthService
+type Controller struct {
+	authService *Service
 }
 
 type loginRequest struct {
@@ -22,8 +21,8 @@ type loginResponse struct {
 	Token []byte
 }
 
-func NewAuthController(authService *service.AuthService) *AuthController {
-	return &AuthController{authService: authService}
+func NewController(authService *Service) *Controller {
+	return &Controller{authService: authService}
 }
 
 // Login godoc
@@ -36,7 +35,7 @@ func NewAuthController(authService *service.AuthService) *AuthController {
 //	@Param			request	body		loginRequest	true	"Request Object"
 //	@Success		200		{object}	loginResponse
 //	@Router			/login [post]
-func (ac *AuthController) Login(c *gin.Context) {
+func (ac *Controller) Login(c *gin.Context) {
 	req := loginRequest{}
 	fmt.Println("Login(): {}", req)
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
