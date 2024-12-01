@@ -8,9 +8,9 @@ import (
 	"main/utils"
 )
 
-// type userRepo interface {
-// 	GetUserByEmail(email string) (*user.User, error)
-// }
+type userRepo interface {
+	GetUserByEmail(email string) (*user.User, error)
+}
 
 type Service struct {
 	userRepo *user.Repo
@@ -25,7 +25,7 @@ func (as *Service) Login(email string, password string) ([]byte, error) {
 	user, err := as.userRepo.GetUserByEmail(email)
 	if err != nil {
 		// TODO: Bubble up the error -- should probably result in an InternalServerError
-		fmt.Println("Error getting user by email: {} -> {}", err, email)
+		fmt.Println("Error getting user by email: ", err, " -> ", email)
 		return nil, err
 	}
 

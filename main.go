@@ -35,7 +35,6 @@ func main() {
 	}
 
 	// TODO: handle auth tokens generically
-
 	router := gin.Default()
 
 	userRepo := user.NewRepo(db)
