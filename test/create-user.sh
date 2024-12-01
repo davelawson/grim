@@ -1,9 +1,11 @@
 #!/bin/bash
 echo This request should create a user
-curl -X POST -H 'Content-Type: application/json' \
-  -d '{
-    "email": "new_bob@aol.com",
+curl -X POST \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {$GRIM_TOKEN}'
+-d '{
+    "email": "bob@aol.com",
     "name": "bob loblaw",
-    "password_hash": "asdf"
+    "password": "password123"
   }' \
   localhost:8080/user

@@ -4,16 +4,18 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"main/repo"
-
-	"golang.org/x/crypto/scrypt"
+	"main/model"
 )
 
-type AuthService struct {
-	userRepo *repo.UserRepo
+type userRepo interface {
+	GetUserByEmail(email string) (*model.User, error)
 }
 
-func NewAuthService(userRepo *repo.UserRepo) *AuthService {
+type AuthService struct {
+	userRepo userRepo
+}
+
+func NewAuthService(userRepo userRepo) *AuthService {
 	return &AuthService{userRepo}
 }
 
@@ -50,13 +52,6 @@ func (as *AuthService) Login(email string, password string) ([]byte, error) {
 	return token, nil
 }
 
-func Hash(password string, salt string) ([]byte, error) {
-	saltBytes := []byte(salt)
-	hash, err := scrypt.Key([]byte(password), saltBytes, 32768, 8, 1, 32)
-	if err != nil {
-		fmt.Println("Error generating hash: {}", err)
-		return nil, err
-	}
-	fmt.Println("Hash successfully generated: {}", string(hash))
-	return hash, nil
+func (as *AuthService) VerifyBearerToken(token string) (*model.User, error) {
+	return nil, nil
 }

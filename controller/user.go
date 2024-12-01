@@ -40,8 +40,8 @@ func NewUserController(userService *service.UserService) *UserController {
 func (us *UserController) GetUserByEmail(c *gin.Context) {
 	// TODO: find a re-usable way to translate the context into a typed request
 	req := getUserRequest{}
-	fmt.Println("GetUserByEmail(): ", req)
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
+	fmt.Println("GetUserByEmail(): ", req)
 	if reqErr != nil {
 		// TODO: Make this suck less
 		c.Error(reqErr)

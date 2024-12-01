@@ -2,9 +2,21 @@
 
 ## Authentication
 
-- all other endpoints expect an authentication bearer token
-- no permissions yet, access to anything is access to everything
-- How can we set up auth token verification in a re-usable manner?  Base controller class?
+- No authentication required:
+  - create user
+  - login
+- Authentication required:
+  - everything else
+- Verifying bearer token
+  - Some kinda controller that handles it automatically?
+  - Should probably be route by route
+
+## Permissions
+
+- What would permissions handle?
+  - lobby powers
+  - terminating game
+  - game participation
 
 ## Cleanup Logging
 
@@ -23,13 +35,6 @@
 
 - All errors need to result in appropriate http status
 - Ultimately, all errors should only be logged once
-
-## Project structure
-
-- Packages should be for domain concerns, not technology concerns.
-  - Example packages:
-    - user
-    - auth
 
 ## Testing
 
