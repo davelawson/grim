@@ -18,11 +18,6 @@
   - terminating game
   - game participation
 
-## Cleanup Logging
-
-- fix calls to fmt.Println()
-  - remove the {}s, those come from another language somewhere
-
 ## Database
 
 - sqlite3
