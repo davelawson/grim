@@ -3,8 +3,9 @@ create table users(
   id integer primary key default(uuid()),
   email text not null unique,
   name text not null,
-  password_hash binary(32) not null,
-  created_at datetime not null default(datetime('now'))
+  password_hash binary(44) not null,
+  created_at datetime not null default(datetime('now')),
+  token text default(null)
 );
 
 drop table if exists matches;

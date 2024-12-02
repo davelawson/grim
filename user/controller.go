@@ -2,6 +2,9 @@ package user
 
 import (
 	"fmt"
+	"main/model"
+	"main/model/api"
+	"main/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +12,7 @@ import (
 )
 
 type authService interface {
-	GetUserByToken(token string)
+	VerifyBearerToken(token string) (*model.User, error)
 }
 
 type Controller struct {
@@ -17,38 +20,41 @@ type Controller struct {
 	authService authService
 }
 
-type getUserRequest struct {
-	Email string
-}
-
-type createUserRequest struct {
-	Email    string
-	Name     string
-	Password string
-}
-
-func NewController(userService *Service) *Controller {
-	return &Controller{userService: userService}
+func NewController(userService *Service, authService authService) *Controller {
+	return &Controller{
+		userService: userService,
+		authService: authService,
+	}
 }
 
 // GetUserByEmail godoc
 //
 //	@Summary		Get user by email
 //	@Description	Lookup a specific user by email
+//	@Security ApiKeyAuth
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		getUserRequest	true	"Request Object"
-//	@Success		200		{object}	model.User
+//	@Param			request	body		api.GetUserRequest	true	"Request Object"
+//	@Success		200		{object}	api.GetUserResponse
 //	@Router			/user/getbyemail [post]
 func (us *Controller) GetUserByEmail(c *gin.Context) {
+	// TODO: Extract this auth block to a reusable chunk of code
+	reqUser, authErr := us.authService.VerifyBearerToken(util.GetBearerToken(c))
+	if authErr != nil {
+		c.String(http.StatusInternalServerError, "Unable to verify validity of authentication token", authErr)
+		return
+	}
+	if reqUser == nil {
+		c.String(http.StatusUnauthorized, "Bad or missing authentication token")
+		return
+	}
 	// TODO: find a re-usable way to translate the context into a typed request
-	req := getUserRequest{}
+	req := api.GetUserRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("GetUserByEmail(): ", req)
 	if reqErr != nil {
-		// TODO: Make this suck less
-		c.Error(reqErr)
+		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
 		return
 	}
 
@@ -62,7 +68,9 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	resp := api.GetUserResponse{User: api.NewUser(user)}
+
+	c.JSON(http.StatusOK, resp)
 }
 
 // CreateUser godoc
@@ -72,12 +80,12 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 //	@Tags			user
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body	createUserRequest	true	"Request Object"
+//	@Param			request	body	api.CreateUserRequest	true	"Request Object"
 //	@Success		200
 //	@Router			/user [post]
 func (us *Controller) CreateUser(c *gin.Context) {
-	req := createUserRequest{}
-	fmt.Println("CreateUser(): {}", req)
+	req := api.CreateUserRequest{}
+	fmt.Println("CreateUser(): ", req)
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Invalid request body")

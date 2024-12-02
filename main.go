@@ -22,6 +22,9 @@ type config struct {
 	SslFolder  string `json:"GRIM_SSL"`
 }
 
+// @SecurityDefinitions.apiKey ApiKeyAuth
+// @in header
+// @name Authorization
 func main() {
 	config, configErr := getConfig()
 	if configErr != nil {
@@ -45,7 +48,7 @@ func main() {
 	addAuthRoutes(router, authController)
 
 	userService := user.NewService(userRepo)
-	userController := user.NewController(userService)
+	userController := user.NewController(userService, authService)
 	addUserRoutes(router, userController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))

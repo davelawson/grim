@@ -8,6 +8,7 @@ import (
 type userRepo interface {
 	CreateUser(email string, name string, passwordHash []byte) error
 	GetUserByEmail(email string) (*model.User, error)
+	GetUserByToken(token string) (*model.User, error)
 }
 
 type Service struct {
@@ -29,5 +30,10 @@ func (us *Service) CreateUser(email string, name string, password string) error 
 
 func (us *Service) GetUserByEmail(email string) (*model.User, error) {
 	user, err := us.userRepo.GetUserByEmail(email)
+	return user, err
+}
+
+func (us *Service) GetUserByToken(token string) (*model.User, error) {
+	user, err := us.userRepo.GetUserByToken(token)
 	return user, err
 }

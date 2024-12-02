@@ -5,4 +5,5 @@ type User struct {
 	Name         string
 	Email        string
 	PasswordHash []byte
+	Token        string
 }

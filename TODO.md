@@ -9,8 +9,7 @@
 - Authentication required:
   - everything else
 - Verifying bearer token
-  - Some kinda controller that handles it automatically?
-  - Should probably be route by route
+  - Clean this up to be more easily re-used
 
 ## Permissions
 
@@ -31,6 +30,7 @@
     - on hold for now
   - how do we dump the database?
   - connecting MySql workbench (or some other GUI app)
+- implement some kinda caching
 
 ## Error Handling
 

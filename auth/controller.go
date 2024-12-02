@@ -2,6 +2,7 @@ package auth
 
 import (
 	"fmt"
+	"main/model/api"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,15 +11,6 @@ import (
 
 type Controller struct {
 	authService *Service
-}
-
-type loginRequest struct {
-	Email    string
-	Password string
-}
-
-type loginResponse struct {
-	Token []byte
 }
 
 func NewController(authService *Service) *Controller {
@@ -32,13 +24,13 @@ func NewController(authService *Service) *Controller {
 //	@Tags			login
 //	@Accept			json
 //	@Produce		json
-//	@Param			request	body		loginRequest	true	"Request Object"
-//	@Success		200		{object}	loginResponse
+//	@Param			request	body		api.LoginRequest	true	"Request Object"
+//	@Success		200		{object}	api.LoginResponse
 //	@Router			/login [post]
 func (ac *Controller) Login(c *gin.Context) {
-	req := loginRequest{}
-	fmt.Println("Login(): {}", req)
+	req := api.LoginRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
+	fmt.Println("Login(): ", req)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Invalid JSON")
 		return
@@ -46,14 +38,14 @@ func (ac *Controller) Login(c *gin.Context) {
 
 	bearerToken, authErr := ac.authService.Login(req.Email, req.Password)
 	if authErr != nil {
-		fmt.Println("InternalServerError detected: {}", authErr)
+		fmt.Println("InternalServerError detected: ", authErr)
 		c.String(http.StatusInternalServerError, "Something went wrong!")
 		return
 	}
-	if bearerToken == nil {
+	if bearerToken == "" {
 		c.String(http.StatusUnauthorized, "Bad user name or password")
 		return
 	}
-	resp := &loginResponse{Token: bearerToken}
+	resp := &api.LoginResponse{Token: bearerToken}
 	c.JSON(http.StatusOK, resp)
 }
