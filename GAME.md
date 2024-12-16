@@ -76,33 +76,25 @@ A cost that must be played by the end every turn, or the card will be discarded.
 All cards fall into one of the below categories.  Some of those categories are then further divided into subcategories.  The category of a card determines the parameters that can be present on the card, and the general template.
 In addition to parameters, any card can include text that doesn't necessarily conform to any category rules.
 
-### Wizard
-
-The Wizard card is picked at the beginning, and never drawn from the deck.  It remains in play for the entirety of the game, and provides a baseline magical aptitude and resource generation.
-
-Parameters:
-
-- Magical affinities
-- Wis income
-- Wealth income
-
 ### Assets
 
-Cards that once played, tend to remain in play.  Assets tend to provide affinities and generate resources.
+Cards that, once played, tend to remain in play, providing benefits to the wizard.  Assets tend to provide affinities and generate resources.
 
 #### Minions
 
 Minions are assets that represent loyal followers that are able to undertake challenges on behalf of the wizard.
+Minions can become exhausted.  When exhausted, their upkeep must still be paid, but they are unable to attempt challenges, or provide affinities to the wizard.
+A common way for minions to become exhausted is to undertake a challenge.  Another way is to suffer injury.
 
 Parameters:
 
-- Cost: resources that are expended, and affinities that are satisfied, before the minion can be recruited
-- Wage: resources that need to be expected at the end of each turn to prevent the minion from abandoning the wizard
-- Attributes
+- Upkeep: resources that must be paid at the end of each turn, or the minion is discarded
+- Attributes (typical range 0-3)
   - Might: capacity for physical violence
   - Charm: ability to exert social influence
   - Acuity: aptitude for noticing things and unravelling mysteries
-  - Magic: facility wielding and understanding magical phenomena
+  - Essence: facility wielding and understanding magical phenomena
+- Affinities: a set of domains the minion is familiar with
 
 #### Artefacts
 
@@ -160,7 +152,7 @@ The collaborate activity allows the wizard to generate rumours and opportunities
 
 ### Obstacles
 
-Obstacle cards are automatically played at the start of the turn, when found in the wizard's hand.  Obstacle cards are cards that serve to disrupt the wizard.  Some obstacles simply occupy handspace, limiting a wizards options.  Other obstacles remain in play and impede the wizard over a longer period of time.  Many obstacles include a challenge, that when overcome, results in the obstacle's destruction.
+Obstacle cards are automatically played at the start of the turn, when found in the wizard's hand.  Obstacle cards are cards that serve to disrupt the wizard.  Some obstacles simply occupy hand space, limiting a wizards options.  Other obstacles remain in play and impede the wizard over a longer period of time.  Many obstacles include a challenge, that when overcome, results in the obstacle's destruction.
 
 ## Deck Construction
 
@@ -181,3 +173,13 @@ You simply start with a preset collection of cards.
 ### Meta
 
 Many of the initial cards create other cards, giving the player an opportunity to tailor their deck.  This concept doesn't work super well if we are playing only a turn every x amount of time.
+
+## Aspects and Affinities
+
+Does it make sense to have opposed affinities?  For instance City vs Remote, or Holy vs Demonic?  Sending a demon to attempt a negotiation challenge with a priest might be impossible.
+
+## Notes To Incorporate
+
+- When drafting at the start, one of the selections will be for a chantry location.  A chantry is a location that generates wis income.
+- When performing many types of actions that involve magic, playing additional spell cards allows you to inform the results of the action.
+- When attempting a challenge, how do we add randomness to the result without screwing the player?

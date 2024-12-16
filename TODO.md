@@ -9,7 +9,7 @@
 - Authentication required:
   - everything else
 - Verifying bearer token
-  - Clean this up to be more easily re-used
+  - Clean this up to be more easily re-used (wait until we have at least 2 routes using it)
 
 ## Permissions
 
@@ -27,11 +27,6 @@
   - connecting MySql workbench (or some other GUI app)
 - implement some kinda caching
 
-## Error Handling
-
-- All errors need to result in appropriate http status
-- Ultimately, all errors should only be logged once
-
 ## Testing
 
 - Scripts for creating test data
@@ -43,12 +38,22 @@
 ## Between Game Functionality
 
 - Endpoints
-  - Create User
-  - Login
-  - Create Lobby
-  - Get Lobbies
-  - Join Lobby
-  - Leave Lobby
+  - Implemented
+    - Create User
+    - Login
+  - Upcoming
+    - Lobby
+      - Create
+      - Join
+      - Delete
+      - Leave
+      - Get
+        - My Lobbies
+        - Search by lobby name
+        - Search by participant
+    - Game
+      - Launch
+    - Get Lobbies
   - Update Game Settings
   - Player Ready
   - Launch Game
