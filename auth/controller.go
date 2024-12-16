@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"main/model/api"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -36,6 +37,7 @@ func (ac *Controller) Login(c *gin.Context) {
 		return
 	}
 
+	req.Email = strings.ToLower(req.Email)
 	bearerToken, authErr := ac.authService.Login(req.Email, req.Password)
 	if authErr != nil {
 		fmt.Println("InternalServerError detected: ", authErr)

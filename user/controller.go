@@ -6,6 +6,7 @@ import (
 	"main/model/api"
 	"main/util"
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -57,6 +58,7 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
 		return
 	}
+	req.Email = strings.ToLower(req.Email)
 
 	user, err := us.userService.GetUserByEmail(req.Email)
 	if err != nil {
@@ -92,6 +94,7 @@ func (us *Controller) CreateUser(c *gin.Context) {
 		c.Error(reqErr)
 		return
 	}
+	req.Email = strings.ToLower(req.Email)
 
 	err := us.userService.CreateUser(req.Email, req.Name, req.Password)
 	if err != nil {
