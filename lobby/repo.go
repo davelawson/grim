@@ -28,6 +28,15 @@ func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*Lob
 	return repo.scanLobby(row)
 }
 
+func (repo *LobbyRepo) DeleteLobby(lobbyId string, ownerId string) (int, error) {
+	result, err := repo.db.Exec("delete from lobbies where id = ? and owner_id = ?", lobbyId, ownerId)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), err
+}
+
 func (repo *LobbyRepo) scanLobby(row *sql.Row) (*Lobby, error) {
 	lobby := Lobby{}
 	err := row.Scan(&lobby.Id, &lobby.Name, &lobby.Owner)

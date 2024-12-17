@@ -8,6 +8,10 @@ type CreateLobbyResponse struct {
 	Id string
 }
 
+type DeleteLobbyRequest struct {
+	Id string
+}
+
 type Lobby struct {
 	Id    string
 	Name  string

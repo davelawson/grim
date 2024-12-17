@@ -25,17 +25,15 @@ func NewController(userService *Service) *Controller {
 	}
 }
 
-// GetUserByEmail godoc
-//
-//	@Summary		Get user by email
-//	@Description	Lookup a specific user by email
-//	@Security ApiKeyAuth
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body		api.GetUserRequest	true	"Request Object"
-//	@Success		200		{object}	api.GetUserResponse
-//	@Router			/user/getbyemail [post]
+// @Summary		Get user by email
+// @Description	Lookup a specific user by email
+// @Security ApiKeyAuth
+// @Tags			user
+// @Accept			json
+// @Produce		json
+// @Param			request	body		api.GetUserRequest	true	"Request Object"
+// @Success		200		{object}	api.GetUserResponse
+// @Router			/user/getbyemail [post]
 func (us *Controller) GetUserByEmail(c *gin.Context) {
 	// TODO: find a re-usable way to translate the context into a typed request
 	req := api.GetUserRequest{}
@@ -62,16 +60,14 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-// CreateUser godoc
-//
-//	@Summary		Create user
-//	@Description	Create a new user
-//	@Tags			user
-//	@Accept			json
-//	@Produce		json
-//	@Param			request	body	api.CreateUserRequest	true	"Request Object"
-//	@Success		200
-//	@Router			/user [post]
+// @Summary		Create user
+// @Description	Create a new user
+// @Tags			user
+// @Accept			json
+// @Produce		json
+// @Param			request	body	api.CreateUserRequest	true	"Request Object"
+// @Success		200
+// @Router			/user [post]
 func (us *Controller) CreateUser(c *gin.Context) {
 	req := api.CreateUserRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
