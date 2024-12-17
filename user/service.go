@@ -16,8 +16,7 @@ type Service struct {
 }
 
 func NewService(userRepo userRepo) *Service {
-	instance := &Service{userRepo: userRepo}
-	return instance
+	return &Service{userRepo: userRepo}
 }
 
 func (us *Service) CreateUser(email string, name string, password string) error {

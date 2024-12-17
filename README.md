@@ -51,6 +51,21 @@ This needs to be done outside of the repo, since it obviously shouldn't be commi
 
 Currently, testing is extremely sparse.  There are a shell script files in the test folder that can be run, but they may require some hand holding, such as resetting the database before each run.
 
+#### cURL
+
+Since everything is behind a simple web RESTful web server, we can use cURL to exercise endpoints.  Many endpoints require an authentication token, which can be obtained by calling the /login endpoint.
+The web server is currently using a self-signed certificate, so curl will refuse unless the `-k` argument is provided.
+Here is an example of a command to query a user:
+`
+curl -X 'POST' \
+  'https://localhost:8080/user/getbyemail' \
+  -H 'accept: application/json' \
+  -H 'Authorization: wymKUm3TEyDb+UBtuYS31fEP/B+fup6zK2KcQrVY3ls=' \
+  -H 'Content-Type: application/json' \
+  -d '{
+  "email": "tim@aol.com"
+}'`
+
 ### Swagger
 
 End points are documented using a swagger interface.  This also allows manual testing of the end points.

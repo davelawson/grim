@@ -3,6 +3,8 @@ package repo
 import (
 	"database/sql"
 	"main/model"
+
+	uuid "github.com/google/uuid"
 )
 
 type UserRepo struct {
@@ -15,8 +17,8 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 
 func (repo *UserRepo) CreateUser(email string, name string, passwordHash []byte) error {
 	_, err := repo.db.Exec(
-		"insert into users(email, name, password_hash) values(?, ?, ?)",
-		email, name, passwordHash)
+		"insert into users(id, email, name, password_hash) values(?, ?, ?, ?)",
+		uuid.New().String(), email, name, passwordHash)
 	return err
 }
 

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"main/model"
 	"main/model/api"
-	"main/util"
 	"net/http"
 	"strings"
 
@@ -18,13 +17,11 @@ type authService interface {
 
 type Controller struct {
 	userService *Service
-	authService authService
 }
 
-func NewController(userService *Service, authService authService) *Controller {
+func NewController(userService *Service) *Controller {
 	return &Controller{
 		userService: userService,
-		authService: authService,
 	}
 }
 
@@ -40,16 +37,6 @@ func NewController(userService *Service, authService authService) *Controller {
 //	@Success		200		{object}	api.GetUserResponse
 //	@Router			/user/getbyemail [post]
 func (us *Controller) GetUserByEmail(c *gin.Context) {
-	// TODO: Extract this auth block to a reusable chunk of code
-	reqUser, authErr := us.authService.VerifyBearerToken(util.GetBearerToken(c))
-	if authErr != nil {
-		c.String(http.StatusInternalServerError, "Unable to verify validity of authentication token", authErr)
-		return
-	}
-	if reqUser == nil {
-		c.String(http.StatusUnauthorized, "Bad or missing authentication token")
-		return
-	}
 	// TODO: find a re-usable way to translate the context into a typed request
 	req := api.GetUserRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
@@ -87,7 +74,6 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 //	@Router			/user [post]
 func (us *Controller) CreateUser(c *gin.Context) {
 	req := api.CreateUserRequest{}
-	fmt.Println("CreateUser(): ", req)
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Invalid request body")
@@ -95,6 +81,7 @@ func (us *Controller) CreateUser(c *gin.Context) {
 		return
 	}
 	req.Email = strings.ToLower(req.Email)
+	fmt.Println("CreateUser(): ", req)
 
 	err := us.userService.CreateUser(req.Email, req.Name, req.Password)
 	if err != nil {

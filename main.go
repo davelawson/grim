@@ -7,8 +7,12 @@ import (
 	"fmt"
 	"main/auth"
 	"main/docs"
+	"main/lobby"
+	"main/model"
 	"main/repo"
 	"main/user"
+	"main/util"
+	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -20,6 +24,10 @@ import (
 type config struct {
 	DbLocation string `json:"GRIM_DB"`
 	SslFolder  string `json:"GRIM_SSL"`
+}
+
+type authService interface {
+	VerifyBearerToken(token string) (*model.User, error)
 }
 
 // @SecurityDefinitions.apiKey ApiKeyAuth
@@ -42,14 +50,19 @@ func main() {
 	router := gin.Default()
 
 	userRepo := repo.NewUserRepo(db)
+	lobbyRepo := lobby.NewLobbyRepo(db)
 
 	authService := auth.NewService(userRepo)
 	authController := auth.NewController(authService)
 	addAuthRoutes(router, authController)
 
 	userService := user.NewService(userRepo)
-	userController := user.NewController(userService, authService)
-	addUserRoutes(router, userController)
+	userController := user.NewController(userService)
+	addUserRoutes(authService, router, userController)
+
+	lobbyService := lobby.NewService(lobbyRepo)
+	lobbyController := lobby.NewController(lobbyService)
+	addLobbyRoutes(authService, router, lobbyController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -94,10 +107,33 @@ func addAuthRoutes(router *gin.Engine, controller *auth.Controller) {
 	group.POST("", controller.Login)
 }
 
-func addUserRoutes(router *gin.Engine, controller *user.Controller) {
+func addUserRoutes(authService authService, router *gin.Engine, controller *user.Controller) {
 	group := router.Group("/user")
 	group.POST("", controller.CreateUser)
 
 	group = router.Group("/user/getbyemail")
-	group.POST("", controller.GetUserByEmail)
+	group.POST("", createAuthedHandler(authService, controller.GetUserByEmail))
+}
+
+func addLobbyRoutes(authService authService, router *gin.Engine, controller *lobby.Controller) {
+	group := router.Group("/lobby")
+	group.POST("", createAuthedHandler(authService, controller.CreateLobby))
+	group.DELETE("", createAuthedHandler(authService, controller.DeleteLobby))
+	group.GET("", createAuthedHandler(authService, controller.GetLobby))
+}
+
+func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
+	return func(c *gin.Context) {
+		reqUser, authErr := authService.VerifyBearerToken(util.GetBearerToken(c))
+		if authErr != nil {
+			c.String(http.StatusInternalServerError, "Invalid authentication token", authErr)
+			return
+		}
+		if reqUser == nil {
+			c.String(http.StatusUnauthorized, "Bad or missing authentication token")
+			return
+		}
+		c.Set("reqUser", reqUser)
+		handler(c)
+	}
 }
