@@ -23,6 +23,11 @@ func (repo *LobbyRepo) CreateLobby(name string, ownerId string) (string, error) 
 	return newUuid.String(), nil
 }
 
+func (repo *LobbyRepo) GetLobby(id string) (*Lobby, error) {
+	row := repo.db.QueryRow("select id, name, owner_id from lobbies where id = ?", id)
+	return repo.scanLobby(row)
+}
+
 func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*Lobby, error) {
 	row := repo.db.QueryRow("select uuid, name, owner from lobbies where name = ? and owner_id = ?", name, ownerId)
 	return repo.scanLobby(row)

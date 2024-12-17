@@ -1,6 +1,7 @@
 package lobby
 
 import (
+	"fmt"
 	"main/model"
 	"net/http"
 
@@ -78,5 +79,33 @@ func (ac *Controller) DeleteLobby(c *gin.Context) {
 	c.Status(http.StatusOK)
 }
 
+// @Summary		Get a lobby
+// @Description    Gets a lobby.
+// @Security ApiKeyAuth
+// @Tags			lobby
+// @Accept			json
+// @Param			request	body		lobby.GetLobbyRequest	true	"Request Object"
+// @Success		200		{object}	lobby.GetLobbyResponse
+// @Router			/lobby/getbyid [post]
 func (ac *Controller) GetLobby(c *gin.Context) {
+	// TODO: find a re-usable way to translate the context into a typed request
+	req := GetLobbyRequest{}
+	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
+	fmt.Println("GetLobby(): ", req)
+	if reqErr != nil {
+		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
+		return
+	}
+
+	lobby, err := ac.lobbyService.GetLobby(req.Id)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Woops", err)
+		return
+	}
+	if lobby == nil {
+		c.String(http.StatusNotFound, "Lobby not found")
+		return
+	}
+	resp := GetLobbyResponse{Lobby: *lobby}
+	c.JSON(http.StatusOK, resp)
 }

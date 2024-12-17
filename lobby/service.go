@@ -23,3 +23,7 @@ func (ls *Service) DeleteLobby(lobbyId string, userId string) (bool, error) {
 	rows, err := ls.repo.DeleteLobby(lobbyId, userId)
 	return rows >= 1, err
 }
+
+func (ls *Service) GetLobby(id string) (*Lobby, error) {
+	return ls.repo.GetLobby(id)
+}

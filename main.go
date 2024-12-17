@@ -119,7 +119,7 @@ func addLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 	group := router.Group("/lobby")
 	group.POST("", createAuthedHandler(authService, controller.CreateLobby))
 	group.DELETE("", createAuthedHandler(authService, controller.DeleteLobby))
-	group.GET("", createAuthedHandler(authService, controller.GetLobby))
+	group.POST("/getbyid", createAuthedHandler(authService, controller.GetLobby))
 }
 
 func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
