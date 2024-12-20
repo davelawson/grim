@@ -40,7 +40,7 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite3", config.DbLocation)
+	db, err := sql.Open("sqlite3", config.DbLocation+"?_foreign_keys=on")
 	if err != nil {
 		fmt.Println("Error opening database at ", config.DbLocation, ": ", err)
 		return
