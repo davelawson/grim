@@ -1,5 +1,7 @@
 package lobby
 
+import "errors"
+
 type userRepo interface {
 	GetUserByUUID(uuid string)
 }
@@ -31,9 +33,31 @@ func (ls *Service) CreateLobby(name string, userId string) (string, error) {
 	return lobbyId, err
 }
 
-func (ls *Service) DeleteLobby(lobbyId string, userId string) (bool, error) {
+type DeleteLobbyErrorsType struct {
+	NotFound error
+}
+
+var DeleteLobbyErrors = DeleteLobbyErrorsType{
+	NotFound: errors.New("user does not own a lobby with the specified id"),
+}
+
+func (ls *Service) DeleteLobby(lobbyId string, userId string) error {
 	rows, err := ls.repo.DeleteLobby(lobbyId, userId)
-	return rows >= 1, err
+	if err != nil {
+		return err
+	}
+	if rows == 0 {
+		return DeleteLobbyErrors.NotFound
+	}
+	return nil
+}
+
+type GetLobbyErrorsType struct {
+	NotFound error
+}
+
+var GetLobbyErrors = GetLobbyErrorsType{
+	NotFound: errors.New("no lobby found with the specified id"),
 }
 
 func (ls *Service) GetLobby(id string) (*Lobby, error) {
@@ -41,10 +65,13 @@ func (ls *Service) GetLobby(id string) (*Lobby, error) {
 	if err != nil {
 		return nil, err
 	} else if lobby == nil {
-		return nil, nil
+		return nil, GetLobbyErrors.NotFound
 	}
 
 	members, err := ls.repo.GetLobbyMembers(id)
+	if err != nil {
+		return nil, err
+	}
 	lobby.Members = members
 	return lobby, err
 }

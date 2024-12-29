@@ -1,5 +1,29 @@
 # SHIT THAT NEEDS DOING
 
+## CURRENT
+
+### Strictly segregate concerns between Lobby Controller and Lobby Service
+
+### Move to using path params for Lobby controller stuffs
+
+## Cleaning up Lobby-Related Endpoints
+
+### Controller responsibility
+
+Controllers should only be responsible for the http-related concerns of the web server.  More precisely:
+
+- Extract path args
+- Receive and convert Request bodies
+- Map underlying errors to Http codes
+- Generate http response
+- Invoke the responsible service
+
+### Service responsibility
+
+- Transaction management
+  - We need to achieve this at the top level of the service, so we don't have multiple transactions when services invoke one another
+  - All the rest of the business logic
+
 ## DB SHIT
 
 - Atomicity of Operation
@@ -8,12 +32,6 @@
 ## Robust Endpoint Logging
 
 - We need a generic way of logging requests, including token, request user, URL and method, and request body.
-
-## Error Handling
-
-- Controllers *sole* responsibility shall be as an adapter for the http layer.
-  - Controllers will extract params and args, bundle responses, and map errors, but nothing else.
-  - Services shall return custom errors in some kinda way that allow for the controllers to map the correct http results.
 
 ## OOP Stuffs
 

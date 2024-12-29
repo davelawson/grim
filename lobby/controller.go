@@ -1,6 +1,7 @@
 package lobby
 
 import (
+	"errors"
 	"fmt"
 	"main/model"
 	"net/http"
@@ -55,7 +56,6 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 // @Description    Deletes a lobby.  The lobby must belong to the user sending the request.
 // @Security ApiKeyAuth
 // @Tags			lobby
-// @Accept			json
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id} [delete]
@@ -63,13 +63,16 @@ func (ac *Controller) DeleteLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
-	lobbyDeleted, err := ac.lobbyService.DeleteLobby(lobbyId, reqUser.Id)
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to delete lobby. ", err)
+	fmt.Println("DeleteLobby(): ", lobbyId)
+	err := ac.lobbyService.DeleteLobby(lobbyId, reqUser.Id)
+	if errors.Is(err, DeleteLobbyErrors.NotFound) {
+		c.String(http.StatusNotFound, "Unable to process request: %v", err)
+		return
+	} else if err != nil {
+		c.String(http.StatusInternalServerError, "Unable to process request: %v", err)
+		return
 	}
-	if !lobbyDeleted {
-		c.String(http.StatusNotFound, "Unable to find lobby to delete")
-	}
+
 	c.Status(http.StatusOK)
 }
 
@@ -77,29 +80,22 @@ func (ac *Controller) DeleteLobby(c *gin.Context) {
 // @Description    Gets a lobby.
 // @Security ApiKeyAuth
 // @Tags			lobby
-// @Accept			json
-// @Param			request	body		lobby.GetLobbyRequest	true	"Request Object"
+// @Param			id path string true "Lobby Id"
 // @Success		200		{object}	lobby.GetLobbyResponse
-// @Router			/lobby/getbyid [post]
+// @Router			/lobby/{id} [get]
 func (ac *Controller) GetLobby(c *gin.Context) {
-	req := GetLobbyRequest{}
-	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
-	fmt.Println("GetLobby(): ", req)
-	if reqErr != nil {
-		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
-		return
-	}
+	lobbyId := c.Param("id")
+	fmt.Println("GetLobby(): ", lobbyId)
 
-	lobby, err := ac.lobbyService.GetLobby(req.Id)
-	if err != nil {
-		// TODO: Move this into a generic wrapper at the router level
-		fmt.Println(fmt.Errorf("GetLobby() error: %w", err))
-		c.String(http.StatusInternalServerError, "Woops", err)
+	lobby, err := ac.lobbyService.GetLobby(lobbyId)
+	if errors.Is(err, GetLobbyErrors.NotFound) {
+		c.String(http.StatusNotFound, "Unable to process request: %v", err)
+		return
+	} else if err != nil {
+		c.String(http.StatusInternalServerError, "Woops: %v", err)
 		return
 	}
 	if lobby == nil {
-		c.String(http.StatusNotFound, "Lobby not found")
-		return
 	}
 	resp := GetLobbyResponse{Lobby: *lobby}
 	c.JSON(http.StatusOK, resp)
