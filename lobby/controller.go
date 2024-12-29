@@ -37,8 +37,7 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 	req := CreateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
-		c.String(http.StatusBadRequest, "Invalid request body")
-		c.Error(reqErr)
+		c.String(http.StatusBadRequest, "Invalid request body: %v", reqErr)
 		return
 	}
 	reqUserAny, _ := c.Get("reqUser")
@@ -116,7 +115,7 @@ func (ac *Controller) UpdateLobby(c *gin.Context) {
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("UpdateLobby(): ", req)
 	if reqErr != nil {
-		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
+		c.String(http.StatusBadRequest, "Unable to interpret payload: %v", reqErr)
 		return
 	}
 
@@ -146,32 +145,37 @@ func (ac *Controller) AddUserToLobby(c *gin.Context) {
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("AddUserToLobby(): ", req)
 	if reqErr != nil {
-		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
-		return
-	}
-
-	// Load the lobby, so we can verify that the lobby exists
-	lobby, err := ac.lobbyService.GetLobby(lobbyId)
-	if err != nil {
-		c.String(http.StatusInternalServerError, "Woops", err)
-		return
-	}
-	if lobby == nil {
-		c.String(http.StatusNotFound, "Lobby not found")
+		c.String(http.StatusBadRequest, "Unable to interpret payload: %v", reqErr)
 		return
 	}
 
 	// Verify that the request user is the owner of the lobby
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
-	if lobby.Owner != reqUser.Id {
-		c.String(http.StatusUnauthorized, "Only the owner of the lobby can invite players")
-		return
-	}
 
-	err = ac.lobbyService.AddUserToLobby(lobbyId, req.UserId, reqUser.Id)
-	if err != nil {
-		c.String(http.StatusBadRequest, "Unable to add user to lobby", err)
+	err := ac.lobbyService.AddUserToLobby(lobbyId, req.UserId, reqUser.Id)
+	if err == AddUserToLobbyErrors.LobbyNotFound || err == AddUserToLobbyErrors.UserNotFound {
+		c.String(http.StatusNotFound, "Unable to add user to lobby: %v", err)
+	} else if err == AddUserToLobbyErrors.NotOwner {
+		c.String(http.StatusForbidden, "Unable to add user to lobby: %v", err)
+	} else if err == AddUserToLobbyErrors.UserAlreadyInLobby {
+		c.String(http.StatusBadRequest, "Unable to add user to lobby: %v", err)
+	} else if err != nil {
+		c.String(http.StatusInternalServerError, "Unable to add user to lobby: %v", err)
 		return
 	}
+}
+
+// @Summary		Remove User from Lobby
+// @Description    Remove a lobby user from an existing Lobby
+// @Security ApiKeyAuth
+// @Tags			lobby
+// @Accept			json
+// @Param			id path string true "Lobby Id"
+// @Param			user_id path string true "User Id"
+// @Success		200
+// @Router			/lobby/{id}/user/{user_id} [delete]
+func (ac *Controller) RemoveUserFromLobby(c *gin.Context) {
+	// lobbyId := c.Param("id")
+	// userId := c.Param("user_id")
 }

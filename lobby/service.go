@@ -38,10 +38,10 @@ var AddUserToLobbyErrors = AddUserToLobbyErrorsType{
 
 func (ls *Service) AddUserToLobby(lobbyId string, userId string, requestorId string) error {
 	lobby, err := ls.GetLobby(lobbyId)
-	if err != nil {
-		return err
-	} else if lobby == nil {
+	if err == GetLobbyErrors.NotFound {
 		return AddUserToLobbyErrors.LobbyNotFound
+	} else if err != nil {
+		return err
 	} else if lobby.Owner != requestorId {
 		return AddUserToLobbyErrors.NotOwner
 	} else if slices.Contains(lobby.Members, userId) {
