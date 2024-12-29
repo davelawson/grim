@@ -11,14 +11,32 @@ type Service struct {
 	userRepo userRepo
 }
 
-func (ls *Service) AddUserToLobby(lobbyId string, userId string) error {
-	return ls.repo.AddUserToLobby(lobbyId, userId)
-}
-
 func NewService(repo *LobbyRepo) *Service {
 	return &Service{
 		repo: repo,
 	}
+}
+
+func (ls *Service) AddUserToLobby(lobbyId string, userId string) error {
+	return ls.repo.AddUserToLobby(lobbyId, userId)
+}
+
+type UpdateLobbyErrorsType struct {
+	NotFound error
+}
+
+var UpdateLobbyErrors = UpdateLobbyErrorsType{
+	NotFound: errors.New("user does now own a lobby with the specified id"),
+}
+
+func (ls *Service) UpdateLobby(lobbyId string, name string, ownerId string) error {
+	rowsAffected, err := ls.repo.UpdateLobby(lobbyId, name, ownerId)
+	if err != nil {
+		return err
+	} else if rowsAffected == 0 {
+		return UpdateLobbyErrors.NotFound
+	}
+	return nil
 }
 
 func (ls *Service) CreateLobby(name string, userId string) (string, error) {
@@ -26,7 +44,7 @@ func (ls *Service) CreateLobby(name string, userId string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	err = ls.repo.AddMemberToLobby(lobbyId, userId)
+	err = ls.repo.AddUserToLobby(lobbyId, userId)
 	if err != nil {
 		return "", err
 	}

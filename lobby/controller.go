@@ -45,7 +45,7 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 	reqUser := reqUserAny.(*model.User)
 	id, err := ac.lobbyService.CreateLobby(req.Name, reqUser.Id)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. ", err)
+		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
 	}
 	resp := &CreateLobbyResponse{Id: id}
 
@@ -107,9 +107,11 @@ func (ac *Controller) GetLobby(c *gin.Context) {
 // @Tags			lobby
 // @Accept			json
 // @Param			request	body		lobby.UpdateLobbyRequest true	"Request Object"
+// @Param			id path string true "Lobby Id"
 // @Success		200
-// @Router			/lobby/updateplayer [post]
+// @Router			/lobby/{id} [put]
 func (ac *Controller) UpdateLobby(c *gin.Context) {
+	lobbyId := c.Param("id")
 	req := UpdateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("UpdateLobby(): ", req)
@@ -117,6 +119,16 @@ func (ac *Controller) UpdateLobby(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
 		return
 	}
+
+	err := ac.lobbyService.UpdateLobby(lobbyId, req.Name, req.Owner)
+	if err == UpdateLobbyErrors.NotFound {
+		c.String(http.StatusNotFound, "Unable to process request: %v", err)
+		return
+	} else if err != nil {
+		c.String(http.StatusInternalServerError, "Woops: %v", err)
+		return
+	}
+	c.Status(http.StatusOK)
 }
 
 // @Summary		Add User to Lobby

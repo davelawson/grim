@@ -121,7 +121,7 @@ func addLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 	group.DELETE(":id", createAuthedHandler(authService, controller.DeleteLobby))
 	group.POST(":id/adduser", createAuthedHandler(authService, controller.AddUserToLobby))
 	group.GET(":id", createAuthedHandler(authService, controller.GetLobby))
-	group.PUT("", createAuthedHandler(authService, controller.UpdateLobby))
+	group.PUT(":id", createAuthedHandler(authService, controller.UpdateLobby))
 }
 
 func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {

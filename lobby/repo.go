@@ -23,6 +23,12 @@ func (repo *LobbyRepo) CreateLobby(name string, ownerId string) (string, error) 
 	return newUuid.String(), nil
 }
 
+func (repo *LobbyRepo) UpdateLobby(lobbyId string, name string, ownerId string) (int, error) {
+	result, err := repo.db.Exec("update lobbies set name = ?, owner_id = ? where id = ?", name, ownerId, lobbyId)
+	rowsAffected, _ := result.RowsAffected()
+	return int(rowsAffected), err
+}
+
 func (repo *LobbyRepo) AddUserToLobby(lobbyId string, userId string) error {
 	_, err := repo.db.Exec("insert into lobby_users(lobby_id, user_id) values(?, ?)", lobbyId, userId)
 	return err
@@ -62,14 +68,6 @@ func (repo *LobbyRepo) DeleteLobby(lobbyId string, ownerId string) (int, error) 
 	}
 	rowsAffected, _ := result.RowsAffected()
 	return int(rowsAffected), err
-}
-
-func (repo *LobbyRepo) AddMemberToLobby(lobbyId string, userId string) error {
-	_, err := repo.db.Exec("insert into lobby_users(lobby_id, user_id) values(?, ?)", lobbyId, userId)
-	if err != nil {
-		return err
-	}
-	return nil
 }
 
 func (repo *LobbyRepo) RemoveMemberFromLobby(lobbyId string, userId string) error {

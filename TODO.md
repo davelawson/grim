@@ -29,6 +29,12 @@ Controllers should only be responsible for the http-related concerns of the web 
 - Atomicity of Operation
   - We need a way to have transactions that span an entire controller operation, rather than a simple repo query.
 
+## Updating lists vs Add and remove
+
+When we have lists, should we use a simple update on the base item to manage them, or should we include add/remove endpoints?
+
+- lobby users
+
 ## Robust Endpoint Logging
 
 - We need a generic way of logging requests, including token, request user, URL and method, and request body.

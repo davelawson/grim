@@ -17,7 +17,8 @@ type GetLobbyResponse struct {
 }
 
 type UpdateLobbyRequest struct {
-	Lobby Lobby
+	Name  string
+	Owner string
 }
 
 type AddUserToLobbyRequest struct {
