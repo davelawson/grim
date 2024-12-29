@@ -169,7 +169,7 @@ func (ac *Controller) AddUserToLobby(c *gin.Context) {
 		return
 	}
 
-	err = ac.lobbyService.AddUserToLobby(lobbyId, req.UserId)
+	err = ac.lobbyService.AddUserToLobby(lobbyId, req.UserId, reqUser.Id)
 	if err != nil {
 		c.String(http.StatusBadRequest, "Unable to add user to lobby", err)
 		return

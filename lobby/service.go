@@ -1,9 +1,13 @@
 package lobby
 
-import "errors"
+import (
+	"errors"
+	"main/model"
+	"slices"
+)
 
 type userRepo interface {
-	GetUserByUUID(uuid string)
+	GetUserById(id string) (*model.User, error)
 }
 
 type Service struct {
@@ -11,13 +15,46 @@ type Service struct {
 	userRepo userRepo
 }
 
-func NewService(repo *LobbyRepo) *Service {
+func NewService(repo *LobbyRepo, userRepo userRepo) *Service {
 	return &Service{
-		repo: repo,
+		repo:     repo,
+		userRepo: userRepo,
 	}
 }
 
-func (ls *Service) AddUserToLobby(lobbyId string, userId string) error {
+type AddUserToLobbyErrorsType struct {
+	LobbyNotFound      error
+	UserNotFound       error
+	NotOwner           error
+	UserAlreadyInLobby error
+}
+
+var AddUserToLobbyErrors = AddUserToLobbyErrorsType{
+	LobbyNotFound:      errors.New("lobby not found"),
+	UserNotFound:       errors.New("user not found"),
+	NotOwner:           errors.New("only the owner can update a lobby"),
+	UserAlreadyInLobby: errors.New("user already in lobby"),
+}
+
+func (ls *Service) AddUserToLobby(lobbyId string, userId string, requestorId string) error {
+	lobby, err := ls.GetLobby(lobbyId)
+	if err != nil {
+		return err
+	} else if lobby == nil {
+		return AddUserToLobbyErrors.LobbyNotFound
+	} else if lobby.Owner != requestorId {
+		return AddUserToLobbyErrors.NotOwner
+	} else if slices.Contains(lobby.Members, userId) {
+		return AddUserToLobbyErrors.UserAlreadyInLobby
+	}
+
+	user, err := ls.userRepo.GetUserById(userId)
+	if err != nil {
+		return err
+	} else if user == nil {
+		return AddUserToLobbyErrors.UserNotFound
+	}
+
 	return ls.repo.AddUserToLobby(lobbyId, userId)
 }
 

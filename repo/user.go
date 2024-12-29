@@ -22,6 +22,11 @@ func (repo *UserRepo) CreateUser(email string, name string, passwordHash []byte)
 	return err
 }
 
+func (repo *UserRepo) GetUserById(id string) (*model.User, error) {
+	row := repo.db.QueryRow("select id, email, name, password_hash from users where id = ?", id)
+	return repo.scanUser(row)
+}
+
 func (repo *UserRepo) GetUserByEmail(email string) (*model.User, error) {
 	row := repo.db.QueryRow("select id, email, name, password_hash from users where email = ?", email)
 	return repo.scanUser(row)

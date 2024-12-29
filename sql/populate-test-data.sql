@@ -16,6 +16,15 @@ values (
     'kihLmzc0hrW2IzkYko3sJlIXXDv5h/EwkC6DgHzMfeh='
 );
 
+insert into users (id, email, name, password_hash, token)
+values (
+    '67b31dee-ac79-453a-a68b-75ef55da5a54',
+    'jim@aol.com',
+    'Jimmy John',
+    readfile('password_hash.dat'),
+    'kihLmzc0hrW2IzkYko3sJlIXXDv5h/EwkC6DgHzMfeh='
+);
+
 insert into lobbies (id, name, owner_id)
 values (
     'ab7b8a66-c6cd-48a1-9d02-ecafe255ed3e',

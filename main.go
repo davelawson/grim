@@ -46,7 +46,6 @@ func main() {
 		return
 	}
 
-	// TODO: handle auth tokens generically
 	router := gin.Default()
 
 	userRepo := repo.NewUserRepo(db)
@@ -60,7 +59,7 @@ func main() {
 	userController := user.NewController(userService)
 	addUserRoutes(authService, router, userController)
 
-	lobbyService := lobby.NewService(lobbyRepo)
+	lobbyService := lobby.NewService(lobbyRepo, userRepo)
 	lobbyController := lobby.NewController(lobbyService)
 	addLobbyRoutes(authService, router, lobbyController)
 
