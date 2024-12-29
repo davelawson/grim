@@ -15,8 +15,17 @@ func NewLobbyRepo(db *sql.DB) *LobbyRepo {
 }
 
 func (repo *LobbyRepo) CreateLobby(name string, ownerId string) (string, error) {
+	tx, err := repo.db.Begin()
+	if err != nil {
+		return "", err
+	}
+
 	newUuid := uuid.New()
-	_, err := repo.db.Exec("insert into lobbies(id, name, owner_id) values(?, ?, ?)", newUuid.String(), name, ownerId)
+	_, err = tx.Exec("insert into lobbies(id, name, owner_id) values(?, ?, ?)", newUuid.String(), name, ownerId)
+	if err != nil {
+		return "", err
+	}
+	err = tx.Commit()
 	if err != nil {
 		return "", err
 	}

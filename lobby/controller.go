@@ -15,10 +15,10 @@ type authService interface {
 }
 
 type Controller struct {
-	lobbyService *Service
+	lobbyService *ServiceFacade
 }
 
-func NewController(lobbyService *Service) *Controller {
+func NewController(lobbyService *ServiceFacade) *Controller {
 	return &Controller{
 		lobbyService: lobbyService,
 	}
@@ -138,7 +138,7 @@ func (lc *Controller) UpdateLobby(c *gin.Context) {
 // @Param			request	body		lobby.AddUserToLobbyRequest true	"Request Object"
 // @Param			id path string true "Lobby Id"
 // @Success		200
-// @Router			/lobby/{id}/adduser [post]
+// @Router			/lobby/{id}/user [post]
 func (lc *Controller) AddUserToLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	req := AddUserToLobbyRequest{}

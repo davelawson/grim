@@ -1,39 +1,24 @@
 # SHIT THAT NEEDS DOING
 
+## Ongoing
+
+- Standardized Logging
+
 ## CURRENT
-
-### Strictly segregate concerns between Lobby Controller and Lobby Service
-
-### Move to using path params for Lobby controller stuffs
-
-## Cleaning up Lobby-Related Endpoints
-
-### Controller responsibility
-
-Controllers should only be responsible for the http-related concerns of the web server.  More precisely:
-
-- Extract path args
-- Receive and convert Request bodies
-- Map underlying errors to Http codes
-- Generate http response
-- Invoke the responsible service
-
-### Service responsibility
-
-- Transaction management
-  - We need to achieve this at the top level of the service, so we don't have multiple transactions when services invoke one another
-  - All the rest of the business logic
-
-## DB SHIT
 
 - Atomicity of Operation
   - We need a way to have transactions that span an entire controller operation, rather than a simple repo query.
+  - If we had some kind of top level services, they could be responsible
+  - Can we create some kinda context for the current request that includes an ongoing database transaction?
+    - Add a simple transaction for GET on /lobby/:id
+
+- Service Facades
+  - Extract the public facing facade of the service.  This layer contains the endpoints invoked by the controller.
+    - Includes the creation and rolling back of transactions
 
 ## Updating lists vs Add and remove
 
 When we have lists, should we use a simple update on the base item to manage them, or should we include add/remove endpoints?
-
-- lobby users
 
 ## Robust Endpoint Logging
 

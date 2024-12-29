@@ -60,7 +60,8 @@ func main() {
 	addUserRoutes(authService, router, userController)
 
 	lobbyService := lobby.NewService(lobbyRepo, userRepo)
-	lobbyController := lobby.NewController(lobbyService)
+	lobbyFacade := lobby.NewServiceFacade(lobbyService)
+	lobbyController := lobby.NewController(lobbyFacade)
 	addLobbyRoutes(authService, router, lobbyController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
@@ -118,9 +119,9 @@ func addLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 	group := router.Group("/lobby")
 	group.POST("", createAuthedHandler(authService, controller.CreateLobby))
 	group.DELETE(":id", createAuthedHandler(authService, controller.DeleteLobby))
-	group.POST(":id/adduser", createAuthedHandler(authService, controller.AddUserToLobby))
 	group.GET(":id", createAuthedHandler(authService, controller.GetLobby))
 	group.PUT(":id", createAuthedHandler(authService, controller.UpdateLobby))
+	group.POST(":id/user", createAuthedHandler(authService, controller.AddUserToLobby))
 	group.DELETE(":id/user/:user_id", createAuthedHandler(authService, controller.RemoveUserFromLobby))
 }
 
