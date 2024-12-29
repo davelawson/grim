@@ -72,10 +72,7 @@ func (repo *LobbyRepo) DeleteLobby(lobbyId string, ownerId string) (int, error) 
 
 func (repo *LobbyRepo) RemoveMemberFromLobby(lobbyId string, userId string) error {
 	_, err := repo.db.Exec("delete from lobby_users where lobby_id = ? and user_id = ?", lobbyId, userId)
-	if err != nil {
-		return err
-	}
-	return nil
+	return err
 }
 
 func (repo *LobbyRepo) scanLobby(row *sql.Row) (*Lobby, error) {

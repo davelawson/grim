@@ -33,7 +33,7 @@ func NewController(lobbyService *Service) *Controller {
 // @Param			request	body		lobby.CreateLobbyRequest	true	"Request Object"
 // @Success		200		{object}	lobby.CreateLobbyResponse
 // @Router			/lobby [post]
-func (ac *Controller) CreateLobby(c *gin.Context) {
+func (lc *Controller) CreateLobby(c *gin.Context) {
 	req := CreateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
@@ -42,7 +42,7 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 	}
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
-	id, err := ac.lobbyService.CreateLobby(req.Name, reqUser.Id)
+	id, err := lc.lobbyService.CreateLobby(req.Name, reqUser.Id)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
 	}
@@ -58,12 +58,12 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id} [delete]
-func (ac *Controller) DeleteLobby(c *gin.Context) {
+func (lc *Controller) DeleteLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
 	fmt.Println("DeleteLobby(): ", lobbyId)
-	err := ac.lobbyService.DeleteLobby(lobbyId, reqUser.Id)
+	err := lc.lobbyService.DeleteLobby(lobbyId, reqUser.Id)
 	if errors.Is(err, DeleteLobbyErrors.NotFound) {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
@@ -82,11 +82,11 @@ func (ac *Controller) DeleteLobby(c *gin.Context) {
 // @Param			id path string true "Lobby Id"
 // @Success		200		{object}	lobby.GetLobbyResponse
 // @Router			/lobby/{id} [get]
-func (ac *Controller) GetLobby(c *gin.Context) {
+func (lc *Controller) GetLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	fmt.Println("GetLobby(): ", lobbyId)
 
-	lobby, err := ac.lobbyService.GetLobby(lobbyId)
+	lobby, err := lc.lobbyService.GetLobby(lobbyId)
 	if errors.Is(err, GetLobbyErrors.NotFound) {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
@@ -109,7 +109,7 @@ func (ac *Controller) GetLobby(c *gin.Context) {
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id} [put]
-func (ac *Controller) UpdateLobby(c *gin.Context) {
+func (lc *Controller) UpdateLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	req := UpdateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
@@ -119,7 +119,7 @@ func (ac *Controller) UpdateLobby(c *gin.Context) {
 		return
 	}
 
-	err := ac.lobbyService.UpdateLobby(lobbyId, req.Name, req.Owner)
+	err := lc.lobbyService.UpdateLobby(lobbyId, req.Name, req.Owner)
 	if err == UpdateLobbyErrors.NotFound {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
@@ -139,11 +139,11 @@ func (ac *Controller) UpdateLobby(c *gin.Context) {
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id}/adduser [post]
-func (ac *Controller) AddUserToLobby(c *gin.Context) {
+func (lc *Controller) AddUserToLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	req := AddUserToLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
-	fmt.Println("AddUserToLobby(): ", req)
+	fmt.Println("AddUserToLobby() lobbyId: ", lobbyId, ", body: ", req)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Unable to interpret payload: %v", reqErr)
 		return
@@ -153,7 +153,7 @@ func (ac *Controller) AddUserToLobby(c *gin.Context) {
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
 
-	err := ac.lobbyService.AddUserToLobby(lobbyId, req.UserId, reqUser.Id)
+	err := lc.lobbyService.AddUserToLobby(lobbyId, req.UserId, reqUser.Id)
 	if err == AddUserToLobbyErrors.LobbyNotFound || err == AddUserToLobbyErrors.UserNotFound {
 		c.String(http.StatusNotFound, "Unable to add user to lobby: %v", err)
 	} else if err == AddUserToLobbyErrors.NotOwner {
@@ -175,7 +175,21 @@ func (ac *Controller) AddUserToLobby(c *gin.Context) {
 // @Param			user_id path string true "User Id"
 // @Success		200
 // @Router			/lobby/{id}/user/{user_id} [delete]
-func (ac *Controller) RemoveUserFromLobby(c *gin.Context) {
-	// lobbyId := c.Param("id")
-	// userId := c.Param("user_id")
+func (lc *Controller) RemoveUserFromLobby(c *gin.Context) {
+	lobbyId := c.Param("id")
+	userId := c.Param("user_id")
+	fmt.Println("RemoveUserFromLobby() lobbyId: ", lobbyId, ", userId: ", userId)
+	reqUserAny, _ := c.Get("reqUser")
+	reqUser := reqUserAny.(*model.User)
+
+	err := lc.lobbyService.RemoveUserFromLobby(lobbyId, userId, reqUser.Id)
+	if err == RemoveUserFromLobbyErrors.LobbyNotFound || err == RemoveUserFromLobbyErrors.UserNotInLobby {
+		c.String(http.StatusNotFound, "Unable to remove user to lobby: %v", err)
+	} else if err == RemoveUserFromLobbyErrors.NotOwner {
+		c.String(http.StatusForbidden, "Unable to remove user to lobby: %v", err)
+	} else if err != nil {
+		c.String(http.StatusInternalServerError, "Unable to remove user to lobby: %v", err)
+		return
+	}
+	c.Status(http.StatusOK)
 }

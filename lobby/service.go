@@ -32,7 +32,7 @@ type AddUserToLobbyErrorsType struct {
 var AddUserToLobbyErrors = AddUserToLobbyErrorsType{
 	LobbyNotFound:      errors.New("lobby not found"),
 	UserNotFound:       errors.New("user not found"),
-	NotOwner:           errors.New("only the owner can update a lobby"),
+	NotOwner:           errors.New("only the owner can add a user to a lobby"),
 	UserAlreadyInLobby: errors.New("user already in lobby"),
 }
 
@@ -56,6 +56,33 @@ func (ls *Service) AddUserToLobby(lobbyId string, userId string, requestorId str
 	}
 
 	return ls.repo.AddUserToLobby(lobbyId, userId)
+}
+
+type RemoveUserFromLobbyErrorsType struct {
+	LobbyNotFound  error
+	NotOwner       error
+	UserNotInLobby error
+}
+
+var RemoveUserFromLobbyErrors = RemoveUserFromLobbyErrorsType{
+	LobbyNotFound:  errors.New("lobby not found"),
+	NotOwner:       errors.New("only the owner can remove a user from a lobby"),
+	UserNotInLobby: errors.New("user not in lobby"),
+}
+
+func (ls *Service) RemoveUserFromLobby(lobbyId string, userId string, requestorId string) error {
+	lobby, err := ls.GetLobby(lobbyId)
+	if err == GetLobbyErrors.NotFound {
+		return RemoveUserFromLobbyErrors.LobbyNotFound
+	} else if err != nil {
+		return err
+	} else if lobby.Owner != requestorId {
+		return RemoveUserFromLobbyErrors.NotOwner
+	} else if !slices.Contains(lobby.Members, userId) {
+		return RemoveUserFromLobbyErrors.UserNotInLobby
+	}
+
+	return ls.repo.RemoveMemberFromLobby(lobbyId, userId)
 }
 
 type UpdateLobbyErrorsType struct {
