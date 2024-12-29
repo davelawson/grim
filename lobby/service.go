@@ -9,6 +9,10 @@ type Service struct {
 	userRepo userRepo
 }
 
+func (ls *Service) AddUserToLobby(lobbyId string, userId string) error {
+	return ls.repo.AddUserToLobby(lobbyId, userId)
+}
+
 func NewService(repo *LobbyRepo) *Service {
 	return &Service{
 		repo: repo,
@@ -16,7 +20,15 @@ func NewService(repo *LobbyRepo) *Service {
 }
 
 func (ls *Service) CreateLobby(name string, userId string) (string, error) {
-	return ls.repo.CreateLobby(name, userId)
+	lobbyId, err := ls.repo.CreateLobby(name, userId)
+	if err != nil {
+		return "", err
+	}
+	err = ls.repo.AddMemberToLobby(lobbyId, userId)
+	if err != nil {
+		return "", err
+	}
+	return lobbyId, err
 }
 
 func (ls *Service) DeleteLobby(lobbyId string, userId string) (bool, error) {
@@ -25,5 +37,14 @@ func (ls *Service) DeleteLobby(lobbyId string, userId string) (bool, error) {
 }
 
 func (ls *Service) GetLobby(id string) (*Lobby, error) {
-	return ls.repo.GetLobby(id)
+	lobby, err := ls.repo.GetLobby(id)
+	if err != nil {
+		return nil, err
+	} else if lobby == nil {
+		return nil, nil
+	}
+
+	members, err := ls.repo.GetLobbyMembers(id)
+	lobby.Members = members
+	return lobby, err
 }

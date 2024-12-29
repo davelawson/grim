@@ -1,11 +1,23 @@
 # SHIT THAT NEEDS DOING
 
-## Endpoint URL Construction
+## DB SHIT
 
-- How do we extract path params?
-  - Implement GET /lobby to use a UUID path param
-- How do we extract query args?
-  - Implement GET on /user to use a query arg for get by email
+- Atomicity of Operation
+  - We need a way to have transactions that span an entire controller operation, rather than a simple repo query.
+
+## Robust Endpoint Logging
+
+- We need a generic way of logging requests, including token, request user, URL and method, and request body.
+
+## Error Handling
+
+- Controllers *sole* responsibility shall be as an adapter for the http layer.
+  - Controllers will extract params and args, bundle responses, and map errors, but nothing else.
+  - Services shall return custom errors in some kinda way that allow for the controllers to map the correct http results.
+
+## OOP Stuffs
+
+- Try making a package that more closely acts as an 'object'.  Will we have far too much exposed?  Big messy namespace?  We'll see...
 
 ### UUIDs in Endpoints
 

@@ -20,8 +20,17 @@ type GetLobbyResponse struct {
 	Lobby Lobby
 }
 
+type UpdateLobbyRequest struct {
+	Lobby Lobby
+}
+
+type AddUserToLobbyRequest struct {
+	UserId string
+}
+
 type Lobby struct {
-	Id    string
-	Name  string
-	Owner string
+	Id      string
+	Name    string
+	Owner   string
+	Members []string
 }

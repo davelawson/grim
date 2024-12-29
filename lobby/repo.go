@@ -23,9 +23,31 @@ func (repo *LobbyRepo) CreateLobby(name string, ownerId string) (string, error) 
 	return newUuid.String(), nil
 }
 
+func (repo *LobbyRepo) AddUserToLobby(lobbyId string, userId string) error {
+	_, err := repo.db.Exec("insert into lobby_users(lobby_id, user_id) values(?, ?)", lobbyId, userId)
+	return err
+}
+
 func (repo *LobbyRepo) GetLobby(id string) (*Lobby, error) {
 	row := repo.db.QueryRow("select id, name, owner_id from lobbies where id = ?", id)
 	return repo.scanLobby(row)
+}
+
+func (repo *LobbyRepo) GetLobbyMembers(id string) ([]string, error) {
+	queryRows, err := repo.db.Query("select user_id from lobby_users where lobby_id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	var userIds []string
+	for queryRows.Next() {
+		var userId string
+		scanErr := queryRows.Scan(&userId)
+		if scanErr != nil {
+			return nil, scanErr
+		}
+		userIds = append(userIds, userId)
+	}
+	return userIds, nil
 }
 
 func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*Lobby, error) {
@@ -40,6 +62,22 @@ func (repo *LobbyRepo) DeleteLobby(lobbyId string, ownerId string) (int, error) 
 	}
 	rowsAffected, _ := result.RowsAffected()
 	return int(rowsAffected), err
+}
+
+func (repo *LobbyRepo) AddMemberToLobby(lobbyId string, userId string) error {
+	_, err := repo.db.Exec("insert into lobby_users(lobby_id, user_id) values(?, ?)", lobbyId, userId)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (repo *LobbyRepo) RemoveMemberFromLobby(lobbyId string, userId string) error {
+	_, err := repo.db.Exec("delete from lobby_users where lobby_id = ? and user_id = ?", lobbyId, userId)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (repo *LobbyRepo) scanLobby(row *sql.Row) (*Lobby, error) {

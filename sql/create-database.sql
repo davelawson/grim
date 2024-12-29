@@ -27,5 +27,16 @@ create table lobbies (
     id text primary key,
     name text not null,
     owner_id text
-    created_at datetime not null default (datetime('now'))
+    created_at datetime not null default (datetime('now')),
+    foreign key(owner_id) references users (id) on delete cascade
 );
+
+drop table if exists lobby_users;
+create table lobby_users (
+    lobby_id text,
+    user_id text,
+    primary key(lobby_id, user_id),
+    foreign key(lobby_id) references lobbies (id) on delete cascade,
+    foreign key(user_id) references users (id) on delete cascade
+);
+

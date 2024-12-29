@@ -56,20 +56,14 @@ func (ac *Controller) CreateLobby(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
-// @Param			request	body		lobby.DeleteLobbyRequest	true	"Request Object"
+// @Param			id path string true "Lobby Id"
 // @Success		200
-// @Router			/lobby [delete]
+// @Router			/lobby/{id} [delete]
 func (ac *Controller) DeleteLobby(c *gin.Context) {
-	req := DeleteLobbyRequest{}
-	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
-	if reqErr != nil {
-		c.String(http.StatusBadRequest, "Invalid request body")
-		c.Error(reqErr)
-		return
-	}
+	lobbyId := c.Param("id")
 	reqUserAny, _ := c.Get("reqUser")
 	reqUser := reqUserAny.(*model.User)
-	lobbyDeleted, err := ac.lobbyService.DeleteLobby(req.Id, reqUser.Id)
+	lobbyDeleted, err := ac.lobbyService.DeleteLobby(lobbyId, reqUser.Id)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to delete lobby. ", err)
 	}
@@ -88,7 +82,6 @@ func (ac *Controller) DeleteLobby(c *gin.Context) {
 // @Success		200		{object}	lobby.GetLobbyResponse
 // @Router			/lobby/getbyid [post]
 func (ac *Controller) GetLobby(c *gin.Context) {
-	// TODO: find a re-usable way to translate the context into a typed request
 	req := GetLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("GetLobby(): ", req)
@@ -99,6 +92,8 @@ func (ac *Controller) GetLobby(c *gin.Context) {
 
 	lobby, err := ac.lobbyService.GetLobby(req.Id)
 	if err != nil {
+		// TODO: Move this into a generic wrapper at the router level
+		fmt.Println(fmt.Errorf("GetLobby() error: %w", err))
 		c.String(http.StatusInternalServerError, "Woops", err)
 		return
 	}
@@ -108,4 +103,67 @@ func (ac *Controller) GetLobby(c *gin.Context) {
 	}
 	resp := GetLobbyResponse{Lobby: *lobby}
 	c.JSON(http.StatusOK, resp)
+}
+
+// @Summary		Update Lobby
+// @Description    Updates an existing lobby
+// @Security ApiKeyAuth
+// @Tags			lobby
+// @Accept			json
+// @Param			request	body		lobby.UpdateLobbyRequest true	"Request Object"
+// @Success		200
+// @Router			/lobby/updateplayer [post]
+func (ac *Controller) UpdateLobby(c *gin.Context) {
+	req := UpdateLobbyRequest{}
+	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
+	fmt.Println("UpdateLobby(): ", req)
+	if reqErr != nil {
+		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
+		return
+	}
+}
+
+// @Summary		Add User to Lobby
+// @Description    Add an existing User to an existing Lobby
+// @Security ApiKeyAuth
+// @Tags			lobby
+// @Accept			json
+// @Param			request	body		lobby.AddUserToLobbyRequest true	"Request Object"
+// @Param			id path string true "Lobby Id"
+// @Success		200
+// @Router			/lobby/{id}/adduser [post]
+func (ac *Controller) AddUserToLobby(c *gin.Context) {
+	lobbyId := c.Param("id")
+	req := AddUserToLobbyRequest{}
+	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
+	fmt.Println("AddUserToLobby(): ", req)
+	if reqErr != nil {
+		c.String(http.StatusBadRequest, "Unable to interpret payload", reqErr)
+		return
+	}
+
+	// Load the lobby, so we can verify that the lobby exists
+	lobby, err := ac.lobbyService.GetLobby(lobbyId)
+	if err != nil {
+		c.String(http.StatusInternalServerError, "Woops", err)
+		return
+	}
+	if lobby == nil {
+		c.String(http.StatusNotFound, "Lobby not found")
+		return
+	}
+
+	// Verify that the request user is the owner of the lobby
+	reqUserAny, _ := c.Get("reqUser")
+	reqUser := reqUserAny.(*model.User)
+	if lobby.Owner != reqUser.Id {
+		c.String(http.StatusUnauthorized, "Only the owner of the lobby can invite players")
+		return
+	}
+
+	err = ac.lobbyService.AddUserToLobby(lobbyId, req.UserId)
+	if err != nil {
+		c.String(http.StatusBadRequest, "Unable to add user to lobby", err)
+		return
+	}
 }

@@ -118,8 +118,10 @@ func addUserRoutes(authService authService, router *gin.Engine, controller *user
 func addLobbyRoutes(authService authService, router *gin.Engine, controller *lobby.Controller) {
 	group := router.Group("/lobby")
 	group.POST("", createAuthedHandler(authService, controller.CreateLobby))
-	group.DELETE("", createAuthedHandler(authService, controller.DeleteLobby))
+	group.DELETE(":id", createAuthedHandler(authService, controller.DeleteLobby))
+	group.POST(":id/adduser", createAuthedHandler(authService, controller.AddUserToLobby))
 	group.POST("/getbyid", createAuthedHandler(authService, controller.GetLobby))
+	group.PUT("", createAuthedHandler(authService, controller.UpdateLobby))
 }
 
 func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
