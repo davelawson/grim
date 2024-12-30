@@ -6,15 +6,14 @@
 
 ## CURRENT
 
-- Atomicity of Operation
-  - We need a way to have transactions that span an entire controller operation, rather than a simple repo query.
-  - If we had some kind of top level services, they could be responsible
-  - Can we create some kinda context for the current request that includes an ongoing database transaction?
-    - Add a simple transaction for GET on /lobby/:id
+### Consistency in Services
 
-- Service Facades
-  - Extract the public facing facade of the service.  This layer contains the endpoints invoked by the controller.
-    - Includes the creation and rolling back of transactions
+- All services should now be making use of Facades
+- All services should now be using transactions
+- All services should have their package architecture refactored to match the lobby package
+- All endpoints should make use of path parameters when referencing existing entities
+- All endpoints should have similar logging
+  - Is there a way to genericise this, similar to what we did with auth?
 
 ## Updating lists vs Add and remove
 

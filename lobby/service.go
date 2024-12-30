@@ -1,6 +1,7 @@
 package lobby
 
 import (
+	"database/sql"
 	"errors"
 	"main/model"
 	"slices"
@@ -36,8 +37,8 @@ var AddUserToLobbyErrors = AddUserToLobbyErrorsType{
 	UserAlreadyInLobby: errors.New("user already in lobby"),
 }
 
-func (ls *Service) AddUserToLobby(lobbyId string, userId string, requestorId string) error {
-	lobby, err := ls.GetLobby(lobbyId)
+func (ls *Service) AddUserToLobby(tx *sql.Tx, lobbyId string, userId string, requestorId string) error {
+	lobby, err := ls.GetLobby(tx, lobbyId)
 	if err == GetLobbyErrors.NotFound {
 		return AddUserToLobbyErrors.LobbyNotFound
 	} else if err != nil {
@@ -55,7 +56,7 @@ func (ls *Service) AddUserToLobby(lobbyId string, userId string, requestorId str
 		return AddUserToLobbyErrors.UserNotFound
 	}
 
-	return ls.repo.AddUserToLobby(lobbyId, userId)
+	return ls.repo.AddUserToLobby(tx, lobbyId, userId)
 }
 
 type RemoveUserFromLobbyErrorsType struct {
@@ -70,8 +71,8 @@ var RemoveUserFromLobbyErrors = RemoveUserFromLobbyErrorsType{
 	UserNotInLobby: errors.New("user not in lobby"),
 }
 
-func (ls *Service) RemoveUserFromLobby(lobbyId string, userId string, requestorId string) error {
-	lobby, err := ls.GetLobby(lobbyId)
+func (ls *Service) RemoveUserFromLobby(tx *sql.Tx, lobbyId string, userId string, requestorId string) error {
+	lobby, err := ls.GetLobby(tx, lobbyId)
 	if err == GetLobbyErrors.NotFound {
 		return RemoveUserFromLobbyErrors.LobbyNotFound
 	} else if err != nil {
@@ -82,7 +83,7 @@ func (ls *Service) RemoveUserFromLobby(lobbyId string, userId string, requestorI
 		return RemoveUserFromLobbyErrors.UserNotInLobby
 	}
 
-	return ls.repo.RemoveMemberFromLobby(lobbyId, userId)
+	return ls.repo.RemoveMemberFromLobby(tx, lobbyId, userId)
 }
 
 type UpdateLobbyErrorsType struct {
@@ -93,8 +94,8 @@ var UpdateLobbyErrors = UpdateLobbyErrorsType{
 	NotFound: errors.New("user does now own a lobby with the specified id"),
 }
 
-func (ls *Service) UpdateLobby(lobbyId string, name string, ownerId string) error {
-	rowsAffected, err := ls.repo.UpdateLobby(lobbyId, name, ownerId)
+func (ls *Service) UpdateLobby(tx *sql.Tx, lobbyId string, name string, ownerId string) error {
+	rowsAffected, err := ls.repo.UpdateLobby(tx, lobbyId, name, ownerId)
 	if err != nil {
 		return err
 	} else if rowsAffected == 0 {
@@ -103,16 +104,16 @@ func (ls *Service) UpdateLobby(lobbyId string, name string, ownerId string) erro
 	return nil
 }
 
-func (ls *Service) CreateLobby(name string, userId string) (string, error) {
-	lobbyId, err := ls.repo.CreateLobby(name, userId)
+func (ls *Service) CreateLobby(tx *sql.Tx, name string, userId string) (*string, error) {
+	lobbyId, err := ls.repo.CreateLobby(tx, name, userId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	err = ls.repo.AddUserToLobby(lobbyId, userId)
+	err = ls.repo.AddUserToLobby(tx, lobbyId, userId)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return lobbyId, err
+	return &lobbyId, err
 }
 
 type DeleteLobbyErrorsType struct {
@@ -123,8 +124,8 @@ var DeleteLobbyErrors = DeleteLobbyErrorsType{
 	NotFound: errors.New("user does not own a lobby with the specified id"),
 }
 
-func (ls *Service) DeleteLobby(lobbyId string, userId string) error {
-	rows, err := ls.repo.DeleteLobby(lobbyId, userId)
+func (ls *Service) DeleteLobby(tx *sql.Tx, lobbyId string, userId string) error {
+	rows, err := ls.repo.DeleteLobby(tx, lobbyId, userId)
 	if err != nil {
 		return err
 	}
@@ -142,15 +143,15 @@ var GetLobbyErrors = GetLobbyErrorsType{
 	NotFound: errors.New("no lobby found with the specified id"),
 }
 
-func (ls *Service) GetLobby(id string) (*Lobby, error) {
-	lobby, err := ls.repo.GetLobby(id)
+func (ls *Service) GetLobby(tx *sql.Tx, id string) (*Lobby, error) {
+	lobby, err := ls.repo.GetLobby(tx, id)
 	if err != nil {
 		return nil, err
 	} else if lobby == nil {
 		return nil, GetLobbyErrors.NotFound
 	}
 
-	members, err := ls.repo.GetLobbyMembers(id)
+	members, err := ls.repo.GetLobbyMembers(tx, id)
 	if err != nil {
 		return nil, err
 	}

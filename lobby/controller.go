@@ -46,7 +46,7 @@ func (lc *Controller) CreateLobby(c *gin.Context) {
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
 	}
-	resp := &CreateLobbyResponse{Id: id}
+	resp := &CreateLobbyResponse{Id: *id}
 
 	c.JSON(http.StatusOK, resp)
 }
@@ -113,7 +113,7 @@ func (lc *Controller) UpdateLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	req := UpdateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
-	fmt.Println("UpdateLobby(): ", req)
+	fmt.Println("UpdateLobby() id: ", lobbyId, ", req: ", req)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Unable to interpret payload: %v", reqErr)
 		return

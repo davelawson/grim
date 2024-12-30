@@ -75,7 +75,7 @@ func getConfig() (*config, error) {
 		SslFolder:  os.Getenv("GRIM_SSL"),
 	}
 	json, _ := json.MarshalIndent(*c, "", "  ")
-	fmt.Println("config:")
+	fmt.Println("config: ")
 	fmt.Println(string(json))
 
 	errorMessage := ""

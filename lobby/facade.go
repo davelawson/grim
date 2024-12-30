@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+	"main/util"
 )
 
 type ServiceFacade struct {
@@ -17,25 +18,37 @@ func NewServiceFacade(lobbyService *Service) *ServiceFacade {
 }
 
 func (sf *ServiceFacade) AddUserToLobby(lobbyId string, userId string, requestorId string) error {
-	return sf.service.AddUserToLobby(lobbyId, userId, requestorId)
+	return util.InTx(sf.db, func(tx *sql.Tx) error {
+		return sf.service.AddUserToLobby(tx, lobbyId, userId, requestorId)
+	})()
 }
 
 func (sf *ServiceFacade) RemoveUserFromLobby(lobbyId string, userId string, requestorId string) error {
-	return sf.service.RemoveUserFromLobby(lobbyId, userId, requestorId)
+	return util.InTx(sf.db, func(tx *sql.Tx) error {
+		return sf.service.RemoveUserFromLobby(tx, lobbyId, userId, requestorId)
+	})()
 }
 
 func (sf *ServiceFacade) UpdateLobby(lobbyId string, name string, ownerId string) error {
-	return sf.service.UpdateLobby(lobbyId, name, ownerId)
+	return util.InTx(sf.db, func(tx *sql.Tx) error {
+		return sf.service.UpdateLobby(tx, lobbyId, name, ownerId)
+	})()
 }
 
 func (sf *ServiceFacade) DeleteLobby(lobbyId string, userId string) error {
-	return sf.service.DeleteLobby(lobbyId, userId)
+	return util.InTx(sf.db, func(tx *sql.Tx) error {
+		return sf.service.DeleteLobby(tx, lobbyId, userId)
+	})()
 }
 
-func (sf *ServiceFacade) CreateLobby(name string, userId string) (string, error) {
-	return sf.service.CreateLobby(name, userId)
+func (sf *ServiceFacade) CreateLobby(name string, userId string) (*string, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*string, error) {
+		return sf.service.CreateLobby(tx, name, userId)
+	})()
 }
 
 func (sf *ServiceFacade) GetLobby(id string) (*Lobby, error) {
-	return sf.service.GetLobby(id)
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*Lobby, error) {
+		return sf.service.GetLobby(tx, id)
+	})()
 }
