@@ -11,10 +11,10 @@ import (
 )
 
 type Controller struct {
-	authService *Service
+	authService *ServiceFacade
 }
 
-func NewController(authService *Service) *Controller {
+func NewController(authService *ServiceFacade) *Controller {
 	return &Controller{authService: authService}
 }
 
@@ -44,10 +44,10 @@ func (ac *Controller) Login(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Something went wrong!")
 		return
 	}
-	if bearerToken == "" {
+	if bearerToken == nil {
 		c.String(http.StatusUnauthorized, "Bad user name or password")
 		return
 	}
-	resp := &api.LoginResponse{Token: bearerToken}
+	resp := &api.LoginResponse{Token: *bearerToken}
 	c.JSON(http.StatusOK, resp)
 }

@@ -1,38 +1,33 @@
 package user
 
 import (
+	"database/sql"
 	"main/model"
 	"main/util"
 )
 
-type userRepo interface {
-	CreateUser(email string, name string, passwordHash []byte) error
-	GetUserByEmail(email string) (*model.User, error)
-	GetUserByToken(token string) (*model.User, error)
-}
-
 type Service struct {
-	userRepo userRepo
+	userRepo *UserRepo
 }
 
-func NewService(userRepo userRepo) *Service {
+func NewService(userRepo *UserRepo) *Service {
 	return &Service{userRepo: userRepo}
 }
 
-func (us *Service) CreateUser(email string, name string, password string) error {
+func (us *Service) CreateUser(tx *sql.Tx, email string, name string, password string) error {
 	passwordHash, err := util.Hash(password, email)
 	if err != nil {
 		return err
 	}
-	return us.userRepo.CreateUser(email, name, passwordHash)
+	return us.userRepo.CreateUser(tx, email, name, passwordHash)
 }
 
-func (us *Service) GetUserByEmail(email string) (*model.User, error) {
-	user, err := us.userRepo.GetUserByEmail(email)
+func (us *Service) GetUserByEmail(tx *sql.Tx, email string) (*model.User, error) {
+	user, err := us.userRepo.GetUserByEmail(tx, email)
 	return user, err
 }
 
-func (us *Service) GetUserByToken(token string) (*model.User, error) {
-	user, err := us.userRepo.GetUserByToken(token)
+func (us *Service) GetUserByToken(tx *sql.Tx, token string) (*model.User, error) {
+	user, err := us.userRepo.GetUserByToken(tx, token)
 	return user, err
 }

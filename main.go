@@ -9,7 +9,6 @@ import (
 	"main/docs"
 	"main/lobby"
 	"main/model"
-	"main/repo"
 	"main/user"
 	"main/util"
 	"net/http"
@@ -48,21 +47,23 @@ func main() {
 
 	router := gin.Default()
 
-	userRepo := repo.NewUserRepo(db)
+	userRepo := user.NewUserRepo(db)
 	lobbyRepo := lobby.NewLobbyRepo(db)
 
 	authService := auth.NewService(userRepo)
-	authController := auth.NewController(authService)
+	authFacade := auth.NewServiceFacade(authService, db)
+	authController := auth.NewController(authFacade)
 	addAuthRoutes(router, authController)
 
 	userService := user.NewService(userRepo)
-	userController := user.NewController(userService)
-	addUserRoutes(authService, router, userController)
+	userFacade := user.NewServiceFacade(userService)
+	userController := user.NewController(userFacade)
+	addUserRoutes(authFacade, router, userController)
 
 	lobbyService := lobby.NewService(lobbyRepo, userRepo)
 	lobbyFacade := lobby.NewServiceFacade(lobbyService)
 	lobbyController := lobby.NewController(lobbyFacade)
-	addLobbyRoutes(authService, router, lobbyController)
+	addLobbyRoutes(authFacade, router, lobbyController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

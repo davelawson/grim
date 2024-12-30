@@ -16,12 +16,12 @@ type authService interface {
 }
 
 type Controller struct {
-	userService *Service
+	userService *ServiceFacade
 }
 
-func NewController(userService *Service) *Controller {
+func NewController(userServiceFacade *ServiceFacade) *Controller {
 	return &Controller{
-		userService: userService,
+		userService: userServiceFacade,
 	}
 }
 

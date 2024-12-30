@@ -10,10 +10,6 @@ import (
 	"github.com/gin-gonic/gin/binding"
 )
 
-type authService interface {
-	VerifyBearerToken(token string) (*model.User, error)
-}
-
 type Controller struct {
 	lobbyService *ServiceFacade
 }

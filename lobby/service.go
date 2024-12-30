@@ -8,7 +8,7 @@ import (
 )
 
 type userRepo interface {
-	GetUserById(id string) (*model.User, error)
+	GetUserById(tx *sql.Tx, id string) (*model.User, error)
 }
 
 type Service struct {
@@ -49,7 +49,7 @@ func (ls *Service) AddUserToLobby(tx *sql.Tx, lobbyId string, userId string, req
 		return AddUserToLobbyErrors.UserAlreadyInLobby
 	}
 
-	user, err := ls.userRepo.GetUserById(userId)
+	user, err := ls.userRepo.GetUserById(tx, userId)
 	if err != nil {
 		return err
 	} else if user == nil {

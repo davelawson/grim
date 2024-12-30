@@ -6,6 +6,8 @@
 
 ## CURRENT
 
+- Refactor user package to match with our standards
+
 ### Consistency in Services
 
 - All services should now be making use of Facades
