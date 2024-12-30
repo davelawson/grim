@@ -12,8 +12,12 @@
 - All services should now be using transactions
 - All services should have their package architecture refactored to match the lobby package
 - All endpoints should make use of path parameters when referencing existing entities
+- All endpoints using request bodies should specified that necessary fields in the request model are present by way of annotations
 - All endpoints should have similar logging
   - Is there a way to genericise this, similar to what we did with auth?
+  - All controllers should log upon entry to every endpoint
+    - Log must include the method name, the URL, and the parameters
+      - If basic param validation fails, no log is generated (other than the default)
 
 ## Updating lists vs Add and remove
 
