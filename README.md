@@ -44,7 +44,7 @@ This needs to be done outside of the repo, since it obviously shouldn't be commi
 ### Run Service
 
 1. Run the app using go.
-  Eg: `go run app.go`
+  Eg: `go run main.go`
 1. Issue requests against the api found at `http://localhost:8080`.
 
 ### Testing
@@ -77,4 +77,4 @@ To setup Swagger:
 1. Make sure that `$(go env GOPATH)/bin` is on your path
 1. Generate the swagger documentation: `swag init .`
 1. Run the application (detailed in earlier section)
-1. Open the web page: `http://localhost:8080/swagger/index.html`
+1. Open the web page: `http://localhost:8080/swagger/index.html#`
