@@ -4,9 +4,95 @@ Grimoire is a turn-based deck building game.  Each player takes on the role of a
 
 ## Basics of Play
 
+### Provisional first playable draft
+
+The rules in this section are a starting point for testing the flow of a game.
+Card costs, hand size, and challenge thresholds are illustrative balance values,
+not final numbers. The intended loop is to improve the deck and establish
+assets, then use those cards to pursue rumours and visible victory progress.
+This draft covers independent player turns in a simultaneous round; direct
+confrontation and shared contested opportunities need later rules.
+
+A round works as follows:
+
+1. Each wizard receives income from assets already in play, draws five cards,
+   and receives one personal rumour card. If the draw pile runs out during the
+   draw, shuffle the discard pile to continue. Obstacles drawn into the hand
+   resolve automatically, as described below.
+2. Each player privately submits an ordered sequence of card plays. A card can
+   be used only once that round. Cards supply the actions; there is no separate
+   action-slot limit. A play can use one card or combine an opportunity with
+   supporting cards. A player may stop before using every card.
+3. Once all plans are submitted, resolve each player's plays in the order that
+   player specified. Each player's plays are independent in this draft, so
+   there is no cross-player resolution order. A resource gained earlier in a
+   sequence can pay for a later play. If a planned play cannot meet its cost
+   when reached, it has no effect; its cards remain unused until cleanup.
+4. Pay upkeep for cards that require it, then move played non-durable cards
+   and unused hand cards to the discard pile. A newly gained card also enters
+   the discard pile. Ephemeral cards are destroyed instead. Clear unspent
+   Wealth and Wis, then begin the next round.
+
+Wealth and Wis are turn-only resources in this draft. A resource card produces
+its printed amount when played; the resource itself is spent on later plays.
+An affinity is a prerequisite, not a resource that is spent. Durable assets
+remain in play after being played and can provide future income. Cards in the
+hand, rather than a fixed number of actions, determine how much a wizard can do.
+
+### Challenges and progress
+
+A rumour or victory-path card can offer a challenge. Playing that card starts
+one attempt. The player commits any eligible support cards from the hand and
+pays the costs of the opportunity and its support. Only those committed cards
+supply challenge capability in this first draft; the wizard has no automatic
+base score. Add their printed value for the challenge's attribute and compare
+it with the threshold. Meeting or exceeding the threshold succeeds; there is
+no random modifier yet. Committed cards are spent whether the attempt succeeds
+or fails. An uncompleted, reusable victory-path card returns to the discard
+pile unchanged. A rumour is ephemeral and is destroyed after its attempt or at
+round end.
+
+At the opening draft, each wizard chooses a victory-path card for a primary
+path. It returns through the deck, providing a relatively reliable chance to
+advance. A successful attempt immediately adds one visible step on that path,
+removes the attempted card, and puts its costlier next rank into the discard
+pile. Other cards may offer alternate paths or change the wizard's primary
+path; those effects are not designed here. Reaching the fifth step wins the
+game instead of creating another rank.
+
+### Example starting deck and cards
+
+For a paper playthrough, start with three **Wis**, two **Wealth**, two
+**Focus**, one **Specialize**, and one **Chantry**. The opening draft adds one
+**Arcane Inquiry I** as the tenth card. This example wizard has the Arcane
+affinity. Give the wizard one **Veiled Archive** rumour each round; how rumours
+are generated in the full game remains to be designed.
+
+| Card | Category and cost | Effect and destination |
+| --- | --- | --- |
+| Wis | Resource; none | Gain 1 Wis, then discard. |
+| Wealth | Resource; none | Gain 1 Wealth, then discard. |
+| Focus | Spell; Arcane affinity | Commit with a challenge for +2 Essence, then discard. |
+| Specialize | Activity; 1 Wis | Copy one resource or spell played earlier this round into the discard pile, then discard Specialize. Victory-path cards cannot be copied by this example effect. |
+| Chantry | Location; 2 Wealth | Remain in play and gain 1 Wis at the start of each later round. |
+| Veiled Archive | Personal rumour; none | Attempt an Essence 2 challenge. On success, gain a Focus into the discard pile. Destroy this rumour after the attempt or at round end. |
+| Arcane Inquiry I | Victory-path card; 1 Wis | Attempt an Essence 2 challenge. On success, gain 1 Arcane step and replace this card with Arcane Inquiry II in the discard pile; otherwise discard this card unchanged. |
+| Arcane Inquiry II | Victory-path card; 2 Wis | Attempt an Essence 3 challenge. On success, gain 1 Arcane step and replace this card with the next rank in the discard pile; otherwise discard this card unchanged. Later ranks and their numbers remain open. |
+
+A hand containing **Wis**, **Specialize**, and other cards can play Wis, then
+spend it on Specialize to copy a previously played resource into the discard
+pile. A hand containing **Wis**, **Focus**, and **Arcane Inquiry I** can gain
+1 Wis, spend it to start the Inquiry, and commit Focus for 2 Essence. That
+meets the threshold, scores an Arcane step, and replaces the Inquiry. If the
+player instead attempts the Inquiry without Focus, the challenge fails: the
+Wis is spent, the Inquiry is discarded unchanged, and no step is gained.
+Committing Focus with Veiled Archive similarly meets its Essence 2 threshold
+and gains another Focus into the discard pile. Two Wealth cards and Chantry can
+be played in that order to create persistent income for later rounds.
+
 ## Victory
 
-There are many paths to victory in Grimoire.  Every wizard's progress on each of these victory paths is visible to all.  The fist wizard to advance 5 steps along any victory path wins the game.
+There are many paths to victory in Grimoire.  Every wizard's progress on each of these victory paths is visible to all.  The first wizard to advance 5 steps along any victory path wins the game.
 
 ### Domination
 
@@ -85,6 +171,7 @@ Cards that, once played, tend to remain in play, providing benefits to the wizar
 Minions are assets that represent loyal followers that are able to undertake challenges on behalf of the wizard.
 Minions can become exhausted.  When exhausted, their upkeep must still be paid, but they are unable to attempt challenges, or provide affinities to the wizard.
 A common way for minions to become exhausted is to undertake a challenge.  Another way is to suffer injury.
+The provisional first playable draft does not yet define how minions contribute to challenges; its examples use cards committed from the hand.
 
 Parameters:
 
@@ -132,7 +219,7 @@ Resource Cards are cards that generate resources when played.  Typical resources
 
 ### Activities
 
-Activity cards represent basic actions that can be performed by the wizard.  Activity cards are played alongside another card, and are one of the primary methods to tailor the wizard's deck.
+Activity cards represent basic actions that can be performed by the wizard. In the provisional first playable draft, each Activity is played for its printed effect and may name another card as a target. An Activity does not always require a paired card. Activities are one of the primary methods to tailor the wizard's deck.
 
 #### Research Activity
 

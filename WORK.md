@@ -10,6 +10,10 @@ As each part is implemented and verified, move its lasting design details to
 so it continues to describe only work in progress. When the slice is complete,
 reset this file for the next slice.
 
+For a design-only slice, move its accepted provisional rules to the appropriate
+permanent document when the design is complete, even if implementation follows
+in a later slice. Label those rules as provisional until they are tested.
+
 ## Active slice
 
 No active work slice.
