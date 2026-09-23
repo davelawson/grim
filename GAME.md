@@ -1,6 +1,6 @@
 # Grimoire Game Mechanics
 
-Grimoire is a turn-based deck building game.  Each player takes on the role of a wizard striving to overtake their rivals, and be the first to ascend.  They develop spells and  artefacts, recruit minions to overcome challenges, in their pursuit of power.
+Grimoire is a turn-based deck building game.  Each player takes on the role of a wizard striving to overtake their rivals, and be the first to ascend.  They develop spells and  artifacts, recruit minions to overcome challenges, in their pursuit of power.
 
 ## Basics of Play
 
@@ -10,34 +10,38 @@ The rules in this section are a starting point for testing the flow of a game.
 Card costs, hand size, and challenge thresholds are illustrative balance values,
 not final numbers. The intended loop is to improve the deck and establish
 assets, then use those cards to pursue rumours and visible victory progress.
-This draft covers independent player turns in a simultaneous round; direct
-confrontation and shared contested opportunities need later rules.
+Each shared round contains every wizard's simultaneous turn. This draft
+covers independent actions; direct confrontation and shared contested
+opportunities need later rules.
 
 A round works as follows:
 
-1. Each wizard receives income from assets already in play, draws five cards,
-   and receives one personal rumour card. If the draw pile runs out during the
-   draw, shuffle the discard pile to continue. Obstacles drawn into the hand
-   resolve automatically, as described below.
-2. Each player privately submits an ordered sequence of card plays. A card can
-   be used only once that round. Cards supply the actions; there is no separate
-   action-slot limit. A play can use one card or combine an opportunity with
-   supporting cards. A player may stop before using every card.
-3. Once all plans are submitted, resolve each player's plays in the order that
-   player specified. Each player's plays are independent in this draft, so
-   there is no cross-player resolution order. A resource gained earlier in a
-   sequence can pay for a later play. If a planned play cannot meet its cost
-   when reached, it has no effect; its cards remain unused until cleanup.
-4. Pay upkeep for cards that require it, then move played non-durable cards
-   and unused hand cards to the discard pile. A newly gained card also enters
-   the discard pile. Ephemeral cards are destroyed instead. Clear unspent
-   Wealth and Wis, then begin the next round.
+1. Each wizard has the resources generated in the previous round available,
+   draws five cards, and receives one personal rumour card. A new wizard begins
+   with no available resources. If the draw pile runs out during the draw,
+   shuffle the discard pile to continue. Obstacles drawn into the hand resolve
+   automatically, as described below.
+2. Each player privately submits a set of card plays. A card can be used only
+   once that round. Cards supply the actions; there is no separate action-slot
+   limit. A play can use one card or combine cards for one action, such as a
+   challenge with support. The total costs of the submitted plays and upkeep
+   must fit the resources already available at the start of the round.
+3. Once all plans are submitted, resolve the plays concurrently. Each action
+   uses the state and resources available at the start of the round. An action's
+   result generally cannot fund or modify another action in the same round;
+   cards explicitly combined for one action are the exception. In this draft,
+   players' actions are independent, so no cross-player order is needed.
+   Generated resources are set aside for the following round.
+4. Pay upkeep from this round's available resources. Move played non-durable
+   cards and unused hand cards to the discard pile; newly gained cards enter
+   the discard pile too. Destroy ephemeral cards instead. Unspent available
+   resources expire, and generated resources become available next round.
 
-Wealth and Wis are turn-only resources in this draft. A resource card produces
-its printed amount when played; the resource itself is spent on later plays.
-An affinity is a prerequisite, not a resource that is spent. Durable assets
-remain in play after being played and can provide future income. Cards in the
-hand, rather than a fixed number of actions, determine how much a wizard can do.
+Wealth and Wis can be spent only in the round after they are generated. Any
+unspent amount expires at the end of that spending round. An affinity is a
+prerequisite, not a resource that is spent. Durable assets remain in play and
+can generate future income. Cards in the hand, rather than a fixed number of
+actions, determine how much a wizard can do.
 
 ### Challenges and progress
 
@@ -54,45 +58,61 @@ round end.
 
 At the opening draft, each wizard chooses a victory-path card for a primary
 path. It returns through the deck, providing a relatively reliable chance to
-advance. A successful attempt immediately adds one visible step on that path,
+advance. A successful attempt adds one visible step when the round resolves,
 removes the attempted card, and puts its costlier next rank into the discard
 pile. Other cards may offer alternate paths or change the wizard's primary
 path; those effects are not designed here. Reaching the fifth step wins the
 game instead of creating another rank.
 
-### Example starting deck and cards
+### Starting deck and card interactions
 
-For a paper playthrough, start with three **Wis**, two **Wealth**, two
-**Focus**, one **Specialize**, and one **Chantry**. The opening draft adds one
-**Arcane Inquiry I** as the tenth card. This example wizard has the Arcane
-affinity. Give the wizard one **Veiled Archive** rumour each round; how rumours
-are generated in the full game remains to be designed.
+Every wizard begins with exactly ten cards. Six are fixed; four come from draft
+choices or are linked to a choice:
 
-| Card | Category and cost | Effect and destination |
-| --- | --- | --- |
-| Wis | Resource; none | Gain 1 Wis, then discard. |
-| Wealth | Resource; none | Gain 1 Wealth, then discard. |
-| Focus | Spell; Arcane affinity | Commit with a challenge for +2 Essence, then discard. |
-| Specialize | Activity; 1 Wis | Copy one resource or spell played earlier this round into the discard pile, then discard Specialize. Victory-path cards cannot be copied by this example effect. |
-| Chantry | Location; 2 Wealth | Remain in play and gain 1 Wis at the start of each later round. |
-| Veiled Archive | Personal rumour; none | Attempt an Essence 2 challenge. On success, gain a Focus into the discard pile. Destroy this rumour after the attempt or at round end. |
-| Arcane Inquiry I | Victory-path card; 1 Wis | Attempt an Essence 2 challenge. On success, gain 1 Arcane step and replace this card with Arcane Inquiry II in the discard pile; otherwise discard this card unchanged. |
-| Arcane Inquiry II | Victory-path card; 2 Wis | Attempt an Essence 3 challenge. On success, gain 1 Arcane step and replace this card with the next rank in the discard pile; otherwise discard this card unchanged. Later ranks and their numbers remain open. |
+| Starting card | Count | How it enters the deck |
+| --- | ---: | --- |
+| Chantry | 1 | Draft one of three Chantries. |
+| Element | 1 | Add the Element linked to the chosen Chantry. |
+| Research Spell | 1 | Fixed starting card. |
+| Research Artifact | 1 | Fixed starting card. |
+| Basic Wis | 2 | Fixed starting cards. |
+| Victory challenge | 1 | Draft a card for a primary victory path. |
+| Basic Wealth | 1 | Fixed starting card. |
+| Minion | 1 | Draft a Minion themed to match the chosen Chantry. |
+| Arcane Focus | 1 | Fixed starting card. |
+| **Total** | **10** | |
 
-A hand containing **Wis**, **Specialize**, and other cards can play Wis, then
-spend it on Specialize to copy a previously played resource into the discard
-pile. A hand containing **Wis**, **Focus**, and **Arcane Inquiry I** can gain
-1 Wis, spend it to start the Inquiry, and commit Focus for 2 Essence. That
-meets the threshold, scores an Arcane step, and replaces the Inquiry. If the
-player instead attempts the Inquiry without Focus, the challenge fails: the
-Wis is spent, the Inquiry is discarded unchanged, and no step is gained.
-Committing Focus with Veiled Archive similarly meets its Essence 2 threshold
-and gains another Focus into the discard pile. Two Wealth cards and Chantry can
-be played in that order to create persistent income for later rounds.
+The three Chantry choices, their linked Elements, and the Minion offers have
+not yet been named or balanced. A Chantry is a Location that generates Wis;
+its other effects and exact cost depend on the chosen card. The Minion's theme
+follows that choice, but its challenge contribution is still to be designed.
+**Arcane Inquiry I** remains an illustrative choice for the victory challenge
+slot, with **Arcane Inquiry II** as its replacement after a success.
+
+A basic Wis or Wealth card generates one unit of its named resource for the
+next round when played. Research Spell creates a new spell card in the discard pile;
+Research Artifact creates a new artifact card there. When an Element is
+committed with either Research card, it supplies its affinity and the created
+card is associated with that Element. Without an Element, the result is
+unaligned. An Element may instead be committed with one other card to provide
+its affinity for that action. It cannot be used for another action in the
+same round.
+
+Arcane Focus is an Activity card that can be committed with one other card. It
+reduces either that card's Wis cost or its Wealth cost by 1, chosen when the
+play is submitted, to a minimum of zero. The paired cards form one action and
+are each used once. Arcane Focus changes that action's cost; it does not make
+resources generated by another action available in the same round.
+
+For example, pairing an Element with Research Spell puts an Element-associated
+spell into the discard pile. Pairing Arcane Focus with an Arcane Inquiry I that
+costs 1 Wis reduces that attempt's Wis cost to zero. It does not add any
+challenge capability, so the attempt still needs appropriate support to
+succeed. The way a starting Minion supplies such support remains open.
 
 ## Victory
 
-There are many paths to victory in Grimoire.  Every wizard's progress on each of these victory paths is visible to all.  The first wizard to advance 5 steps along any victory path wins the game.
+There are many paths to victory in Grimoire. Every wizard's progress on each path is visible to all. A wizard wins by advancing 5 steps along any one path. If multiple wizards reach a fifth step in the same round, the tie rule remains to be designed.
 
 ### Domination
 
@@ -183,11 +203,11 @@ Parameters:
   - Essence: facility wielding and understanding magical phenomena
 - Affinities: a set of domains the minion is familiar with
 
-#### Artefacts
+#### Artifacts
 
-Artefacts are magical assets that are typically created by the wizard, although they can sometimes be retrieved from challenges or events, or taken from rivals.  Artefacts fall into two subcategories: Consumables, and Durables.  Consumables, upon use are discarded, while durables remain in play.  An artefact is used when the card has any impact on the game at all, other than paying upkeep.
+Artifacts are magical assets that are typically created by the wizard, although they can sometimes be retrieved from challenges or events, or taken from rivals.  Artifacts fall into two subcategories: Consumables, and Durables.  Consumables, upon use are discarded, while durables remain in play.  An artifact is used when the card has any impact on the game at all, other than paying upkeep.
 
-Artefacts are always assets that belong to one of the other subcategories as well (ie. an artefact minion golem).
+Artifacts are always assets that belong to one of the other subcategories as well (ie. an artifact minion golem).
 
 Parameters:
 
@@ -207,7 +227,7 @@ Spells are probably the most common cards in your deck.  The cost to play a spel
 
 ### Designs
 
-Design cards represent unhatched arcane plans.  These could become spells or artefacts.  The design gives some, but not all details of what will be created when the design is implemented.  Designs, once discovered, are placed in the discoverer's library.
+Design cards represent unhatched arcane plans. These could become spells or artifacts. The design gives some, but not all details of what will be created when the design is implemented. Designs, once discovered, are placed in the discoverer's library. The two starting Research cards create completed spells or artifacts directly, rather than Designs.
 
 ### Rumours
 
@@ -215,7 +235,15 @@ Rumours are cards that are added to your hand at the start of the turn.  Rumour 
 
 ### Resources
 
-Resource Cards are cards that generate resources when played.  Typical resources generated would be Wealth and Wis.
+Resource Cards are cards that generate resources when played. Typical resources generated would be Wealth and Wis.
+
+### Elements
+
+An Element card represents one elemental affinity. Commit it with a single other card to supply that affinity for the paired action. If that action is Research Spell or Research Artifact, the created card is associated with the Element. Each Element can support only one paired action in a round.
+
+### Victory Challenges
+
+A drafted victory challenge provides a repeatable opportunity to advance one path. On success, it scores a step and is replaced by a more advanced version, as described above.
 
 ### Activities
 
@@ -223,7 +251,19 @@ Activity cards represent basic actions that can be performed by the wizard. In t
 
 #### Research Activity
 
-The research card allows the wizard to generate designs.  This adds cards to the wizard's library.
+The two starting Research cards create new cards directly in the discard pile. Pairing an Element with Research determines the new card's association; without an Element, the result is unaligned. How the specific new card is selected remains to be designed.
+
+##### Research Spell
+
+Creates a new spell card and adds it to the wizard's discard pile.
+
+##### Research Artifact
+
+Creates a new artifact card and adds it to the wizard's discard pile.
+
+#### Arcane Focus
+
+Commit Arcane Focus with one other card to reduce either that card's Wis or Wealth cost by 1, to a minimum of zero. It affects only that paired action.
 
 #### Deconstruct Activity
 
@@ -243,23 +283,19 @@ Obstacle cards are automatically played at the start of the turn, when found in 
 
 ## Deck Construction
 
-A player's initial deck is constructed by performing a series of drafts, and adding a set of prescribed basic cards.
-
-Spells, and wis offered in the drafting of the initial deck will necessarily applicable for affinities possessed by the wizard.
-
-During some of the drafting phases, the wizard will be able to choose between different categories of cards.  For instance they might be offered a choice between a spell, a wis resource, or a minion card.  Each of these would be tailored to their affinities, but the wizard would be able to bias their deck towards one of those categories.
+The ten-card starting deck combines fixed cards with a Chantry, a victory challenge, and a Minion chosen during the opening draft. Choosing a Chantry also adds its linked Element. The full draft procedure and the identities of the offered cards remain to be designed; the card counts and relationships above define the current starting structure.
 
 ### Drafting
 
-Pick one of several cards several times to fill your deck.
+The opening draft includes one Chantry chosen from three offers, one victory challenge, and one Minion themed by the chosen Chantry. The Chantry choice also determines the Element card. Details of the victory and Minion offers and the draft order remain open.
 
 ### Static
 
-You simply start with a preset collection of cards.
+Each starting deck also receives Research Spell, Research Artifact, two basic Wis, one basic Wealth, and Arcane Focus.
 
 ### Meta
 
-Many of the initial cards create other cards, giving the player an opportunity to tailor their deck.  This concept doesn't work super well if we are playing only a turn every x amount of time.
+The two starting Research cards create new spells or artifacts, allowing players to develop their deck over successive rounds. The pace of this growth remains to be tested.
 
 ## Aspects and Affinities
 
@@ -267,6 +303,5 @@ Does it make sense to have opposed affinities?  For instance City vs Remote, or 
 
 ## Notes To Incorporate
 
-- When drafting at the start, one of the selections will be for a chantry location.  A chantry is a location that generates wis income.
 - When performing many types of actions that involve magic, playing additional spell cards allows you to inform the results of the action.
 - When attempting a challenge, how do we add randomness to the result without screwing the player?
