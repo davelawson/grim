@@ -17,28 +17,34 @@ opportunities need later rules.
 A round works as follows:
 
 1. Each wizard has the resources generated in the previous round available,
-   draws five cards, and receives one personal rumour card. A new wizard begins
-   with no available resources. If the draw pile runs out during the draw,
-   shuffle the discard pile to continue. Obstacles drawn into the hand resolve
-   automatically, as described below.
-2. Each player privately submits a set of card plays. A card can be used only
-   once that round. Cards supply the actions; there is no separate action-slot
-   limit. A play can use one card or combine cards for one action, such as a
-   challenge with support. The total costs of the submitted plays and upkeep
-   must fit the resources already available at the start of the round.
-3. Once all plans are submitted, resolve the plays concurrently. Each action
-   uses the state and resources available at the start of the round. An action's
-   result generally cannot fund or modify another action in the same round;
-   cards explicitly combined for one action are the exception. In this draft,
-   players' actions are independent, so no cross-player order is needed.
-   Generated resources are set aside for the following round.
-4. Pay upkeep from this round's available resources. Move played non-durable
+   draws five cards, and receives one personal rumour from their eligible pool.
+   A new wizard begins with no available resources. If the draw pile runs out
+   during the draw, shuffle the discard pile to continue. Obstacles drawn into
+   the hand resolve automatically, as described below.
+2. Resolve any drawn mandatory rumour before planning. A wizard who drew Full
+   Moon may also attempt it now, committing its Might support. Solar Eclipse's
+   Wis is available for this round; a successful Full Moon grants affinities that can
+   support later plays in this round. Both are explicit timing exceptions.
+3. Each player privately submits their remaining card plays. A card can be
+   used only once that round. Cards supply the actions; there is no separate
+   action-slot limit. A play can use one card or combine cards for one action,
+   such as a challenge with support. The total costs of the plays, early
+   rumour resolution, and upkeep must fit this round's available resources.
+4. Once all plans are submitted, resolve the remaining plays concurrently.
+   Each action uses the state and resources available after the early rumour
+   phase. An action's result generally cannot fund or modify another action
+   in the same round; cards explicitly combined for one action are the other
+   exception. In this draft, players' actions are independent, so no
+   cross-player order is needed. Generated resources are set aside for the
+   following round unless a card explicitly says they are immediate.
+5. Pay upkeep from this round's available resources. Move played non-durable
    cards and unused hand cards to the discard pile; newly gained cards enter
    the discard pile too. Destroy ephemeral cards instead. Unspent available
    resources expire, and generated resources become available next round.
 
-Wealth and Wis can be spent only in the round after they are generated. Any
-unspent amount expires at the end of that spending round. An affinity is a
+Wealth and Wis normally become spendable in the round after they are
+generated. Immediate effects such as Solar Eclipse are explicit exceptions.
+Any unspent amount expires at the end of its spending round. An affinity is a
 prerequisite, not a resource that is spent. Durable assets remain in play and
 can generate future income. Cards in the hand, rather than a fixed number of
 actions, determine how much a wizard can do.
@@ -53,8 +59,8 @@ base score. Add their printed value for the challenge's attribute and compare
 it with the threshold. Meeting or exceeding the threshold succeeds; there is
 no random modifier yet. Committed cards are spent whether the attempt succeeds
 or fails. An uncompleted, reusable victory-path card returns to the discard
-pile unchanged. A rumour is ephemeral and is destroyed after its attempt or at
-round end.
+pile unchanged. A rumour is ephemeral by default and is destroyed after its
+attempt or at round end unless its card specifies another duration.
 
 At the opening draft, each wizard chooses a victory-path card for a primary
 path. It returns through the deck, providing a relatively reliable chance to
@@ -71,15 +77,15 @@ choices or are linked to a choice:
 
 | Starting card | Count | How it enters the deck |
 | --- | ---: | --- |
-| Chantry | 1 | Draft one of three Chantries. |
-| Element | 1 | Add the Element linked to the chosen Chantry. |
-| Research Spell | 1 | Fixed starting card. |
-| Research Artifact | 1 | Fixed starting card. |
-| Basic Wis | 2 | Fixed starting cards. |
-| Victory challenge | 1 | Draft a card for a primary victory path. |
-| Basic Wealth | 1 | Fixed starting card. |
-| Minion | 1 | Draft a Minion themed to match the chosen Chantry. |
-| Arcane Focus | 1 | Fixed starting card. |
+| +Chantry | 1 | Draft one of three Chantries. |
+| *Element | 1 | Add the Element linked to the chosen Chantry. |
+| *Research Spell | 1 | Fixed starting card. |
+| *Research Artifact | 1 | Fixed starting card. |
+| **Basic Wis | 2 | Fixed starting cards. |
+| *Victory challenge | 1 | Draft a card for a primary victory path. |
+| *Basic Wealth | 1 | Fixed starting card. |
+| *Minion | 1 | Draft a Minion themed to match the chosen Chantry. |
+| *Arcane Focus | 1 | Fixed starting card. |
 | **Total** | **10** | |
 
 The three Chantry choices, their linked Elements, and the Minion offers have
@@ -163,11 +169,16 @@ Durable cards remain in play and active until something specifically removes the
 
 ##### Destructibles
 
-Destructible cards are destroyed when they would otherwise go to the discard pile.
+Destructible cards are destroyed when they would otherwise gao to the discard pile.
 
 ##### Ephemeral
 
 Ephemeral cards are cards that are destroyed at the end of your turn.
+
+##### Mandatory
+
+Mandatory cards must resolve when revealed, before the wizard plans other
+actions. A mandatory rumour may require a choice between printed effects.
 
 #### Visibility
 
@@ -231,7 +242,48 @@ Design cards represent unhatched arcane plans. These could become spells or arti
 
 ### Rumours
 
-Rumours are cards that are added to your hand at the start of the turn.  Rumour cards are ephemeral.  Rumours cards are typically generated by your actions, and those of your rivals.  A rumour represents a momentary opportunity to embark upon a challenge.  If not quickly seized upon, the opportunity passes.
+Rumours are opportunities drawn separately from the wizard's own deck. Each
+wizard has a personal, unordered pool of eligible rumour types rather than a
+shuffled rumour deck. The five rumours below are eligible from the start.
+Additional types enter that wizard's pool as their affinities expand and leave
+when those affinities fade. Eligibility is recomputed from current affinities
+before each round's draw; a temporary affinity can unlock a rumour only while
+it is still active at that draw. Each wizard draws one rumour independently,
+without removing its type from any pool. The same type can appear for several
+wizards or in consecutive rounds. Until weighting is designed, each eligible
+type has an equal chance of being drawn. Wizard and rival actions may affect
+which types are eligible as their effects on affinities are defined.
+
+Rumours are ephemeral by default: an unused rumour expires at round end, and
+an attempted one is destroyed after its attempt. A rumour that persists longer
+states its own duration and destination. Mandatory rumours resolve during the
+early rumour phase, before other actions are planned. The following first five
+rumours are provisional; printed costs, thresholds, rewards, and durations
+still need balance testing.
+
+- **Promising Pupil:** An optional recruitment opportunity. Commit Arcane Focus
+  with the rumour and pay substantial Wis to gain a Minion in the discard pile.
+  Arcane Focus satisfies the focus requirement and gives its usual reduction
+  of one Wis or Wealth, to a minimum of zero. The Minion must later be drawn
+  and played to become active.
+- **Solar Eclipse (mandatory):** Resolve on reveal, granting substantial Wis
+  and affinities for this round. Its Wis is spendable immediately, overriding
+  the usual next-round delay; unspent Wis expires at round end. Its affinities
+  fade at round end.
+- **Burn the Witch (mandatory):** Resolve on reveal by choosing one printed
+  option: commit eligible support with enough Might, pay Wealth, or discard
+  the specified number of cards already in play. If fewer eligible in-play
+  cards exist than the discard option requires, discard all of them. Committed
+  support is used for this rumour and cannot support another action this round.
+- **New Leyline:** Spend Wis to gain a Location card in the discard pile. Once
+  drawn and played, the Location remains in play and generates Wis each round;
+  that Wis follows the normal next-round availability rule.
+- **Full Moon:** Before submitting the main action plan, the wizard may attempt
+  a Might hunt with eligible support. On success, gain Wealth for the next
+  round and temporary affinities immediately. Those affinities may support
+  other plays in the current round and remain active for the card's printed
+  number of turns, including this one. They can change rumour eligibility at
+  later draws while still active. The printed duration remains to be balanced.
 
 ### Resources
 
