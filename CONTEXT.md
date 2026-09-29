@@ -9,6 +9,11 @@ A durable asset representing a wizard's follower. A Minion in play can be
 assigned to a challenge when ready. Minions are the only cards that possess
 Expertise, and may also provide Affinity independently of that Expertise.
 
+**Starting Minion**:
+A named Minion card drafted from the three offered with a chosen Chantry into
+the wizard's starting deck. Its name does not make it unique across wizards;
+more than one wizard may have a copy of the same named card.
+
 **Exhausted**:
 A card state in which the card cannot be assigned or activated. Passive effects,
 including a Minion's Affinities, continue unless stated otherwise. Exhausted
@@ -31,14 +36,17 @@ to the rumour mill when discarded.
 Each wizard's personal pool of rumour cards from which they draw each turn.
 Its contents depend on the wizard's affinities and the cards' affinity
 requirements; all listed affinities are required unless a card states an
-alternative. Eligibility is checked only when a rumour is drawn; a later loss
-of Affinity does not remove a rumour already in play. The mill always has a
-rumour available to draw.
+alternative. Eligibility is checked only when a rumour is drawn. Investigate's
+additional draw uses the final domain totals of its Challenge, including
+assigned Minion Expertise and committed card contributions, and is set aside
+until the next turn. A later loss of Affinity does not remove a rumour already
+in play. The mill always has a rumour available to draw.
 
 **Challenge**:
-An action offered by a rumour or a victory-path card that has a requirement for
-success. Every attempt requires a Challenger, and its requirements can combine
-cards, Affinities, and Minion Expertise.
+An action offered by a card for a Challenger to attempt. Rumours, victory-path
+cards, and Activities may offer Challenges. Requirements, when present, can
+combine cards, Affinities, and Minion Expertise. An Investigate Challenge always
+Succeeds when a Challenger is assigned.
 
 **Succeeded Challenge**:
 A Challenge overcome before its opportunity window closes, typically earning
@@ -47,8 +55,8 @@ its printed reward for the wizard.
 **Failed Challenge**:
 A Challenge left unovercome when its opportunity expires without an alternative
 Challenge on the same card succeeding. Its card may apply a negative effect or
-simply forfeit the reward; a reusable victory-path card left unplayed does not
-Fail.
+simply forfeit the reward. A reusable victory-path card left unplayed does not
+Fail; Investigate has no Failure outcome.
 
 **Challenger**:
 The actor undertaking a Challenge: a ready Minion, or the wizard intervening
