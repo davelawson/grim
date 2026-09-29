@@ -57,10 +57,15 @@ the same turn; the played card follows its normal discard or destruction rule
 at turn end. Some effects, such as Solar Eclipse, grant resources directly.
 An asset first played during a turn begins generating recurring cards at the
 start of its owner's next turn.
-Any unspent amount expires at the end of its spending round. An affinity is a
-prerequisite, not a resource that is spent. Durable assets remain in play and
-can generate future income. Available cards and active opportunities, rather
-than a fixed action count, determine how much a wizard can do.
+Any unspent amount expires at the end of its spending round. An Affinity is a
+reusable numeric capacity, not a resource that is spent. Every active source of
+the same Affinity contributes to the wizard's total, and those contributions
+stack. Using an Affinity neither spends nor reserves it, so the same total can
+meet multiple requirements during a round. Effects may increase or reduce a
+total for a stated duration, but no Affinity can fall below zero. Durable assets
+remain in play and can generate future income. Available cards and active
+opportunities, rather than a fixed action count, determine how much a wizard
+can do.
 
 ### Challenges and progress
 
@@ -76,20 +81,24 @@ Playing a victory-path card starts its attempt. Every attempt requires a
 Challenger: either a ready Minion already in play or the
 wizard acting directly by playing Arcane Focus. The player may assign ready
 Minions and commit eligible support cards from the hand. A Challenge's
-requirements may involve resources provided by cards, available affinities,
-Minion Attributes, or any combination.
+requirements may involve resources provided by cards, Affinity thresholds, or
+any combination.
 The wizard cannot begin an attempt without enough capacity from the chosen
-Challenger, support, affinities, and payable resources to meet every printed
-requirement.
-For a printed Attribute threshold, add the eligible contributions of assigned
-Minions and committed support cards and meet or exceed that threshold. Multiple
-Minions may participate together in one Challenge, combining their eligible
-contributions. The wizard has no automatic Attribute score; Arcane Focus alone
-adds none. There is no random modifier yet. A Minion played from the hand this
-round cannot be assigned to a Challenge until the next round. Each ready Minion
-can be assigned only once per round. Committed support cards follow their normal
-discard or destruction rule after an attempt. When an assigned Minion completes
-the attempt, it becomes exhausted until the start of its wizard's next turn.
+Challenger, support, Affinities, Expertise, and payable resources to meet every
+printed requirement.
+For each printed Affinity threshold, add the wizard's current total in that
+domain, every matching Expertise value on the assigned Minions, and any
+action-specific contributions from committed cards. All matching Expertise on
+an assigned Minion applies at once. A Minion needs no matching Expertise to
+undertake a Challenge. Multiple Minions may participate together, combining
+their Expertise. Arcane Focus allows the wizard to act as Challenger and adds
+one Wis plus one point of any single Affinity to that attempt. There is no
+random modifier yet. A Minion played from the hand this round cannot be assigned
+to a Challenge until the next round. Each ready Minion can be assigned only once
+per round. Committed support cards follow their normal discard or destruction
+rule after an attempt. When an assigned Minion completes the attempt, it becomes
+exhausted until the start of its wizard's next turn; its passive Affinities
+remain available.
 An unused, reusable victory-path card returns to the discard pile unchanged
 unless retained; it does not Fail.
 A rumour remains in play for its printed duration and leaves play as its card
@@ -111,7 +120,7 @@ choices or are linked to a choice:
 
 | Starting card | Count | How it enters the deck |
 | --- | ---: | --- |
-| +Chantry | 1 | Draft one of three Chantries. |
+| +Chantry | 1 | Draft one of four Chantries. |
 | *Element | 1 | Add the Element linked to the chosen Chantry. |
 | *Research Spell | 1 | Fixed starting card. |
 | *Research Artifact | 1 | Fixed starting card. |
@@ -122,36 +131,41 @@ choices or are linked to a choice:
 | *Arcane Focus | 1 | Fixed starting card. |
 | **Total** | **10** | |
 
-The three Chantry choices, their linked Elements, and the Minion offers have
-not yet been named or balanced. A Chantry is a Location that generates an
-ephemeral Wis card each round;
-its other effects and exact cost depend on the chosen card. The Minion's theme
-follows that choice, but its printed Attributes and abilities remain to be designed.
+The four Chantry choices, their linked Elements, and the Minion offers have
+not yet been named or balanced. There is one Chantry for each of Fire, Earth,
+Air, and Water. A Chantry is a Location that provides one point of its linked
+Elemental Affinity and generates an ephemeral Wis card each round; its other
+effects and exact cost depend on the chosen card. The Minion's theme follows
+that choice, but its printed Affinities, Expertise, and abilities remain to be
+designed.
 **Arcane Inquiry I** remains an illustrative choice for the victory challenge
 slot, with **Arcane Inquiry II** as its replacement after a success.
 
 A basic Wis or Wealth card provides one unit of its named resource immediately
 when played. Research Spell creates a new spell card in the discard pile;
 Research Artifact creates a new artifact card there. When an Element is
-committed with either Research card, it supplies its affinity and the created
-card is associated with that Element. Without an Element, the result is
-unaligned. An Element may instead be committed with one other card to provide
-its affinity for that action. It cannot be used for another action in the
-same round.
+committed with either Research card, it supplies one point of its Affinity and
+the created card comes from that Element's creation pool. The created card is
+associated with that Element and normally prints a requirement for it, though
+the created card's text remains authoritative. Without an Element, the result
+is unaligned. An Element may instead be committed with one other card to provide
+one point of its Affinity for that action. It does not change the wizard's
+general Affinity total or rumour eligibility and cannot support another action
+in the same round.
 
 Arcane Focus is an Activity card that can be committed with one other card. It
 can serve as the Challenger when the wizard intervenes directly. It
-reduces either that card's Wis cost or its Wealth cost by 1, chosen when the
-play is made, to a minimum of zero. The paired cards form one action and
-are each used once. Arcane Focus changes that action's cost; it does not
-generate resources itself.
+contributes one Wis and one point of any single Affinity, chosen when the play
+is made, to that action only. Neither contribution enters the wizard's general
+resource or Affinity pool. The paired cards form one action and are each used
+once.
 
 For example, pairing an Element with Research Spell puts an Element-associated
 spell into the discard pile. Pairing Arcane Focus with an Arcane Inquiry I that
-costs 1 Wis reduces that attempt's Wis cost to zero. It does not add any
-challenge capability, so the attempt still needs appropriate support to
-succeed. A starting Minion assigned to that Challenge can supply its eligible
-Attribute value.
+requires 1 Wis and Might 1 satisfies both requirements if Might is the Affinity
+chosen for Arcane Focus. A starting Minion assigned to a Challenge contributes
+all of its matching Expertise in addition to the wizard's reusable Affinity
+totals.
 
 ## Victory
 
@@ -185,18 +199,21 @@ By completing epic quests that appear during play, a wizard can become eternally
 
 ## Cards
 
-### Common Card Attributes
+### Common Card Properties
 
 ***Should the concept of durable and consumable apply more generally across the board?***
-***Should cards have a generic 'Noise' attribute that informs rumour generation in rivals?***
+***Should cards have a generic 'Noise' property that informs rumour generation in rivals?***
 
 #### Cost
 
-Cost indicates what resources and affinities need to be present to play the card from your hand.  Inability to pay the cost means that the card can not be played.
+Cost includes the resources paid and the Affinity thresholds met to play a card
+from the hand. Paying Wis or Wealth depletes that resource. Meeting an Affinity
+requirement neither spends nor reserves the Affinity. A bare Affinity symbol is
+shorthand for a requirement of 1.
 
 #### Longevity
 
-All cards have one or more longevity attributes.  These inform how the card remains in play, is placed in the discard pile, and perhaps destroyed.
+All cards have one or more longevity properties. These inform how the card remains in play, is placed in the discard pile, and perhaps destroyed.
 
 ##### Instants
 
@@ -245,37 +262,34 @@ Cards that, once played, tend to remain in play, providing benefits to the wizar
 #### Minions
 
 Minions are assets that represent loyal followers that are able to undertake challenges on behalf of the wizard.
-Minions can become exhausted.  When exhausted, their upkeep must still be paid, but they are unable to attempt challenges, or provide affinities to the wizard.
+Minions can become exhausted. When exhausted, their upkeep must still be paid
+and they cannot attempt Challenges, but they continue to provide their passive
+Affinities.
 Assigning a Minion to a challenge exhausts it. Spending or discarding a Minion
 or another asset means the same thing: move it from play to its owner's discard
 pile. Its owner must draw and play it again before it can be used. This applies
 whenever an asset is sent to the discard pile, including for unpaid upkeep or
 a forced discard.
 In the provisional first playable draft, a ready Minion in play may be assigned
-to a challenge and contribute its printed attribute alongside support cards
-committed from the hand. An assigned Minion becomes exhausted when its
-assignment resolves. Exhausted cards cannot be used again until they recover
-at the start of their wizard's next turn. A Minion played this round cannot
-support a challenge until the next round.
+to a Challenge and contribute all of its matching Expertise alongside support
+cards committed from the hand. An assigned Minion becomes exhausted when its
+assignment resolves. Exhausted cards cannot be assigned or activated again
+until they recover at the start of their wizard's next turn. A Minion played
+this round cannot undertake a Challenge until the next round.
 
-A ready Minion's ordinary affinities become available as soon as it enters
-play, whether or not the Minion is assigned to an action. Assignment does not
-reserve those affinities: they may also support other actions in the same
-turn, including actions ordered after the Minion is played.
-Some Minions have a property that adds affinities only to an action in which
-they directly participate. In the first playable, direct participation means
-assignment to a challenge; other forms of participation are not yet defined.
-An exhausted Minion supplies neither kind of affinity.
+A Minion's ordinary Affinities become available as soon as it enters play,
+whether ready or exhausted and whether or not it is assigned to an action.
+Assignment does not reserve those Affinities: they may support the Minion's
+Challenge and every other action for as long as the Minion remains in play.
+Expertise is different: it is a ranked Minion capability added only to a
+Challenge that Minion undertakes. A Minion may print both Affinity and Expertise
+in the same or different domains.
 
 Parameters:
 
 - Upkeep: resources that must be paid at the end of each turn, or the minion is discarded
-- Attributes (typical range 0-3)
-  - Might: capacity for physical violence
-  - Charm: ability to exert social influence
-  - Acuity: aptitude for noticing things and unravelling mysteries
-  - Essence: facility wielding and understanding magical phenomena
-- Affinities: a set of domains the minion is familiar with
+- Affinities: numeric influence the Minion provides continuously while in play
+- Expertise: ranked domain capability added when the Minion undertakes a Challenge
 
 #### Artifacts
 
@@ -293,11 +307,14 @@ Locations are assets that represent structures or settings that fall under the d
 
 Parameters:
 
-- Affinities: spheres of influence and knowledge that are impacted by controlling this location
+- Affinities: numeric influence provided while the Location remains in play
 
 ### Spells
 
-Spells are probably the most common cards in your deck.  The cost to play a spell always includes magical affinities, but often includes other resources, such as Wis.
+Spells are probably the most common cards in your deck. A Spell's Affinity
+requirements, if any, use only Fire, Earth, Air, or Water. Some Spells have no
+Affinity requirement. Spells may also require resources such as Wis. Other card
+types may require any Affinity that fits their fiction.
 
 ### Designs
 
@@ -307,7 +324,7 @@ Design cards represent unhatched arcane plans. These could become spells or arti
 
 Rumours are opportunities drawn separately from the wizard's own deck. The
 rumour mill is each wizard's personal pool of rumour cards drawn from each
-turn. Each rumour card may have one or more affinity requirements for joining
+turn. Each rumour card may have one or more numeric Affinity requirements for joining
 that mill. All listed affinities are required unless the card explicitly states
 an alternative. The five rumours below are eligible from the start. The mill
 expands and contracts as the wizard's affinities change. Eligibility is
@@ -340,8 +357,8 @@ still need balance testing.
 
 - **Promising Pupil:** A recruitment Challenge. Commit Arcane Focus
   with the rumour and pay substantial Wis to gain a Minion in the discard pile.
-  Arcane Focus satisfies the focus requirement and gives its usual reduction
-  of one Wis or Wealth, to a minimum of zero. The Minion must later be drawn
+  Arcane Focus satisfies the focus requirement and contributes one Wis plus
+  one point of an Affinity chosen for that action. The Minion must later be drawn
   and played to become active. The rumour remains in play for the turn drawn
   and the following turn unless overcome sooner. On Failure, the recruitment
   opportunity is lost without an additional penalty.
@@ -379,7 +396,13 @@ Resource Cards are cards that generate resources when played. Typical resources 
 
 ### Elements
 
-An Element card represents one elemental affinity. Commit it with a single other card to supply that affinity for the paired action. If that action is Research Spell or Research Artifact, the created card is associated with the Element. Each Element can support only one paired action in a round.
+An Element card represents Fire, Earth, Air, or Water. Commit it with a single
+other card to supply one point of that Affinity for the paired action. This
+action-specific point does not change general Affinity totals or rumour
+eligibility. If the paired action is Research Spell or Research Artifact, the
+created card comes from that Element's creation pool, is associated with the
+Element, and normally prints a requirement for it. Each Element card can support
+only one paired action in a round.
 
 ### Victory Challenges
 
@@ -403,7 +426,9 @@ Creates a new artifact card and adds it to the wizard's discard pile.
 
 #### Arcane Focus
 
-Commit Arcane Focus with one other card to reduce either that card's Wis or Wealth cost by 1, to a minimum of zero. It affects only that paired action.
+Commit Arcane Focus with one other card to contribute one Wis and one point of
+any single Affinity to that paired action. It also allows the wizard to serve as
+the Challenger. Neither contribution enters the wizard's general pool.
 
 #### Deconstruct Activity
 
@@ -427,7 +452,11 @@ The ten-card starting deck combines fixed cards with a Chantry, a victory challe
 
 ### Drafting
 
-The opening draft includes one Chantry chosen from three offers, one victory challenge, and one Minion themed by the chosen Chantry. The Chantry choice also determines the Element card. Details of the victory and Minion offers and the draft order remain open.
+The opening draft offers all four Chantries, one each for Fire, Earth, Air, and
+Water. Each wizard chooses one Chantry, one victory challenge, and one Minion
+themed by the chosen Chantry. The Chantry choice also determines the matching
+Element card. Details of the victory and Minion offers and the draft order
+remain open.
 
 ### Static
 
@@ -437,9 +466,47 @@ Each starting deck also receives Research Spell, Research Artifact, two basic Wi
 
 The two starting Research cards create new spells or artifacts, allowing players to develop their deck over successive rounds. The pace of this growth remains to be tested.
 
-## Aspects and Affinities
+## Affinities and Expertise
 
-Does it make sense to have opposed affinities?  For instance City vs Remote, or Holy vs Demonic?  Sending a demon to attempt a negotiation challenge with a priest might be impossible.
+The nine Affinities are Nobility, Church, Fire, Earth, Air, Water, Infernal,
+Might, and Popularity. Fire, Earth, Air, and Water are collectively the
+Elemental Affinities; otherwise the list is flat. Their domains are:
+
+- **Nobility:** the court and the government it controls
+- **Church:** the religious institution, including clergy, doctrine, temples,
+  and political reach, but not divine power
+- **Fire:** flame, heat, energy, passion, destruction, and purification
+- **Earth:** soil, stone, minerals, growth, stability, endurance, and material
+  wealth
+- **Air:** wind, atmosphere, weather, movement, thought, and communication
+- **Water:** water, ice, healing, emotion, adaptation, and change
+- **Infernal:** demonic and witchcraft practices, including pacts, potions,
+  transformations, communion with animals, and moon rituals; all witchcraft
+  ultimately draws on infernal power, even unknowingly
+- **Might:** physical force, combat, weapons, courage, intimidation, endurance,
+  and martial leadership
+- **Popularity:** favour among common people
+
+Domains may overlap. A card may require more than one when each is essential.
+Affinities never oppose or cancel one another automatically, and a wizard may
+possess every Affinity. A specific card may restrict which Affinities or
+Expertise can support its action, or which Traits its participating Minions may
+have; merely possessing an Affinity never disqualifies the wizard.
+
+Affinity requirements are numeric. All active sources in a domain stack, and
+the same total remains available for every action. Any card or ongoing effect
+may provide Affinity. Effects may modify the combined total for a stated
+duration, to a minimum of zero. Ordinary sources and Expertise should usually
+provide 1, exceptional ones may provide 2, and first-playable requirements
+should generally range from 1 to 5. Affinity totals have no hard upper cap.
+
+Only Minions possess Expertise. When one or more Minions undertake a Challenge,
+add all of their matching Expertise to the wizard's Affinity totals for that
+attempt. Action-specific contributions from cards such as Elements and Arcane
+Focus are added after that. Expertise and action contributions do not affect
+the wizard's general Affinity totals or rumour eligibility. Expertise applies
+only to Challenges; an action-specific contribution can meet the requirements
+of its paired action, including a card's Cost.
 
 ## Notes To Incorporate
 
