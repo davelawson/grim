@@ -1,4 +1,5 @@
 go.sum
 docs/*
+!docs/rumours.md
 !docs/adr/
 !docs/adr/*.md

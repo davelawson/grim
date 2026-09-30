@@ -14,6 +14,10 @@ A named Minion card drafted from the three offered with a chosen Chantry into
 the wizard's starting deck. Its name does not make it unique across wizards;
 more than one wizard may have a copy of the same named card.
 
+**Pupil**:
+A newly recruited Minion from Promising Pupil, with a fixed random Expertise
+domain different from the Element of its wizard's drafted Chantry.
+
 **Exhausted**:
 A card state in which the card cannot be assigned or activated. Passive effects,
 including a Minion's Affinities, continue unless stated otherwise. Exhausted
@@ -147,9 +151,9 @@ through that association and normally has a printed requirement for its Element,
 but the association does not itself supply Affinity or dictate a universal cost.
 
 **Chantry**:
-A starting Location that continuously contributes one point of its associated
-Elemental Affinity. Fire, Earth, Air, and Water each have a corresponding
-Chantry, and all four are offered during the opening draft.
+A wizard's starting Location, already in play when the game begins, that
+continuously contributes one point of its associated Elemental Affinity.
+Fire, Earth, Air, and Water each have a corresponding Chantry.
 
 **Resource card**:
 A card that provides Wealth or Wis when played. Recurring rewards typically

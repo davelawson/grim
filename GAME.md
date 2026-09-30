@@ -80,7 +80,8 @@ when overcome and typically grants its printed reward. Most Challenges have a
 limited opportunity window. If none of a rumour's offered Challenges is
 overcome before that window expires, they Fail, and any printed Failure effect
 applies once. A rumour enters play when
-drawn and offers its Challenges while it remains in play. On Success of one of
+played and offers its Challenges while it remains in play. Investigate reserves
+its draw until the next turn, without starting its duration. On Success of one of
 them, the rumour is discarded immediately unless its card says it remains.
 Playing a victory-path card starts its attempt. Every attempt requires a
 Challenger: either a ready Minion already in play or the
@@ -88,6 +89,8 @@ wizard acting directly by playing Arcane Focus. The player may assign ready
 Minions and commit eligible support cards from the hand. A Challenge's
 requirements may involve resources provided by cards, Affinity thresholds, or
 any combination.
+Arcane Focus and an Element may both support the same Challenge: each pairs
+with that Challenge, contributes only to that attempt, and is used once.
 The wizard cannot begin an attempt without enough capacity from the chosen
 Challenger, support, Affinities, Expertise, and payable resources to meet every
 printed requirement.
@@ -120,12 +123,13 @@ another rank.
 
 ### Starting deck and card interactions
 
-Every wizard begins with exactly eleven cards. Seven are fixed; four come from
-draft choices or are linked to a choice:
+Every wizard begins with exactly eleven cards: a Chantry already in play and
+a ten-card starting deck. Seven are fixed; four come from draft choices or
+are linked to a choice:
 
 | Starting card | Count | How it enters the deck |
 | --- | ---: | --- |
-| +Chantry | 1 | Draft one of four Chantries. |
+| +Chantry | 1 | Draft one of four Chantries and place it in play during setup. |
 | *Element | 1 | Add the Element linked to the chosen Chantry. |
 | *Research Spell | 1 | Fixed starting card. |
 | *Research Artifact | 1 | Fixed starting card. |
@@ -137,11 +141,13 @@ draft choices or are linked to a choice:
 | *Investigate | 1 | Fixed starting card. |
 | **Total** | **11** | |
 
-The four Chantry cards have not yet been named or balanced. There is one
+The four Chantry cards have not yet been named or fully balanced. There is one
 Chantry for each of Fire, Earth, Air, and Water. A Chantry is a Location that
 provides one point of its linked Elemental Affinity and generates an ephemeral
-Wis card each round; its other effects and exact cost depend on the chosen
-card. The Chantries give their wizards a similar opening rhythm. Their linked
+Wis card each round, including the first. Each starts in play; if discarded,
+it costs 1 Wis and no Affinity to replay from the hand. These are provisional
+values. Any additional effects depend on the chosen card.
+The Chantries give their wizards a similar opening rhythm. Their linked
 Elements distinguish the spells and artifacts those wizards create through
 Research. The twelve named starting Minions and their draft offers are listed
 under Drafting below. Their Expertise changes which Challenges the wizard can
@@ -151,7 +157,9 @@ overcome early and which rumours Investigate can find.
 slot, with **Arcane Inquiry II** as its replacement after a success.
 
 A basic Wis or Wealth card provides one unit of its named resource immediately
-when played. Research Spell creates a new spell card in the discard pile;
+when played and costs no resources or Affinity. Generated ephemeral Wis and
+Wealth cards have the same zero cost and one-unit value unless their source
+states otherwise. Research Spell creates a new spell card in the discard pile;
 Research Artifact creates a new artifact card there. When an Element is
 committed with either Research card, it supplies one point of its Affinity and
 the created card comes from that Element's creation pool. The created card is
@@ -159,7 +167,7 @@ associated with that Element and normally prints a requirement for it, though
 the created card's text remains authoritative. Without an Element, the result
 is unaligned. An Element may instead be committed with one other card to provide
 one point of its Affinity for that action. It does not change the wizard's
-general Affinity total or rumour eligibility and cannot support another action
+general Affinity total or ordinary rumour eligibility and cannot support another action
 in the same round.
 
 Arcane Focus is an Activity card that can be committed with one other card. It
@@ -249,7 +257,9 @@ are destroyed whether played or unused.
 
 Mandatory cards must be played when revealed, before the wizard takes other
 actions. Any required on-play effect then resolves, but a Challenge on the
-card can remain available while the card stays in play.
+card can remain available while the card stays in play. A rumour drawn by
+Investigate is instead set aside and becomes mandatory to play at the start
+of the following turn.
 
 #### Visibility
 
@@ -335,7 +345,8 @@ Rumours are opportunities drawn separately from the wizard's own deck. The
 rumour mill is each wizard's personal pool of rumour cards drawn from each
 turn. Each rumour card may have one or more numeric Affinity requirements for joining
 that mill. All listed affinities are required unless the card explicitly states
-an alternative. The five rumours below are eligible from the start. The mill
+an alternative. The initial catalogue includes eight rumours with no Affinity
+requirement, available even after a wizard loses their Chantry. The mill
 expands and contracts as the wizard's affinities change. Eligibility is
 recomputed from current affinities before each round's draw; a temporary
 affinity can unlock a rumour only while it is still active at that draw.
@@ -344,18 +355,19 @@ domain totals available during that attempt, including assigned Minion
 Expertise and committed card contributions. Losing an affinity does not remove
 a rumour already in play; after it is discarded,
 the rumour is not drawable until its affinity requirements are met again. A
-rumour active for a wizard cannot be drawn again by that wizard until it is
-discarded. Discarded rumours return to the rumour mill. The mill always has at
-least one drawable rumour at each draw.
+rumour active or reserved by Investigate for a wizard cannot be drawn again
+by that wizard until it is discarded. Discarded rumours return to the rumour
+mill. The mill always has at least one drawable rumour at each draw.
 The card set and printed durations must leave enough eligible rumours that
-active ones expire and return to the mill well before it could be depleted;
+active and reserved ones leave enough drawable rumours at every draw;
 there is no special draw rule for an empty mill.
 Until weighting is designed, each drawable rumour has an equal chance of being
 drawn. Wizard and rival actions may affect which types are eligible as their
 effects on affinities are defined.
 
-All rumours are mandatory to play when drawn. Each rumour card states how long
-it remains in play. A rumour without a Challenge returns to the rumour mill
+Normal rumours are mandatory to play at turn start; an Investigate draw is
+mandatory to play at the start of the following turn. Each rumour card states
+how long it remains in play. A rumour without a Challenge returns to the rumour mill
 when its printed duration ends without a Success or Failure outcome. If it
 offers Challenges, its wizard has an opportunity to overcome one of them on
 every turn the rumour remains in play. If none is overcome before the window
@@ -363,44 +375,32 @@ closes, apply the rumour's printed Failure effect once and return it to the
 rumour mill. The turn a rumour enters play counts as the first turn of its
 duration. A wizard still draws a new rumour
 each turn while earlier rumours remain in play, so several can be active at
-once. The following five rumours are provisional; printed costs, thresholds,
-rewards, and durations
-still need balance testing.
+once.
 
-- **Promising Pupil:** A recruitment Challenge. Commit Arcane Focus
-  with the rumour and pay substantial Wis to gain a Minion in the discard pile.
-  Arcane Focus satisfies the focus requirement and contributes one Wis plus
-  one point of an Affinity chosen for that action. The Minion must later be drawn
-  and played to become active. The rumour remains in play for the turn drawn
-  and the following turn unless overcome sooner. On Failure, the recruitment
-  opportunity is lost without an additional penalty.
-- **Solar Eclipse:** Resolve on reveal, granting substantial Wis
-  and affinities for this round. Its Wis is spendable immediately; unspent Wis
-  expires at round end. Its affinities fade at round end. The rumour remains in
-  play only for the turn drawn and offers no Challenge.
-- **Burn the Witch:** An ongoing witch hunt offers two Challenges. **Arrest the
-  Witch** requires 1 Might; Success removes the rumour with no further effect.
-  **Recruit the Witch** requires 2 Wis; Success adds a Witch Minion to the
-  wizard's discard pile and removes the rumour. The rumour remains in play for
-  three turns, counting the turn drawn, unless one of these Challenges Succeeds
-  sooner. At the end of every turn it remains unovercome, the wizard chooses
-  one Asset they control and discards it. If they control no Assets, nothing is
-  discarded. If still unovercome after its third turn, the rumour Fails and
-  returns to the rumour mill without an additional effect.
-- **New Leyline:** A Challenge to spend Wis and gain a Location card in the
-  discard pile. Once drawn and played, the Location remains in play and
-  generates an ephemeral Wis card each round. The rumour remains in play for
-  the turn drawn and the following turn unless overcome sooner. On Failure,
-  the opportunity to claim
-  the Location is lost without an additional penalty.
-- **Full Moon:** Before taking other optional actions, the wizard may attempt
-  a Might hunt with eligible support. On success, add a Wealth card to the
-  discard pile and gain temporary affinities immediately. The rumour remains
-  in play only for the turn drawn. Earned affinities may support other plays in
-  the current round and remain active for their printed number of turns,
-  including this one. They can change rumour eligibility at later draws while
-  still active. On Failure, the hunt's reward is lost without an additional
-  penalty. The affinity duration remains to be balanced.
+The [initial rumour catalogue](docs/rumours.md) defines twenty playable rumours
+and every reward card they introduce: eight affinity-free rumours, nine with
+one requirement covering all nine Affinities, and three requiring Fire with
+Infernal, Earth with Nobility, or Water with Church. None awards victory
+progress. The values are provisional until playtested.
+
+The original five rumours remain in the catalogue. Promising Pupil creates
+a new Minion on each Success, with Expertise 1 chosen uniformly from the eight
+domains other than the drafted Chantry's Element. Its Expertise remains fixed
+for the entire game and does not supply passive Affinity. Solar Eclipse grants
+immediate Wis and temporary Affinities. Burn the Witch offers arrest or
+recruitment and discards one chosen Asset only if unresolved after three turns.
+New Leyline grants recurring Wis through a gained Location. Full Moon offers
+an early Might hunt for Wealth and Affinities lasting through the next turn.
+
+Most catalogue Challenges require domain totals of 1–2 and resource payments
+of 1–2. Most unresolved opportunities expire without an additional penalty;
+Burn the Witch is the only harmful Failure in this set. Some gained assets
+provide lasting Affinity and require no Affinity to play, allowing new domains
+first reached through Investigate to enter the normal rumour mill.
+
+The catalogue's availability check covers the initial deck's one Investigate
+per turn and durations of at most three turns. Future content that increases
+draw frequency or duration must revisit that check before it is introduced.
 
 ### Resources
 
@@ -410,8 +410,9 @@ Resource Cards are cards that generate resources when played. Typical resources 
 
 An Element card represents Fire, Earth, Air, or Water. Commit it with a single
 other card to supply one point of that Affinity for the paired action. This
-action-specific point does not change general Affinity totals or rumour
-eligibility. If the paired action is Research Spell or Research Artifact, the
+action-specific point does not change general Affinity totals or ordinary
+rumour eligibility; Investigate includes it for its additional draw. If the
+paired action is Research Spell or Research Artifact, the
 created card comes from that Element's creation pool, is associated with the
 Element, and normally prints a requirement for it. Each Element card can support
 only one paired action in a round.
@@ -474,17 +475,19 @@ Obstacle cards are automatically played at the start of the turn, when found in 
 
 ## Deck Construction
 
-The eleven-card starting deck combines fixed cards with a Chantry, a victory
-challenge, and a Minion chosen during the opening draft. Choosing a Chantry
-also adds its linked Element. The full draft procedure and the identities of
-the victory challenge offers remain to be designed.
+The ten-card starting deck combines fixed cards with a victory challenge and
+a Minion chosen during the opening draft. Choosing a Chantry adds its linked
+Element to that deck; the Chantry itself starts in play. The full draft
+procedure and the identities of the victory challenge offers remain to be
+designed.
 
 ### Drafting
 
 The opening draft offers all four Chantries, one each for Fire, Earth, Air, and
 Water. Each wizard chooses one Chantry, one victory challenge, and one of three
 Minions offered for that Chantry. The Chantry choice also determines the matching
-Element card. Each starting Minion costs 1 Wis and requires 1 Affinity in its
+Element card. Place the chosen Chantry in play before the first turn. Each
+starting Minion costs 1 Wis and requires 1 Affinity in its
 Chantry's Element to play from the hand. These are play costs, not payments made
 during the draft. Each has exactly 1 Expertise in the domain shown below, no
 ambient Affinity, no upkeep, and no additional ability. The Minion cannot
@@ -557,7 +560,8 @@ Only Minions possess Expertise. When one or more Minions undertake a Challenge,
 add all of their matching Expertise to the wizard's Affinity totals for that
 attempt. Action-specific contributions from cards such as Elements and Arcane
 Focus are added after that. Expertise and action contributions do not affect
-the wizard's general Affinity totals or rumour eligibility. Expertise applies
+the wizard's general Affinity totals or ordinary rumour eligibility.
+Investigate's additional draw explicitly uses both. Expertise applies
 only to Challenges; an action-specific contribution can meet the requirements
 of its paired action, including a card's Cost.
 
