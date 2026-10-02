@@ -96,8 +96,8 @@ When we have lists, should we use a simple update on the base item to manage the
 
 ## Game Design
 
-- Playtest the agreed turn phases, response exchanges, and kneeling flow in
-  [GAME.md](GAME.md).
+- Playtest the agreed card anatomy, turn phases, response exchanges, and
+  kneeling flow in [GAME.md](GAME.md).
 - Integrate the new turn flow with detailed Ring reordering, immunity duration,
   and victory timing; preserve the distinction between current and historical
   rules in the ADRs.

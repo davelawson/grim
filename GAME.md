@@ -57,8 +57,7 @@ Complete these steps in order:
    including rumour effects and mandatory expiry effects deferred by kneeling,
    in an order chosen by the active wizard, subject to printed card-specific timing.
    Card effects use the Stack and response protocol; finish each exchange
-   before proceeding to the next effect. Obstacles waiting in the hand become
-   mandatory during this Start Phase.
+   before proceeding to the next effect.
 
 A resource card can be played as part of a required card-effect payment.
 Its resource becomes available immediately. Rumours offer their Challenges
@@ -103,7 +102,7 @@ Complete these steps in order:
    wizard's maximum hand size. If the draw pile runs out, shuffle
    the discard pile to continue. The hand is available for Reactions before
    the owner's next ordinary turn, so cards used to respond reduce that turn's
-   options. Obstacles drawn here wait until the owner's next Start Phase.
+   options.
 
 Cleanup, voluntary discard, and hand refill do not independently open response
 windows. Kneeling skips the entire End Phase, including these steps.
@@ -289,10 +288,10 @@ Wealth cards have the same zero cost and one-unit value unless their source
 states otherwise. Research Spell creates a new spell card in the discard pile;
 Research Artifact creates a new artifact card there. When an Element is
 committed with either Research card, it supplies one point of its Affinity and
-the created card comes from that Element's creation pool. The created card is
-associated with that Element and normally prints a requirement for it, though
-the created card's text remains authoritative. Without an Element, the result
-is unaligned. An Element may instead be committed with one other card to provide
+the created card comes from that Element's creation pool and prints an
+appropriate Affinity requirement. Association describes the elemental inputs
+used during creation; it is not printed on the finished card. Without an
+Element, the creation is unaligned. An Element may instead be committed with one other card to provide
 one point of its Affinity for that action. It does not change the wizard's
 general Affinity total or ordinary rumour eligibility and cannot support another action
 in the same round.
@@ -304,8 +303,8 @@ is made, to that action only. Neither contribution enters the wizard's general
 resource or Affinity pool. The paired cards form one action and are each used
 once.
 
-For example, pairing an Element with Research Spell puts an Element-associated
-spell into the discard pile. Pairing Arcane Focus with an Arcane Inquiry I that
+For example, pairing a Fire Element with Research Spell puts a spell with an
+appropriate Fire requirement into the discard pile. Pairing Arcane Focus with an Arcane Inquiry I that
 requires 1 Wis and Might 1 satisfies both requirements if Might is the Affinity
 chosen for Arcane Focus. A starting Minion assigned to a Challenge contributes
 all of its matching Expertise in addition to the wizard's reusable Affinity
@@ -345,19 +344,40 @@ By completing epic quests that appear during play, a wizard can become eternally
 
 ### Common Card Properties
 
-***Should the concept of durable and consumable apply more generally across the board?***
-***Should cards have a generic 'Noise' property that informs rumour generation in rivals?***
-
 #### Cost
 
-Cost includes the resources paid and the Affinity thresholds met to play a card
-from the hand. Paying Wis or Wealth depletes that resource. Meeting an Affinity
-requirement neither spends nor reserves the Affinity. A bare Affinity symbol is
-shorthand for a requirement of 1.
+Cost is the resource payment required to play a card or use an ability.
+Paying Wis or Wealth depletes that resource. It is printed separately from
+Affinity requirements.
 
-#### Longevity
+#### Play Requirements
 
-All cards have one or more longevity properties. These inform how the card remains in play, is placed in the discard pile, and perhaps destroyed.
+Affinity requirements are numeric thresholds met to play a card; meeting one
+neither spends nor reserves the Affinity. A bare Affinity symbol is shorthand
+for a requirement of 1. These requirements are distinct from requirements to
+undertake a Challenge printed on that card.
+
+#### Abilities
+
+A card may have passive, triggered, or activated abilities. Each ability
+specifies its own timing, requirements and payments, targets, and effect where
+applicable. Reaction permission belongs to the relevant ability, including
+any restriction on the actions or effects it can respond to. A passive benefit
+and a separately activated ability may coexist on one card.
+
+#### Offered Challenges
+
+Cards that offer Challenges use a common block: the Challenge's name,
+requirements, Success effect, Failure effect and its timing, and availability
+(including attempt timing, repeatability, and expiry where applicable).
+Requirements distinguish resource payments from Affinity thresholds and other
+conditions. Rumours, Victory Challenges, and Activities may use this block;
+a card can offer alternative Challenges with different requirements and outcomes.
+
+#### Persistence
+
+Persistence describes whether a card remains in play after resolving and what
+ends its stay. It is separate from disposal, duration, and mandatory timing.
 
 ##### Instants
 
@@ -367,35 +387,47 @@ pile unless a destruction property applies.
 
 ##### Consumables
 
-A consumable card isn't necessarily triggered when played, but once triggered, will be discarded.
+A Consumable can remain in play until an ability explicitly consumes it.
+That ability identifies when the card is discarded, subject to any disposal
+property. A passive benefit does not automatically consume the card.
 
 ##### Durables
 
 Durable cards remain in play and active until something specifically removes them, or an upkeep is not paid.
 
+#### Disposal
+
+A card normally enters its owner's discard pile when it leaves play unless
+its category or printed rules specify another destination; rumours return
+to the rumour mill. Disposal properties can coexist with persistence properties.
+
 ##### Destructibles
 
-Destructible cards are destroyed when they would otherwise gao to the discard pile.
+Destructible cards are destroyed when they would otherwise go to the discard pile.
+
+#### Duration
+
+A printed duration limits how long a card or effect lasts. Duration is separate
+from persistence and disposal.
 
 ##### Ephemeral
 
 Ephemeral cards exist only for the current turn. At the end of that turn, they
 are destroyed whether played or unused, including when kneeling skips Cleanup.
 
+#### Play Timing
+
+Play timing specifies when a card must or may be played; it is separate from
+how long the card stays in play or where it goes afterward.
+
 ##### Mandatory
 
-Mandatory cards must be played when revealed, before the wizard takes other
-ordinary actions, except that Obstacles drawn during cleanup wait until their
-owner's next Start.Effects step. Rumours are played during Start.Rumour,
+Mandatory cards must be played at their required timing. Rumours are played during Start.Rumour,
 but their effects wait until Start.Effects. Required effects resolve through
 the Stack with response windows, but a Challenge on the
 card can remain available while the card stays in play. A rumour drawn by
 Investigate is instead set aside and becomes mandatory to play during
 Start.Rumour of the following turn.
-
-#### Visibility
-
-How greatly the card impacts the rumour mill.
 
 #### Upkeep
 
@@ -404,12 +436,45 @@ unpaid, the Asset is discarded.
 
 ## Card Categories
 
-All cards fall into one of the below categories.  Some of those categories are then further divided into subcategories.  The category of a card determines the parameters that can be present on the card, and the general template.
+Cards have a category determining their applicable parameters and general
+template. Some categories have subcategories. An Artifact may stand alone as
+an Artifact or also belong to another category, such as an Artifact Minion.
 In addition to parameters, any card can include text that doesn't necessarily conform to any category rules.
+
+### Card Anatomy by Category (provisional)
+
+This card anatomy is agreed and remains provisional until playtested.
+
+Cards identify their name and category. Where applicable, they print resource
+Costs, Affinity play requirements, abilities, persistence, disposal properties,
+duration, and play timing. Ability payments and Challenge requirements are
+distinct from requirements to play the card. An optional field does not have
+to appear on a card that does not use it.
+
+| Category | Category-specific information |
+| --- | --- |
+| Asset — Minion | Passive Affinities; Expertise by domain; recurring income; Upkeep; abilities |
+| Asset — Location | Passive Affinities; recurring income; Upkeep; abilities |
+| Asset — Artifact | Passive Affinities; recurring income; Upkeep; abilities; fields of another category if present |
+| Spell | Effect-specific numbers; ability timing and Reaction permission; duration; explicit Challenger exception if present |
+| Rumour | Eligibility requirements; duration; immediate or ongoing abilities, beneficial or disruptive; offered Challenges and their outcomes |
+| Resource | Resource kind and yield |
+| Element | Element represented and paired-action contribution |
+| Victory Challenge | Victory path; rank; offered Challenge; advancement and replacement on Success |
+| Activity | Abilities; targets or paired cards; offered Challenge if present |
+
+Asset Affinities, income, Upkeep, and extra abilities are optional. Only Minions
+possess Expertise. A card's readiness, exhaustion, remaining duration, and
+temporary modifications are changing play state rather than extra printed
+base stats. Creation association is not a field on the finished card.
 
 ### Assets
 
 Cards that, once played, tend to remain in play, providing benefits to the wizard.  Assets tend to provide affinities and generate resources.
+
+Every Asset may have passive Affinities, recurring income, Upkeep, and abilities;
+these fields are optional. Only a Minion may possess Expertise. A standalone
+Artifact uses these common Asset fields without requiring another category.
 
 #### Minions
 
@@ -434,25 +499,34 @@ A Minion's ordinary Affinities become available as soon as it enters play,
 whether ready or exhausted and whether or not it is assigned to an action.
 Assignment does not reserve those Affinities: they may support the Minion's
 Challenge and every other action for as long as the Minion remains in play.
-Expertise is different: it is a ranked Minion capability added only to a
-Challenge that Minion undertakes. A Minion may print both Affinity and Expertise
+Expertise is different: it is a ranked Minion capability added to a
+Challenge that Minion undertakes, with Might Expertise also contributing to
+an Attack or Defence the Minion joins. A Minion may print both Affinity and Expertise
 in the same or different domains.
 
 Parameters:
 
 - Upkeep, if printed: resources paid during Start Phase Maintenance, or the Minion is discarded
 - Affinities: numeric influence the Minion provides continuously while in play
-- Expertise: ranked domain capability added when the Minion undertakes a Challenge
+- Expertise: ranked domain capability added to assigned Challenges, or Might to committed Attacks and Defence
+- Recurring income, if printed
+- Passive, triggered, or activated abilities, if printed
 
 #### Artifacts
 
-Artifacts are magical assets that are typically created by the wizard, although they can sometimes be retrieved from challenges or events, or taken from rivals.  Artifacts fall into two subcategories: Consumables, and Durables.  Consumables, upon use are discarded, while durables remain in play.  An artifact is used when the card has any impact on the game at all, other than paying upkeep.
-
-Artifacts are always assets that belong to one of the other subcategories as well (ie. an artifact minion golem).
+Artifacts are magical assets that are typically created by the wizard, although
+they can sometimes be retrieved from Challenges or events, or taken from rivals.
+An Artifact may be a standalone Artifact or also have another category, such as
+a Minion golem. Consumable and Durable describe persistence, rather than
+Artifact subcategories. A Consumable Artifact is discarded when an ability
+explicitly consumes it; passive benefits do not automatically consume it.
+A Durable Artifact remains in play until removed.
 
 Parameters:
 
-- Parameters appropriate to the secondary asset category
+- Its printed abilities
+- Optional passive Affinities, recurring income, and Upkeep
+- Parameters appropriate to another category, if it has one
 
 #### Locations
 
@@ -461,6 +535,7 @@ Locations are assets that represent structures or settings that fall under the d
 Parameters:
 
 - Affinities: numeric influence provided while the Location remains in play
+- Recurring income, Upkeep, and abilities, if printed
 
 ### Spells
 
@@ -468,14 +543,13 @@ Spells are probably the most common cards in your deck. A Spell's Affinity
 requirements, if any, use only Fire, Earth, Air, or Water. Some Spells have no
 Affinity requirement. Spells may also require resources such as Wis. Other card
 types may require any Affinity that fits their fiction.
-
-### Designs
-
-Design cards represent unhatched arcane plans. These could become spells or artifacts. The design gives some, but not all details of what will be created when the design is implemented. Designs, once discovered, are placed in the discoverer's library. The two starting Research cards create completed spells or artifacts directly, rather than Designs.
+Spells have no universal Power stat: amounts are printed in individual effects.
+Duration appears when applicable, and Reaction permission and any Challenger
+exception are part of the relevant ability.
 
 ### Rumours
 
-Rumours are opportunities drawn separately from the wizard's own deck. The
+Rumours are opportunities or disruptions drawn separately from the wizard's own deck. The
 rumour mill is each wizard's personal pool of rumour cards drawn from each
 turn. Each rumour card may have one or more numeric Affinity requirements for joining
 that mill. All listed affinities are required unless the card explicitly states
@@ -549,8 +623,9 @@ other card to supply one point of that Affinity for the paired action. This
 action-specific point does not change general Affinity totals or ordinary
 rumour eligibility; Investigate includes it for its additional draw. If the
 paired action is Research Spell or Research Artifact, the
-created card comes from that Element's creation pool, is associated with the
-Element, and normally prints a requirement for it. Each Element card can support
+created card comes from that Element's creation pool and prints an appropriate
+Affinity requirement. The creation association is not a field on the finished
+card. Each Element card can support
 only one paired action in a round.
 
 ### Victory Challenges
@@ -563,7 +638,12 @@ Activity cards represent basic actions that can be performed by the wizard. In t
 
 #### Research Activity
 
-The two starting Research cards create new cards directly in the discard pile. Pairing an Element with Research determines the new card's association; without an Element, the result is unaligned. How the specific new card is selected remains to be designed.
+The two starting Research cards create new cards directly in the discard pile.
+Pairing an Element with Research determines the creation association and the
+appropriate Affinity requirement on the finished card; the association itself
+is not printed. Without an Element, the creation is unaligned. How the specific
+new Artifact is selected remains to be designed; Research Spell selection is
+recorded in the parked Spell design notes.
 
 ##### Research Spell
 
@@ -606,10 +686,6 @@ The specialize card allows the wizard to duplicate another card.
 #### Collaborate Activity
 
 The collaborate activity allows the wizard to generate rumours and opportunities for other wizards to interact with them.
-
-### Obstacles
-
-Obstacle cards are automatically played at the start of the turn, when found in the wizard's hand.  Obstacle cards are cards that serve to disrupt the wizard.  Some obstacles simply occupy hand space, limiting a wizards options.  Other obstacles remain in play and impede the wizard over a longer period of time.  Many obstacles include a challenge, that when overcome, results in the obstacle's destruction.
 
 ## Deck Construction
 
@@ -684,8 +760,8 @@ Elemental Affinities; otherwise the list is flat. Their domains are:
 Domains may overlap. A card may require more than one when each is essential.
 Affinities never oppose or cancel one another automatically, and a wizard may
 possess every Affinity. A specific card may restrict which Affinities or
-Expertise can support its action, or which Traits its participating Minions may
-have; merely possessing an Affinity never disqualifies the wizard.
+Expertise can support its action; merely possessing an Affinity never
+disqualifies the wizard.
 
 Affinity requirements are numeric. All active sources in a domain stack, and
 the same total remains available for every action. Any card or ongoing effect
@@ -699,9 +775,10 @@ add all of their matching Expertise to the wizard's Affinity totals for that
 attempt. Action-specific contributions from cards such as Elements and Arcane
 Focus are added after that. Expertise and action contributions do not affect
 the wizard's general Affinity totals or ordinary rumour eligibility.
-Investigate's additional draw explicitly uses both. Expertise applies
-only to Challenges; an action-specific contribution can meet the requirements
-of its paired action, including a card's Cost.
+Investigate's additional draw explicitly uses both. Expertise applies to
+assigned Challenges, with Might Expertise also contributing to committed
+Attacks and Defence. An action-specific contribution can meet an Affinity
+requirement of its paired action, including a card's play requirements.
 
 ## Notes To Incorporate
 

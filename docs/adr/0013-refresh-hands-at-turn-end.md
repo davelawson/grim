@@ -4,9 +4,8 @@ Each wizard receives an initial hand during setup and refills their ordinary
 hand at the end of their own turn, rather than at its beginning. That hand is
 available for Reactions between turns and for the next ordinary turn, making
 responses compete with the cards available for the wizard's own actions instead
-of leaving responders with only a retained card. Obstacles drawn during cleanup
-remain in that hand and become mandatory at their owner's next turn start,
-preventing the new draw from reopening the ending turn.
+of leaving responders with only a retained card. Entering the End Phase is
+final; newly drawn cards do not reopen ordinary actions on the ending turn.
 
 The End Phase Discard step requires discarding down to maximum hand size,
 allowing further voluntary discard and multiple retained cards within that

@@ -16,9 +16,9 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-None. The turn-flow and player-response design slice is complete. Its agreed
-provisional rules are recorded in [GAME.md](GAME.md), with terms in
-[CONTEXT.md](CONTEXT.md) and decisions in [docs/adr](docs/adr).
+None. The card-anatomy design slice is complete. Its agreed provisional
+category templates and card properties are recorded in [GAME.md](GAME.md),
+with terms in [CONTEXT.md](CONTEXT.md).
 
 ## Goal
 

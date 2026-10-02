@@ -113,7 +113,7 @@ reason. "Spent" and "discarded" describe the same outcome for an asset; it
 must be drawn and played again before it can be used.
 
 **Rumour**:
-A mandatory opportunity drawn from the rumour mill. It remains in play for the
+A mandatory opportunity or disruption drawn from the rumour mill. It remains in play for the
 duration printed on its card, alongside any other active rumours, then returns
 to the rumour mill when discarded.
 
@@ -165,11 +165,6 @@ to the wizard's corresponding Affinity when that Minion undertakes a Challenge,
 or contributes Might to an Attack or Defence, even when the wizard does not
 otherwise have that Affinity.
 
-**Trait**:
-An inherent quality of a card or character. A Trait does not contribute
-Affinity or Expertise, but a card may permit or prohibit participants with a
-stated Trait.
-
 **Elemental Affinity**:
 One of the Fire, Earth, Air, or Water Affinities. Elemental Affinities are a
 named group within the otherwise flat list of Affinities.
@@ -214,9 +209,27 @@ A card that supplies one temporary point of its Elemental Affinity to a paired
 action without changing the wizard's general Affinities.
 
 **Cost**:
-The resources paid and Affinity requirements met when declaring a card's play.
-Paid resources remain spent if the effect is countered; Affinity is neither
-spent nor reserved.
+The resource payment required to play a card or use an ability, distinct from
+Affinity requirements. Paid resources remain spent if the effect is countered.
+
+**Play requirement**:
+A condition that must be met to play a card, such as a numeric Affinity threshold,
+distinct from its resource Cost and any Challenge requirements.
+
+**Ability**:
+A card's passive, triggered, or activated behaviour, with its own applicable
+timing, requirements, payments, targets, and effect.
+
+**Persistence**:
+A card property describing whether it remains in play after resolution and
+what ends its stay.
+
+**Disposal**:
+The destination of a card when it would leave play or be discarded, subject to
+its category and printed properties.
+
+**Duration**:
+The printed limit on how long a card or effect lasts.
 
 **Arcane Focus**:
 An Activity that lets the wizard undertake a Challenge directly and contributes
@@ -229,10 +242,17 @@ A card representing a magical working. Its Affinity requirements, if any, are
 limited to Fire, Earth, Air, and Water; an explicit card property may permit
 a Challenge attempt without a Minion or Arcane Focus.
 
-**Element-associated card**:
-A created card belonging to one Element's creation pool. It can be referenced
-through that association and normally has a printed requirement for its Element,
-but the association does not itself supply Affinity or dictate a universal cost.
+**Association**:
+The elemental inputs used when creating a Spell or Artifact. The finished card
+prints an appropriate Affinity requirement rather than an association field.
+
+**Artifact**:
+A magical Asset that may stand alone or also belong to another card category,
+such as an Artifact Minion.
+
+**Consumable**:
+A card that can remain in play until an ability explicitly consumes it;
+passive benefits do not automatically consume it.
 
 **Chantry**:
 A wizard's starting Location, already in play when the game begins, that
