@@ -10,8 +10,9 @@ The rules in this section are a starting point for testing the flow of a game.
 Card costs, hand size, and challenge thresholds are illustrative balance values,
 not final numbers. The intended loop is to improve the deck and establish
 assets, then use those cards to pursue rumours and visible victory progress.
-Each round contains scheduled turns following Ring order, with one
-active wizard taking ordinary actions at a time. Their Aggressor and Target
+Play is a continuous series of turns following Ring order, with no rounds or
+other higher-level grouping and one active wizard taking ordinary actions at
+a time. Their Aggressor and Target
 can generally respond to those actions; global actions may require reactions
 from other players. Player interactions allow back-and-forth responses,
 including defensive Spellcasting. Every ordinary action opens a response
@@ -47,6 +48,8 @@ Complete these steps in order:
    no End Effects, Cleanup, Discard, or Draw. This forfeiture is the entire
    turn-loss cost; no additional future turn is skipped. Turn-based expiry
    still occurs automatically at the handoff, without a response window.
+   Submission is available only at the first such step after that Attack;
+   declining closes the opportunity.
 5. **Rumour:** Draw and play the active wizard's normal personal rumour from
    their currently eligible pool. Under the existing Investigate rule, also
    play any extra rumour set aside for this turn, without rechecking its
@@ -77,9 +80,9 @@ action is chosen. Each action resolves against the state surviving earlier
 actions and Reactions.
 
 Used hand cards must be regained before reuse. Minions exhaust on commitment
-and recover during their owner's next Recovery step; there is no additional
-once-per-round restriction. Cards supply actions, with no separate action-slot
-limit. One action can combine a Challenger and committed support cards.
+and recover during their owner's next Recovery step. Cards supply actions,
+with no separate action-slot limit. One action can combine a Challenger and
+committed support cards.
 
 #### End Phase
 
@@ -134,13 +137,56 @@ including amounts generated as part of a Reaction. An Affinity is a
 reusable numeric capacity, not a resource that is spent. Every active source of
 the same Affinity contributes to the wizard's total, and those contributions
 stack. Using an Affinity neither spends nor reserves it, so the same total can
-meet multiple requirements during a round. Effects may increase or reduce a
-total for a stated duration, but no Affinity can fall below zero. Durable assets
+meet multiple requirements across actions and turns. Effects may increase or
+reduce a total for a stated duration, but no Affinity can fall below zero. Durable assets
 remain in play and can generate future income. Available cards and active
 opportunities, rather than a fixed action count, determine how much a wizard
 can do.
 
+### Ring movement (provisional)
+
+Play follows the Ring continuously, without a round boundary or a rule reserving
+one turn per wizard in a cycle. When a wizard Bends the Knee, they immediately
+swap positions with their current Aggressor. Their original Target begins the
+next turn, as specified by the kneeling handoff rule above. Kneeling remains
+unavailable when only two wizards survive.
+
+For example, in A → B → C → D → A, each arrow points toward the wizard's
+Target. If B kneels to A, the Ring becomes B → A → C → D → B, and C takes
+the next turn. Each subsequent kneel applies to the Ring as it then exists;
+there is no batch of kneelings resolved together.
+
+An eliminated wizard immediately loses response eligibility and takes no
+further turns, but retains their Ring position until the entire current
+exchange finishes, including all Reactions and resulting mandatory effects.
+Then remove eliminated positions and reconnect their surviving neighbours
+without changing the survivors' relative Ring order.
+
+If the active wizard survives and the game continues, they finish their turn
+normally using the updated Ring. Eliminating their Target does not grant a
+second Attack that turn. A normal turn hands play to the active wizard's
+current Target; kneeling instead uses the original Target as described above.
+
+If the active wizard is eliminated, finish the exchange, remove eliminated
+positions, and give the next turn to the first surviving wizard to their right
+in the Ring as it stood before removal, unless the game has ended.
+
+Before that handoff, skip the eliminated wizard's remaining phases and hand
+refresh, but perform automatic turn-end expiry without a response window.
+All players' unspent resources and ephemeral cards expire, as do temporary
+effects whose printed turn limits have been reached. Any mandatory effect
+created by that expiry for a surviving wizard is deferred to their next
+Start.Effects, following the same non-duplication rule as kneeling.
+
+With two survivors, both Aggressor and Target refer to the same opponent;
+response rotation includes each wizard once, and kneeling is unavailable.
+
 ### Response protocol (provisional)
+
+An exchange comprises the original action or card effect, its Reactions, and
+all resulting mandatory effects; it finishes when the Stack is empty. Five-step
+victory may end the game before the exchange finishes, as described under
+Victory below.
 
 1. Declare an ordinary action, commit its cards, and pay its costs. Resource
    cards may be played as part of a payment without separate response windows.
@@ -160,17 +206,22 @@ can do.
 4. A new Reaction goes on top of the Stack and resets the pass count. After
    every eligible participant passes consecutively, resolve the newest pending
    effect. A pass declines the current opportunity, not later opportunities.
-5. Add mandatory effects triggered by resolution before checking whether the
-   Stack is empty; the active wizard chooses and reveals the order of
+5. After each uninterrupted resolution, check for five-step victory. If the
+   game ends, stop without adding or resolving further triggers or effects.
+   Otherwise, add mandatory effects triggered by resolution before checking
+   whether the Stack is empty; the active wizard chooses and reveals the order of
    simultaneous triggers. If the active wizard has been eliminated, the next
    living wizard in Ring order chooses that order instead. If effects remain
    pending, open another window with the active wizard receiving Priority first.
-   If the Stack is empty, the
-   exchange ends and the active wizard may choose their next ordinary action.
    Eliminated players leave response rotation immediately, but their pending
-   effects remain subject to normal resolution checks. If the active wizard
-   is eliminated, finish the exchange and then end the turn without drawing
-   them another hand; Priority passes only among surviving eligible players.
+   effects remain subject to normal resolution checks. Priority passes only
+   among surviving eligible players.
+6. When the Stack is empty, the exchange ends. Remove eliminated Ring positions
+   and check for last-survivor victory or a zero-survivor draw. If the match
+   continues and the active wizard survives, return to the phase that opened
+   the exchange; another ordinary action is available only in Actions Phase.
+   If the active wizard was eliminated, perform automatic turn-end expiry and
+   hand play to their surviving successor as described under Ring movement.
 
 Elimination of the active wizard is a contingency for possible future effects;
 the currently defined cards and Attack rules do not cause it during their own turn.
@@ -240,12 +291,11 @@ directs.
 
 At the opening draft, each wizard chooses a victory-path card for a primary
 path. It returns through the deck, providing a relatively reliable chance to
-advance. A successful attempt adds one visible step when the round resolves,
-removes the attempted card, and puts its costlier next rank into the discard
-pile. Other cards may offer alternate paths or change the wizard's primary
-path; those effects are not designed here. Reaching the fifth step qualifies
-the wizard to win at the victory check between turns instead of creating
-another rank.
+advance. A successful attempt immediately adds one visible step, removes the
+attempted card, and puts its costlier next rank into the discard pile. Other
+cards may offer alternate paths or change the wizard's primary
+path; those effects are not designed here. Reaching the fifth step wins the
+game immediately, including during a turn, instead of creating another rank.
 
 ### Starting deck and card interactions
 
@@ -270,9 +320,10 @@ are linked to a choice:
 The four Chantry cards have not yet been named or fully balanced. There is one
 Chantry for each of Fire, Earth, Air, and Water. A Chantry is a Location that
 provides one point of its linked Elemental Affinity and generates an ephemeral
-Wis card each round, including the first. Each starts in play; if discarded,
-it costs 1 Wis and no Affinity to replay from the hand. These are provisional
-values. Any additional effects depend on the chosen card.
+Wis card during each of its owner's Income steps, including the first. Each
+starts in play; if discarded, it costs 1 Wis and no Affinity to replay from
+the hand. These are provisional values. Any additional effects depend on the
+chosen card.
 The Chantries give their wizards a similar opening rhythm. Their linked
 Elements distinguish the spells and artifacts those wizards create through
 Research. The twelve named starting Minions and their draft offers are listed
@@ -293,8 +344,9 @@ appropriate Affinity requirement. Association describes the elemental inputs
 used during creation; it is not printed on the finished card. Without an
 Element, the creation is unaligned. An Element may instead be committed with one other card to provide
 one point of its Affinity for that action. It does not change the wizard's
-general Affinity total or ordinary rumour eligibility and cannot support another action
-in the same round.
+general Affinity total or ordinary rumour eligibility. Each play supports one
+action; the card follows its normal disposal and must be regained before reuse,
+without any additional usage counter.
 
 Arcane Focus is an Activity card that can be committed with one other card. It
 can serve as the Challenger when the wizard intervenes directly. It
@@ -313,12 +365,32 @@ totals.
 ## Victory
 
 There are many paths to victory in Grimoire. Every wizard's progress on each
-path is visible to all. Victory conditions are evaluated only between turns,
-after every wizard has finished the current shared round. A wizard qualifies
-by advancing 5 steps along any one path. If multiple wizards qualify in that
-round, compare their other victory paths from highest progress to lowest. The
-wizard with more progress at the first difference wins. If every path
-comparison ties, they share the victory.
+path is visible to all. A surviving wizard wins immediately by advancing 5 steps along
+any one path, even during a turn; there is no wait for a turn handoff or a
+round boundary. Victory Challenge progress and replacement occur immediately
+on Success.
+
+Finish the single uninterrupted effect or kneeling decision that awards the
+winning progress, including its other instructions and rewards, then end the
+game. Do not resolve any further pending effects, mandatory triggers, End Phase
+steps, or turn handoff. No further expiry or Ring-removal bookkeeping is run
+after the match has ended.
+
+Last-survivor victory uses a different checkpoint: finish the entire exchange
+before declaring the sole surviving wizard the winner. If no wizards survive
+that exchange, the game is a draw. A five-step victory reached during the
+exchange still ends the game at its earlier checkpoint.
+
+If one uninterrupted effect leaves multiple surviving wizards with five or
+more steps on a path, compare their other paths at that same checkpoint.
+For each contender, set aside one winning path and sort the remaining path
+progress from highest to lowest. Compare those values in order; the wizard
+with more progress at the first difference wins. If every comparison ties,
+the tied contenders share victory. No additional turn or response is granted.
+
+Current progress awards are single steps. Future content that permits multiple
+winning paths with unequal scores must specify which winning path is excluded
+from this comparison before that content is introduced.
 
 ### Domination
 
@@ -556,7 +628,7 @@ that mill. All listed affinities are required unless the card explicitly states
 an alternative. The initial catalogue includes eight rumours with no Affinity
 requirement, available even after a wizard loses their Chantry. The mill
 expands and contracts as the wizard's affinities change. Eligibility is
-recomputed from current affinities before each round's draw; a temporary
+recomputed from current affinities before each normal draw; a temporary
 affinity can unlock a rumour only while it is still active at that draw.
 Investigate makes an additional draw when its Challenge Succeeds, using the
 domain totals available during that attempt, including assigned Minion
@@ -625,8 +697,9 @@ rumour eligibility; Investigate includes it for its additional draw. If the
 paired action is Research Spell or Research Artifact, the
 created card comes from that Element's creation pool and prints an appropriate
 Affinity requirement. The creation association is not a field on the finished
-card. Each Element card can support
-only one paired action in a round.
+card. Each play of an Element supports only one paired action. Used Elements
+follow their normal disposal and must be regained before reuse; there is no
+additional once-per-turn or once-per-round restriction.
 
 ### Victory Challenges
 
@@ -734,7 +807,7 @@ one basic Wealth, Arcane Focus, and Investigate.
 
 ### Meta
 
-The two starting Research cards create new spells or artifacts, allowing players to develop their deck over successive rounds. The pace of this growth remains to be tested.
+The two starting Research cards create new spells or artifacts, allowing players to develop their deck over successive turns. The pace of this growth remains to be tested.
 
 ## Affinities and Expertise
 

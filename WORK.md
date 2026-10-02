@@ -16,9 +16,11 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-None. The card-anatomy design slice is complete. Its agreed provisional
-category templates and card properties are recorded in [GAME.md](GAME.md),
-with terms in [CONTEXT.md](CONTEXT.md).
+None. The Ring movement and continuous-turn design slice is complete and
+confirmed. Its agreed provisional rules are recorded in [GAME.md](GAME.md),
+with terms in [CONTEXT.md](CONTEXT.md) and rationale in
+[ADR 0015](docs/adr/0015-continuous-turns-and-kneeling-swaps.md) and
+[ADR 0016](docs/adr/0016-immediate-victory-and-challenge-advancement.md).
 
 ## Goal
 

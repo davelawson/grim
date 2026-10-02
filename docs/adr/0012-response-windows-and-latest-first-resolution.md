@@ -1,5 +1,10 @@
 # Open response windows and resolve pending effects latest-first
 
+An exchange can now end early when a wizard reaches five-step victory after an
+uninterrupted resolution, as specified by
+[Immediate victory and Challenge advancement](0016-immediate-victory-and-challenge-advancement.md).
+The remaining response protocol below is retained.
+
 Every ordinary action opens a response window after declaration and before
 resolution, while payments and bookkeeping do not create separate windows.
 Actions and Reactions remain pending, with the latest response resolving first,

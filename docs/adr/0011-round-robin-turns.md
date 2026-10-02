@@ -1,5 +1,9 @@
 # Round-robin turns with player responses
 
+The turn sequence has no round hierarchy, as clarified by
+[Continuous turns and immediate kneeling swaps](0015-continuous-turns-and-kneeling-swaps.md).
+The response and owner-turn recovery decisions below are retained.
+
 Grimoire replaces simultaneous independent turns and a shared post-submission
 interaction phase with round-robin turns, in which one active wizard takes
 ordinary actions at a time and other eligible players may respond. Generally

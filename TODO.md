@@ -98,8 +98,7 @@ When we have lists, should we use a simple update on the base item to manage the
 
 - Playtest the agreed card anatomy, turn phases, response exchanges, and
   kneeling flow in [GAME.md](GAME.md).
-- Integrate the new turn flow with detailed Ring reordering, immunity duration,
-  and victory timing; preserve the distinction between current and historical
-  rules in the ADRs.
+- Define immunity duration precisely under continuous turns and changing
+  neighbours.
 - Resume the [parked Spell design discussion](docs/spell-design-notes.md) when
   choosing the next design slice.

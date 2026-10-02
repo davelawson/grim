@@ -1,5 +1,8 @@
 # Bend the knee to change neighbours after a raid
 
+The exact current movement and submission opportunity are specified by
+[Continuous turns and immediate kneeling swaps](0015-continuous-turns-and-kneeling-swaps.md).
+
 With [Ring-order turns](0011-round-robin-turns.md), a successfully attacked
 Target may Bend the Knee in the step immediately after Maintenance and before
 Rumour. Their turn ends, their Ring position updates, and their original Target

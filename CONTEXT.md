@@ -27,15 +27,17 @@ A temporary protection from attacks during the turn immediately following
 a loss of Integrity, including that turn's attack resolution.
 
 **Bend the knee**:
-A wizard's voluntary post-maintenance submission after a successful Attack,
-granting their Aggressor one Domination point and changing their Ring position.
-Their turn ends before Rumour, bypassing the End Phase, and their original
-Target takes the next turn. No additional future turn is skipped.
+A wizard's voluntary submission at the first Bend the Knee step after a
+successful Attack, granting their Aggressor one Domination point and swapping
+their adjacent Ring positions. Submission forfeits the remainder of the
+current turn and hands play to their original Target; declining closes that
+opportunity.
 
 **Elimination**:
 A wizard's removal from active play following a further Integrity reduction
-while already at zero Integrity. An eliminated wizard takes no further turns
-and receives no opportunity to bend the knee.
+while already at zero Integrity. They immediately lose response eligibility
+and take no further turns, but their Ring position is removed only after the
+current exchange finishes.
 
 **Domination**:
 A Victory path advanced when another wizard bends the knee to the wizard
@@ -58,6 +60,11 @@ card effect during an interaction.
 **Response window**:
 An opportunity for eligible wizards to declare Reactions before a pending
 action, Reaction, or mandatory card effect resolves.
+
+**Exchange**:
+An action or card effect together with all its Reactions and resulting
+mandatory effects. It finishes when no effects remain pending on the Stack,
+unless five-step victory ends the game sooner.
 
 **Pending effect**:
 A declared action, Reaction, or mandatory card effect that has not yet resolved.
@@ -206,7 +213,8 @@ The favour a wizard holds among common people.
 
 **Element card**:
 A card that supplies one temporary point of its Elemental Affinity to a paired
-action without changing the wizard's general Affinities.
+action without changing the wizard's general Affinities. Each play supports
+one action, and the card must be regained before reuse.
 
 **Cost**:
 The resource payment required to play a card or use an ability, distinct from
@@ -278,16 +286,14 @@ the size to which Draw refills that hand.
 
 **Victory path**:
 One of the ways a wizard can Ascend, tracked by visible steps of progress.
-Reaching five steps on a path qualifies the wizard to win.
-
-**Round**:
-One cycle of scheduled turns in Ring order, including turns forfeited through
-bending the knee.
+Reaching five steps wins the game as soon as the effect or submission awarding
+that progress has finished.
 
 **Turn order**:
-The sequence of scheduled turns, following the Ring rather than an independent
-ordering of players. A wizard who bends the knee hands play to their original
-Target after changing position.
+The continuous sequence of wizards' turns following the Ring, with no rounds
+or other grouping of turns. Normal handoff follows the active wizard's current
+Target, kneeling uses their original Target, and elimination of the active
+wizard passes play to the first survivor to their right in the former Ring.
 
 **Turn**:
 The span in which one active wizard takes ordinary actions and eligible other
@@ -317,8 +323,9 @@ rumour effects and deferred expiry effects, ordered by the active wizard
 subject to printed timing.
 
 **Deferred expiry effect**:
-A mandatory effect caused by expiry during a kneeling turn, awaiting the
-wizard's next Start.Effects even though its source card has expired.
+A mandatory effect caused by automatic expiry when kneeling or elimination
+skips the End Phase, awaiting the surviving wizard's next Start.Effects even
+though its source card has expired.
 
 **Actions Phase**:
 The phase for the active wizard's ordinary card plays, Challenges, and Attacks,
@@ -327,4 +334,4 @@ with response exchanges completed between ordinary actions.
 **End Phase**:
 The final phase of a normal turn, comprising mandatory End Phase effects,
 Cleanup, hand Discard down to maximum size or below, and Draw in that order.
-It is skipped when a wizard bends the knee.
+Kneeling or elimination skips its remaining steps.
