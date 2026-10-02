@@ -16,22 +16,22 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-No active work slice.
+None. The turn-flow and player-response design slice is complete. Its agreed
+provisional rules are recorded in [GAME.md](GAME.md), with terms in
+[CONTEXT.md](CONTEXT.md) and decisions in [docs/adr](docs/adr).
 
 ## Goal
 
-Describe the outcome this slice should deliver and how to tell when it is done.
+To be defined for the next slice.
 
 ## Design
 
-Describe the intended behavior and the application or game design needed to
-implement it.
+To be defined for the next slice.
 
 ## Open decisions
 
-Record choices that must be settled before or during implementation.
+None in an active slice. Follow-up work is tracked in [TODO.md](TODO.md).
 
 ## Progress
 
-Track what remains to be implemented and verified. Move completed design to
-the appropriate permanent document as work lands.
+Ready for the next slice.

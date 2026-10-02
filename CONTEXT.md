@@ -4,6 +4,87 @@ Terms used to describe the game's cards, players, and play.
 
 ## Language
 
+**Ring**:
+The arrangement of wizards that defines their Aggressor and Target
+relationships.
+
+**Aggressor**:
+A wizard's neighbour on their left in the Ring, whose Target is that wizard.
+
+**Target**:
+A wizard's neighbour on their right in the Ring, against whom most of that
+wizard's offensive actions are directed. Some offensive actions may instead
+be directed against their Aggressor.
+
+**Integrity**:
+A measure of the strength of a wizard's personal protections, reduced by
+successful raids or attacks and recoverable through Arcane Focus. A wizard
+at zero Integrity remains in play; any further Integrity reduction eliminates
+them.
+
+**Immunity**:
+A temporary protection from attacks during the turn immediately following
+a loss of Integrity, including that turn's attack resolution.
+
+**Bend the knee**:
+A wizard's voluntary post-maintenance submission after a successful Attack,
+granting their Aggressor one Domination point and changing their Ring position.
+Their turn ends before Rumour, bypassing the End Phase, and their original
+Target takes the next turn. No additional future turn is skipped.
+
+**Elimination**:
+A wizard's removal from active play following a further Integrity reduction
+while already at zero Integrity. An eliminated wizard takes no further turns
+and receives no opportunity to bend the knee.
+
+**Domination**:
+A Victory path advanced when another wizard bends the knee to the wizard
+pursuing it, or when that wizard eliminates their Target.
+
+**Attack**:
+A direct offensive action against a wizard's Target, available to a Minion
+with Might Expertise and undertaken alone or with other such Minions. It
+compares Might deterministically and reduces the Target's Integrity by 1
+on success.
+
+**Defence**:
+A wizard's opposition to their Aggressor's Attack, including standing Might,
+committed Minions and Arcane Focus, and defensive Spell effects.
+
+**Reaction**:
+A wizard's permitted response to a pending action, Reaction, or mandatory
+card effect during an interaction.
+
+**Response window**:
+An opportunity for eligible wizards to declare Reactions before a pending
+action, Reaction, or mandatory card effect resolves.
+
+**Pending effect**:
+A declared action, Reaction, or mandatory card effect that has not yet resolved.
+
+**Resolution**:
+An uninterrupted execution of one pending effect's legal instructions and
+applicable success or failure consequences.
+
+**Stack**:
+The ordered collection of pending effects, with the most recently declared
+effect resolving first.
+
+**Public information**:
+The current table state and revealed declarations, commitments, targets,
+choices, and payments visible to all players.
+
+**Hidden information**:
+The contents of each wizard's hand, deck, and discard pile.
+
+**Priority**:
+An eligible wizard's opportunity to declare a Reaction or pass during a
+response window.
+
+**Pass**:
+A decision to decline the current opportunity to react; it does not waive
+later opportunities after another Reaction is declared or an effect resolves.
+
 **Minion**:
 A durable asset representing a wizard's follower. A Minion in play can be
 assigned to a challenge when ready. Minions are the only cards that possess
@@ -19,9 +100,9 @@ A newly recruited Minion from Promising Pupil, with a fixed random Expertise
 domain different from the Element of its wizard's drafted Chantry.
 
 **Exhausted**:
-A card state in which the card cannot be assigned or activated. Passive effects,
-including a Minion's Affinities, continue unless stated otherwise. Exhausted
-cards recover at the start of their wizard's next turn.
+A card state preventing another assignment or activation; committing a Minion
+exhausts it until its owner's next turn starts, even if its effect is countered.
+Passive effects and its surviving pending contribution remain available.
 
 **Ready**:
 A card state in which the card is available for use.
@@ -49,23 +130,22 @@ in play. The mill always has a rumour available to draw.
 **Challenge**:
 An action offered by a card for a Challenger to attempt. Rumours, victory-path
 cards, and Activities may offer Challenges. Requirements, when present, can
-combine cards, Affinities, and Minion Expertise. An Investigate Challenge always
-Succeeds when a Challenger is assigned.
+combine cards, Affinities, and Minion Expertise. Investigate has no additional
+requirements beyond a surviving assigned Challenger.
 
 **Succeeded Challenge**:
 A Challenge overcome before its opportunity window closes, typically earning
 its printed reward for the wizard.
 
 **Failed Challenge**:
-A Challenge left unovercome when its opportunity expires without an alternative
-Challenge on the same card succeeding. Its card may apply a negative effect or
-simply forfeit the reward. A reusable victory-path card left unplayed does not
-Fail; Investigate has no Failure outcome.
+A Challenge not overcome by its attempted resolution, or left unovercome when
+its opportunity expires without an alternative succeeding. Its card determines
+the failure consequences; an unused reusable victory-path card does not Fail.
 
 **Challenger**:
 The actor undertaking a Challenge: a ready Minion, or the wizard intervening
-directly by playing Arcane Focus. Several Minions may undertake one Challenge
-together.
+directly by playing Arcane Focus; several Minions may undertake one Challenge
+together. A Spell may explicitly permit an attempt without a Challenger.
 
 **Capacity**:
 The combined cards, Affinities, Expertise, and payable resources available to
@@ -82,7 +162,8 @@ and Popularity.
 **Expertise**:
 A ranked measure of a Minion's capability within a particular domain. It adds
 to the wizard's corresponding Affinity when that Minion undertakes a Challenge,
-even when the wizard does not otherwise have that Affinity.
+or contributes Might to an Attack or Defence, even when the wizard does not
+otherwise have that Affinity.
 
 **Trait**:
 An inherent quality of a card or character. A Trait does not contribute
@@ -133,17 +214,20 @@ A card that supplies one temporary point of its Elemental Affinity to a paired
 action without changing the wizard's general Affinities.
 
 **Cost**:
-The resources paid and Affinity requirements met to play a card. Paying a
-resource depletes it; meeting an Affinity requirement does not spend or reserve
-the Affinity.
+The resources paid and Affinity requirements met when declaring a card's play.
+Paid resources remain spent if the effect is countered; Affinity is neither
+spent nor reserved.
 
 **Arcane Focus**:
 An Activity that lets the wizard undertake a Challenge directly and contributes
-one Wis plus one point of any single Affinity to its paired action.
+one Wis plus one point of any single Affinity to its paired action. It also
+offers Integrity recovery as an alternative use of the card itself, or can
+contribute one Might to an Attack or Defence.
 
 **Spell**:
 A card representing a magical working. Its Affinity requirements, if any, are
-limited to Fire, Earth, Air, and Water.
+limited to Fire, Earth, Air, and Water; an explicit card property may permit
+a Challenge attempt without a Minion or Arcane Focus.
 
 **Element-associated card**:
 A created card belonging to one Element's creation pool. It can be referenced
@@ -157,25 +241,70 @@ Fire, Earth, Air, and Water each have a corresponding Chantry.
 
 **Resource card**:
 A card that provides Wealth or Wis when played. Recurring rewards typically
-generate ephemeral resource cards into the wizard's hand at turn start, in
-addition to the normal draw.
+generate ephemeral resource cards into the wizard's hand during Start Phase
+Income, separately from End Phase hand refill.
 
 **Ephemeral card**:
 A card that exists only for the current turn and is destroyed at its end,
-whether played or unused.
+whether played or unused, even when the End Phase is skipped.
 
 **Retained card**:
-An unplayed, non-ephemeral card carried in a wizard's hand into the next turn.
-It occupies one of that turn's five ordinary hand slots and may be retained
-again.
+A card kept in the hand through the End Phase Discard step, reducing the cards
+needed to refill that hand. Multiple cards may be retained within maximum hand size.
+
+**Maximum hand size**:
+The number of ordinary cards the wizard may hold after End Phase Discard and
+the size to which Draw refills that hand.
 
 **Victory path**:
 One of the ways a wizard can Ascend, tracked by visible steps of progress.
 Reaching five steps on a path qualifies the wizard to win.
 
 **Round**:
-The shared span in which every wizard takes one turn. Victory is checked after
-all turns in the round finish.
+One cycle of scheduled turns in Ring order, including turns forfeited through
+bending the knee.
+
+**Turn order**:
+The sequence of scheduled turns, following the Ring rather than an independent
+ordering of players. A wizard who bends the knee hands play to their original
+Target after changing position.
 
 **Turn**:
-A wizard's ordered sequence of actions within a round.
+The span in which one active wizard takes ordinary actions and eligible other
+wizards may respond to those actions.
+
+**Active wizard**:
+The wizard whose turn it is and who may take ordinary actions during that turn.
+
+**Start Phase**:
+The opening phase of a turn, comprising Recovery, Income, Maintenance,
+Bend the Knee, Rumour, and Effects in that order.
+
+**Bend the Knee step**:
+The optional submission checkpoint after Maintenance and before Rumour.
+
+**Rumour step**:
+The Start Phase step after Bend the Knee in which personal rumours enter play,
+with their effects deferred to Start.Effects.
+
+**Maintenance step**:
+The Start Phase step in which the active wizard pays recurring upkeep costs
+after Income and before the Bend the Knee step.
+
+**Start.Effects**:
+The final Start Phase step for mandatory and optional card effects, including
+rumour effects and deferred expiry effects, ordered by the active wizard
+subject to printed timing.
+
+**Deferred expiry effect**:
+A mandatory effect caused by expiry during a kneeling turn, awaiting the
+wizard's next Start.Effects even though its source card has expired.
+
+**Actions Phase**:
+The phase for the active wizard's ordinary card plays, Challenges, and Attacks,
+with response exchanges completed between ordinary actions.
+
+**End Phase**:
+The final phase of a normal turn, comprising mandatory End Phase effects,
+Cleanup, hand Discard down to maximum size or below, and Draw in that order.
+It is skipped when a wizard bends the knee.

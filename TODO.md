@@ -93,3 +93,13 @@ When we have lists, should we use a simple update on the base item to manage the
 ## During Game Functionality
 
 ## End of Turn Functionality
+
+## Game Design
+
+- Playtest the agreed turn phases, response exchanges, and kneeling flow in
+  [GAME.md](GAME.md).
+- Integrate the new turn flow with detailed Ring reordering, immunity duration,
+  and victory timing; preserve the distinction between current and historical
+  rules in the ADRs.
+- Resume the [parked Spell design discussion](docs/spell-design-notes.md) when
+  choosing the next design slice.
