@@ -23,8 +23,8 @@ at zero Integrity remains in play; any further Integrity reduction eliminates
 them.
 
 **Immunity**:
-A temporary protection from attacks during the turn immediately following
-a loss of Integrity, including that turn's attack resolution.
+A temporary protection from Attacks granted by a loss of Integrity.
+Its duration under continuous turns and changing neighbours remains unresolved.
 
 **Bend the knee**:
 A wizard's voluntary submission at the first Bend the Knee step after a

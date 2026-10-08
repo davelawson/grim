@@ -143,11 +143,55 @@ remain in play and can generate future income. Available cards and active
 opportunities, rather than a fixed action count, determine how much a wizard
 can do.
 
+### Attacks, Defence, and Integrity (provisional)
+
+Each wizard starts at 3 Integrity and can recover up to a maximum of 3.
+Reaching zero Integrity leaves the wizard in play; any further Integrity
+reduction eliminates them.
+
+Chosen offensive targets are restricted to the wizard's Ring neighbours.
+Attacks always target their Target; other offensive abilities may target their
+Aggressor where permitted by their printed rules. Global effects use their
+printed affected group.
+
+A ready Minion with Might Expertise can initiate an Attack without a separate
+Attack card. Several such Minions may combine in the wizard's single Attack
+for the turn. A newly played Minion cannot Attack until its owner's next turn
+starts, but can defend immediately. Attacking and defending Minions must be
+ready and exhaust when committed, retaining their surviving assigned
+contributions even though exhausted.
+
+Each side totals its wizard's current Might Affinity and the Might Expertise
+of its committed Minions, plus 1 Might if Arcane Focus supports that side.
+Defensive Spell effects may modify the comparison or remove participants at
+their printed timing. Removed Minions do not contribute at resolution.
+The Attack succeeds only when attacking Might exceeds defending Might by at
+least 2. Success reduces the Target's Integrity by exactly 1; an Attack does
+not instead select an Asset or resource as its objective.
+
+On an unsuccessful Attack, the attacker chooses and discards one surviving
+committed attacking Minion, if any, as part of the Attack's uninterrupted
+resolution. Uncommitted passive Might sources and Arcane Focus cannot be
+chosen for this loss. Interrupted or countered Attacks retain this failure
+penalty, alongside the normal expenditure of cards and exhaustion of surviving
+participants. Discarded Minions must be drawn and played again, rather than
+being destroyed.
+
+A loss of Integrity grants Immunity, during which the wizard cannot be
+attacked. The exact duration under continuous turns and changing neighbours
+remains an open design decision in [TODO.md](TODO.md).
+
+Defence combines standing Might, deliberate commitments, and permitted
+defensive Spell Reactions. Different strategies should have distinct defensive
+tools so every wizard need not develop the same military engine. Whether
+separate defensive preparation exists alongside responses remains open.
+
 ### Ring movement (provisional)
 
 Play follows the Ring continuously, without a round boundary or a rule reserving
-one turn per wizard in a cycle. When a wizard Bends the Knee, they immediately
-swap positions with their current Aggressor. Their original Target begins the
+one turn per wizard in a cycle. When a wizard Bends the Knee, they grant their
+current Aggressor one Domination point and immediately swap positions with
+that Aggressor, without paying additional Integrity. Their original Target begins the
 next turn, as specified by the kneeling handoff rule above. Kneeling remains
 unavailable when only two wizards survive.
 
@@ -394,7 +438,15 @@ from this comparison before that content is introduced.
 
 ### Domination
 
-Every time that the wizard confront and defeats another wizard, they progress along path to domination.
+Gain one Domination point whenever another wizard Bends the Knee to you or
+you eliminate your Target. A successful Attack that neither eliminates the
+Target nor leads to submission awards no Domination point by itself.
+
+Eliminating a Target also transfers that wizard's actual starting Chantry
+card, wherever it currently resides, into the Aggressor's ownership and
+discard pile. Additional Chantries acquired by the eliminated wizard do not
+transfer. Apply these elimination rewards during the Attack's resolution,
+before the victory checkpoint or any further response window.
 
 ### Arcane
 
@@ -731,6 +783,15 @@ Creates a new artifact card and adds it to the wizard's discard pile.
 Commit Arcane Focus with one other card to contribute one Wis and one point of
 any single Affinity to that paired action. It also allows the wizard to serve as
 the Challenger. Neither contribution enters the wizard's general pool.
+
+Alternatively, play Arcane Focus itself to recover 1 Integrity, up to the
+maximum of 3. Recovery costs 3 Wis total: Focus supplies 1 Wis toward that
+action, leaving 2 Wis to pay from available resources. Focus must be drawn
+normally and played for this use; it is not a permanently available recovery
+ability.
+
+Focus may instead support an Attack or Defence with 1 Might. Each play uses
+one of its alternatives; it must be regained before reuse.
 
 #### Investigate
 

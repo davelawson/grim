@@ -100,5 +100,7 @@ When we have lists, should we use a simple update on the base item to manage the
   kneeling flow in [GAME.md](GAME.md).
 - Define immunity duration precisely under continuous turns and changing
   neighbours.
+- Decide whether separate defensive preparation exists alongside standing
+  Might and response commitments.
 - Resume the [parked Spell design discussion](docs/spell-design-notes.md) when
   choosing the next design slice.
