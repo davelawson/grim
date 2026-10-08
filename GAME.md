@@ -287,9 +287,11 @@ global action admits wider participation, and a global Reaction never expands
 the eligible participants.
 
 All players see the current table state and declared cards, commitments,
-targets, options, and payments as they happen. The contents of hands, decks,
-and discard piles are hidden; response eligibility still follows the fixed
-participant rules above.
+targets, options, and payments as they happen. Each wizard can inspect their
+own hand and the contents of their own draw pile, but not the draw pile's order.
+Every wizard can inspect every discard pile, including its order. Opponents'
+hands and draw-pile contents are hidden. Response eligibility still follows
+the fixed participant rules above.
 
 ### Challenges and progress
 
@@ -435,6 +437,30 @@ the tied contenders share victory. No additional turn or response is granted.
 Current progress awards are single steps. Future content that permits multiple
 winning paths with unequal scores must specify which winning path is excluded
 from this comparison before that content is introduced.
+
+### Ending by agreement (provisional)
+
+An unfinished match may be abandoned by a strict majority of its remaining,
+non-eliminated players, or of all participants during setup. Starting a vote
+freezes gameplay: no action, Reaction, or other gameplay progression occurs
+until every eligible player has submitted a ballot, even if a majority is
+already apparent. Ballots cannot be changed and voting has no deadline.
+Eliminated players' ballots are invalidated and they do not participate further.
+
+A completed vote with a majority ends the match without awarding victory or
+resolving pending effects; a tie fails. A failed vote resumes the suspended
+gameplay state. A new round may begin only after the pending round concludes,
+with fresh ballots. Elimination cannot make a previously failed vote pass.
+
+Voting can begin at a point where gameplay waits for input, regardless of
+Priority. A server administrator may end the match with the same abandoned
+outcome, including during a vote. Disconnecting alone never changes gameplay
+or ends the match.
+
+Opening a round casts no ballot: every eligible player, including its
+initiator, submits a separate ballot. Ballots are open but voter identities
+are not disclosed; players can see aggregate yes/no totals and how many
+ballots remain outstanding, without identifying voters or non-voters.
 
 ### Domination
 

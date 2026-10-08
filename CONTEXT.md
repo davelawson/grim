@@ -4,6 +4,31 @@ Terms used to describe the game's cards, players, and play.
 
 ## Language
 
+**Lobby**:
+A gathering of players used to set up and launch a single Match. It closes
+when that Match begins.
+
+**Launch readiness**:
+A lobby participant's explicit agreement to launch with the current roster.
+Changing the roster clears every participant's agreement.
+
+**Match**:
+One game of Grimoire played by two to four players, from opening setup through
+victory or another agreed ending.
+
+**Required choice**:
+A decision that a designated player must make before play can advance, such
+as selecting a card to discard during an effect's Resolution.
+
+**End-game vote**:
+A vote to abandon a Match that freezes gameplay until every eligible player
+casts an immutable ballot, then requires a strict majority to pass. Ballots
+are open without voter identities; failed rounds never carry support forward.
+
+**Abandoned match**:
+A Match ended without a winner by an approved End-game vote or a server
+administrator, without resolving its remaining pending effects.
+
 **Ring**:
 The arrangement of wizards that defines their Aggressor and Target
 relationships.
@@ -59,7 +84,8 @@ card effect during an interaction.
 
 **Response window**:
 An opportunity for eligible wizards to declare Reactions before a pending
-action, Reaction, or mandatory card effect resolves.
+action, Reaction, or mandatory card effect resolves. It has no time limit;
+elapsed time does not count as a Pass.
 
 **Exchange**:
 An action or card effect together with all its Reactions and resulting
@@ -70,8 +96,9 @@ unless five-step victory ends the game sooner.
 A declared action, Reaction, or mandatory card effect that has not yet resolved.
 
 **Resolution**:
-An uninterrupted execution of one pending effect's legal instructions and
-applicable success or failure consequences.
+The execution of one pending effect's legal instructions and applicable success
+or failure consequences, without intervening gameplay even if a Required choice
+temporarily pauses it.
 
 **Stack**:
 The ordered collection of pending effects, with the most recently declared
@@ -79,10 +106,20 @@ effect resolving first.
 
 **Public information**:
 The current table state and revealed declarations, commitments, targets,
-choices, and payments visible to all players.
+choices, and payments visible to all players, including every discard pile's
+contents and order.
 
 **Hidden information**:
-The contents of each wizard's hand, deck, and discard pile.
+A wizard's hand and draw-pile contents are hidden from opponents. Draw-pile
+order is hidden from every wizard, including its owner.
+
+**Card design**:
+The shared definition of a named card, including its printed properties and
+abilities.
+
+**Card instance**:
+An individual copy of a Card design with its own identity, ownership, location,
+and changing play state.
 
 **Priority**:
 An eligible wizard's opportunity to declare a Reaction or pass during a

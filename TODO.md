@@ -14,7 +14,8 @@ When we have lists, should we use a simple update on the base item to manage the
 
 ## Robust Endpoint Logging
 
-- We need a generic way of logging requests, including token, request user, URL and method, and request body.
+- Log requester identity, URL, method, and diagnostic request details while
+  excluding credentials and authentication tokens.
 
 ### UUIDs in Endpoints
 
@@ -54,7 +55,8 @@ When we have lists, should we use a simple update on the base item to manage the
 
 - sqlite3
   - how do we handle migration?
-    - on hold for now
+    - introduce ordered incremental migrations and saved-document schema
+      upgrades as part of the backend expansion in [WORK.md](WORK.md)
   - how do we dump the database?
   - transaction management?
 - implement some kinda caching
@@ -66,6 +68,12 @@ When we have lists, should we use a simple update on the base item to manage the
 - integration testing
 
 ## Between Game Functionality
+
+Implement the confirmed [backend expansion](ARCHITECTURE.md#planned-match-backend)
+in its documented sequence. Begin with incremental migrations, admin storage
+and authorization, lobby readiness/departure/ownership transfer, saved match
+setup, and atomic one-time launch. Fix UpdateLobby's missing requester ownership
+check before using it for ownership transfer.
 
 - Endpoints
   - Implemented
@@ -96,6 +104,10 @@ When we have lists, should we use a simple update on the base item to manage the
 
 ## Game Design
 
+- Complete the small first-playable catalogue: victory-card ranks, Spell and
+  Artifact creation pools, remaining Research rules, and draft procedure and
+  victory challenge offers. These are prerequisites for the complete-game
+  backend milestone defined in [WORK.md](WORK.md).
 - Playtest the agreed card anatomy, turn phases, response exchanges, and
   kneeling flow in [GAME.md](GAME.md).
 - Define immunity duration precisely under continuous turns and changing
