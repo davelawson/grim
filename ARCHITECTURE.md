@@ -163,7 +163,9 @@ effects are resolved.
 The operator grants/revokes administrator status through direct database
 updates; ordinary account creation/updates cannot grant or overwrite it.
 
-New lifecycle endpoints use JSON errors
+All protected routes use the same authentication handler, returning JSON errors
+for missing/invalid tokens and unexpected authentication failures. Lifecycle
+endpoints also use JSON errors
 `{"error":{"code":"…","message":"…"}}`. Invalid input is 400, missing/invalid
 authentication 401, permission denial 403, missing resources 404, lifecycle
 conflicts or unsupported saved schemas 409, and unexpected failures 500 without
@@ -173,7 +175,7 @@ false; launch requires a canonical UUID request ID. Stable codes include
 `invalid_request`, `unauthorized`, `forbidden`, `not_found`, `lobby_not_ready`,
 `invalid_roster_size`, `lobby_closed`, `request_id_conflict`,
 `unsupported_state`, and `internal_error`. Existing
-lobby operations retain their older success/error formats where applicable;
+lobby operations retain their older controller success/error formats where applicable;
 new owner-departure and transfer checks use `owner_must_transfer` (409) and
 `invalid_owner` (400).
 

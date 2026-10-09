@@ -76,6 +76,10 @@ curl -X 'POST' \
 }'`
 
 All API JSON fields use lowercase names. Login returns `{"token":"…"}`.
+All protected endpoints return authentication errors as
+`{"error":{"code":"…","message":"…"}}`: missing or invalid tokens return
+401 with `unauthorized`; unexpected authentication failures return 500 with
+`internal_error` and a generic message.
 Lobby requests use `name`, `owner`, and `userid` as applicable; lobby lookup
 returns a `lobby` object with `id`, `name`, `owner`, `members`, `status`, nullable
 `matchid`, and `readiness` keyed by member user ID.

@@ -7,7 +7,6 @@ import (
 	"main/model"
 	"main/user"
 	"main/util"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
@@ -37,17 +36,17 @@ func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 	group.PUT(":id", createAuthedHandler(authService, controller.UpdateLobby))
 	group.POST(":id/user", createAuthedHandler(authService, controller.AddUserToLobby))
 	group.DELETE(":id/user/:user_id", createAuthedHandler(authService, controller.RemoveUserFromLobby))
-	group.PUT(":id/ready", createLifecycleAuthedHandler(authService, controller.SetReady))
-	group.POST(":id/launch", createLifecycleAuthedHandler(authService, controller.Launch))
+	group.PUT(":id/ready", createAuthedHandler(authService, controller.SetReady))
+	group.POST(":id/launch", createAuthedHandler(authService, controller.Launch))
 }
 
 func AddMatchRoutes(authService authService, router *gin.Engine, controller *match.Controller) {
-	router.GET("/match/:id", createLifecycleAuthedHandler(authService, controller.Get))
-	router.POST("/admin/match/:id/end", createLifecycleAuthedHandler(authService, controller.End))
+	router.GET("/match/:id", createAuthedHandler(authService, controller.Get))
+	router.POST("/admin/match/:id/end", createAuthedHandler(authService, controller.End))
 }
 
-// Lifecycle routes use JSON errors without changing older authentication responses.
-func createLifecycleAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
+// createAuthedHandler authenticates protected routes and returns JSON errors.
+func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
 	return func(c *gin.Context) {
 		reqUser, err := authService.VerifyBearerToken(util.GetBearerToken(c))
 		if err != nil {
@@ -56,22 +55,6 @@ func createLifecycleAuthedHandler(authService authService, handler func(*gin.Con
 		}
 		if reqUser == nil {
 			util.WriteAPIError(c, util.ErrUnauthorized)
-			return
-		}
-		c.Set("reqUser", reqUser)
-		handler(c)
-	}
-}
-
-func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
-	return func(c *gin.Context) {
-		reqUser, authErr := authService.VerifyBearerToken(util.GetBearerToken(c))
-		if authErr != nil {
-			c.String(http.StatusInternalServerError, "Invalid authentication token", authErr)
-			return
-		}
-		if reqUser == nil {
-			c.String(http.StatusUnauthorized, "Bad or missing authentication token")
 			return
 		}
 		c.Set("reqUser", reqUser)

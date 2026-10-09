@@ -10,6 +10,7 @@ import (
 	"main/match"
 	"main/model"
 	"main/user"
+	"main/util"
 	randv2 "math/rand/v2"
 	"net/http"
 	"net/http/httptest"
@@ -743,9 +744,16 @@ func (failedAuthentication) VerifyBearerToken(string) (*model.User, error) {
 	return nil, fmt.Errorf("private database error")
 }
 
-func TestLifecycleAuthenticationErrors(t *testing.T) {
+func TestAuthenticationErrors(t *testing.T) {
 	f := newLifecycleFixture(t)
 	for _, route := range []struct{ method, path, body string }{
+		{"POST", "/user/getbyemail", `{"email":"owner@example.com"}`},
+		{"POST", "/lobby", `{"name":"Test"}`},
+		{"GET", "/lobby/missing", ""},
+		{"PUT", "/lobby/missing", `{"name":"Test","owner":"missing"}`},
+		{"DELETE", "/lobby/missing", ""},
+		{"POST", "/lobby/missing/user", `{"userid":"missing"}`},
+		{"DELETE", "/lobby/missing/user/missing", ""},
 		{"PUT", "/lobby/missing/ready", `{"ready":true}`},
 		{"POST", "/lobby/missing/launch", launchBody(uuid.NewString())},
 		{"GET", "/match/missing", ""},
@@ -753,16 +761,18 @@ func TestLifecycleAuthenticationErrors(t *testing.T) {
 	} {
 		for _, actor := range []string{"", "invalid"} {
 			w := f.call(401, route.method, route.path, actor, route.body)
-			if !strings.Contains(w.Body.String(), `"code":"unauthorized"`) {
-				t.Fatal(w.Body.String())
+			var response util.ErrorResponse
+			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil || response.Error == nil || response.Error.Code != "unauthorized" || response.Error.Message == "" || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") {
+				t.Fatalf("invalid authentication response for %s %s: %s", route.method, route.path, w.Body.String())
 			}
 		}
 	}
 	router := gin.New()
-	router.GET("/match/failure", createLifecycleAuthedHandler(failedAuthentication{}, func(*gin.Context) { t.Fatal("handler called after auth error") }))
+	router.GET("/match/failure", createAuthedHandler(failedAuthentication{}, func(*gin.Context) { t.Fatal("handler called after auth error") }))
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/match/failure", nil))
-	if w.Code != 500 || strings.Contains(w.Body.String(), "private") {
+	var response util.ErrorResponse
+	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil || w.Code != 500 || response.Error == nil || response.Error.Code != "internal_error" || strings.Contains(w.Body.String(), "private") || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") {
 		t.Fatalf("unsafe auth failure: %d %s", w.Code, w.Body.String())
 	}
 }
