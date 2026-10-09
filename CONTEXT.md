@@ -1,8 +1,13 @@
 # Grimoire
 
-Terms used to describe the game's cards, players, and play.
+Terms used to describe Grimoire's users, cards, players, and play.
 
 ## Language
+
+**User**:
+A registered identity in Grimoire, identified by a unique email address and
+represented by a display name that may be shared with other Users.
+_Avoid_: Player when referring to the registered identity rather than participation in play
 
 **Lobby**:
 A gathering of players used to set up and launch a single Match. It closes
