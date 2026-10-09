@@ -23,11 +23,16 @@ victory or another agreed ending.
 
 **Launch**:
 The one-time transition from a Lobby to a Match in setup, fixing its
-participants and initial Ring and closing the Lobby.
+participants and closing the Lobby.
 
 **Match setup**:
 A Match's opening stage, beginning at Launch and continuing through drafting
 before ordinary play begins.
+
+**Drafting**:
+Each wizard's independent opening selection of a starting Chantry, Starting
+Minion, and Victory-path card in a sequence of irreversible choices.
+One wizard's selections do not remove options from another wizard.
 
 **Required choice**:
 A decision that a designated player must make before play can advance, such
@@ -48,7 +53,8 @@ history and last saved result preserved.
 
 **Ring**:
 The arrangement of wizards that defines their Aggressor and Target
-relationships.
+relationships, established by random seating after every wizard finishes
+Drafting.
 
 **Aggressor**:
 A wizard's neighbour on their left in the Ring, whose Target is that wizard.
@@ -86,10 +92,10 @@ A Victory path advanced when another wizard bends the knee to the wizard
 pursuing it, or when that wizard eliminates their Target.
 
 **Attack**:
-A direct offensive action against a wizard's Target, available to a Minion
-with Might Expertise and undertaken alone or with other such Minions. It
-compares Might deterministically and reduces the Target's Integrity by 1
-on success.
+A direct offensive action against a wizard's Target, requiring a card that
+grants permission to initiate it and at least one ready Minion with Might
+Expertise. It compares Might deterministically and reduces the Target's
+Integrity by 1 on success.
 
 **Defence**:
 A wizard's opposition to their Aggressor's Attack, including standing Might,
@@ -127,8 +133,9 @@ choices, and payments visible to all players, including every discard pile's
 contents and order.
 
 **Hidden information**:
-A wizard's hand and draw-pile contents are hidden from opponents. Draw-pile
-order is hidden from every wizard, including its owner.
+A wizard's undisclosed draft selections, hand, and draw-pile contents are
+hidden from opponents. Draw-pile order is hidden from every wizard, including
+its owner.
 
 **Card design**:
 The shared definition of a named card, including its printed properties and
@@ -342,6 +349,14 @@ the size to which Draw refills that hand.
 One of the ways a wizard can Ascend, tracked by visible steps of progress.
 Reaching five steps wins the game as soon as the effect or submission awarding
 that progress has finished.
+
+**Victory-path card**:
+The card a wizard selects during Drafting for their primary Victory path,
+which may be an Activity, a victory challenge, or a placeholder.
+
+**Subjugate Rival**:
+The Activity selected for the Domination Victory path during Drafting,
+which enables an Attack against the wizard's Target with Might Minions.
 
 **Turn order**:
 The continuous sequence of wizards' turns following the Ring, with no rounds

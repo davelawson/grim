@@ -16,11 +16,22 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-No lifecycle work remains. Lobby-to-match creation, participant lookup, and
-administrator termination are implemented and verified. Their lasting contract
-is recorded in [ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle)
-and usage in [README.md](README.md#launch-and-end-a-match). Drafting, gameplay,
-player votes, and migrations remain deferred.
+No drafting design work remains. The user confirmed the complete ruleset.
+Its accepted provisional rules, starting offers, and Subjugate Rival are
+recorded in [GAME.md](GAME.md#drafting); terminology is in [CONTEXT.md](CONTEXT.md).
+The planned change from launch-time seating to seating after drafting is
+recorded in [ARCHITECTURE.md](ARCHITECTURE.md#lobby-and-match-lifecycle).
+Drafting implementation and the other four victory paths remain backlog work
+in [TODO.md](TODO.md). Backend commands and implementation were outside this
+design-only slice.
+
+### Completed lifecycle slice
+
+Lobby-to-match creation, participant lookup, and administrator termination are
+implemented and verified. Their lasting contract is recorded in
+[ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle) and usage
+in [README.md](README.md#launch-and-end-a-match). Drafting implementation,
+gameplay, player votes, and migrations remain deferred.
 
 The pending registration design is retained below; it is not part of the
 completed lifecycle slice.

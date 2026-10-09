@@ -109,11 +109,13 @@ the complete lifecycle schema directly.
 
 ## Game Design
 
-- Complete the small first-playable catalogue: victory-card ranks, Spell and
-  Artifact creation pools, remaining Research rules, and draft procedure and
-  victory challenge offers. These are prerequisites for the complete-game
-  backend milestone defined in [WORK.md](WORK.md).
-- Playtest the agreed card anatomy, turn phases, response exchanges, and
+- Complete the small first-playable catalogue: working victory challenges
+  and ranks beyond the four drafting placeholders, Spell and Artifact creation
+  pools, and remaining Research rules. These are prerequisites for the
+  complete-game backend milestone defined in [ARCHITECTURE.md](ARCHITECTURE.md).
+- Implement the agreed [drafting rules](GAME.md#drafting), including moving
+  random seating from launch to draft completion.
+- Playtest the agreed drafting, card anatomy, turn phases, response exchanges, and
   kneeling flow in [GAME.md](GAME.md).
 - Define immunity duration precisely under continuous turns and changing
   neighbours.

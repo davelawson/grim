@@ -154,10 +154,12 @@ Attacks always target their Target; other offensive abilities may target their
 Aggressor where permitted by their printed rules. Global effects use their
 printed affected group.
 
-A ready Minion with Might Expertise can initiate an Attack without a separate
-Attack card. Several such Minions may combine in the wizard's single Attack
-for the turn. A newly played Minion cannot Attack until its owner's next turn
-starts, but can defend immediately. Attacking and defending Minions must be
+Initiating an Attack requires an Attack-enabling card and at least one ready
+Minion with Might Expertise. The starting Domination card, Subjugate Rival,
+provides this permission when drawn and played. Several such Minions may
+combine in the wizard's single Attack for the turn. A newly played Minion
+cannot Attack until its owner's next turn starts, but can defend immediately.
+Attacking and defending Minions must be
 ready and exhaust when committed, retaining their surviving assigned
 contributions even though exhausted.
 
@@ -290,8 +292,10 @@ All players see the current table state and declared cards, commitments,
 targets, options, and payments as they happen. Each wizard can inspect their
 own hand and the contents of their own draw pile, but not the draw pile's order.
 Every wizard can inspect every discard pile, including its order. Opponents'
-hands and draw-pile contents are hidden. Response eligibility still follows
-the fixed participant rules above.
+hands and draw-pile contents are hidden. Draft selections are private and are
+not disclosed when drafting finishes; selected cards become visible through
+ordinary play, with Chantries entering play after all drafts are complete.
+Response eligibility still follows the fixed participant rules above.
 
 ### Challenges and progress
 
@@ -336,9 +340,13 @@ A rumour remains in play for its printed duration and leaves play as its card
 directs.
 
 At the opening draft, each wizard chooses a victory-path card for a primary
-path. It returns through the deck, providing a relatively reliable chance to
-advance. A successful attempt immediately adds one visible step, removes the
-attempted card, and puts its costlier next rank into the discard pile. Other
+path. In the first version, Domination provides the Activity Subjugate Rival;
+the other four paths provide inert placeholders. These starting cards do not
+use ranked victory-challenge replacement.
+
+For a card offering ranked victory Challenges, a successful attempt immediately
+adds one visible step, removes the attempted card, and puts its costlier next
+rank into the discard pile. Other
 cards may offer alternate paths or change the wizard's primary
 path; those effects are not designed here. Reaching the fifth step wins the
 game immediately, including during a turn, instead of creating another rank.
@@ -356,7 +364,7 @@ are linked to a choice:
 | *Research Spell | 1 | Fixed starting card. |
 | *Research Artifact | 1 | Fixed starting card. |
 | **Basic Wis | 2 | Fixed starting cards. |
-| *Victory challenge | 1 | Draft a card for a primary victory path. |
+| *Victory-path card | 1 | Draft Subjugate Rival or a placeholder for a primary victory path. |
 | *Basic Wealth | 1 | Fixed starting card. |
 | *Minion | 1 | Draft one of the three Minions offered by the chosen Chantry. |
 | *Arcane Focus | 1 | Fixed starting card. |
@@ -376,8 +384,9 @@ Research. The twelve named starting Minions and their draft offers are listed
 under Drafting below. Their Expertise changes which Challenges the wizard can
 overcome early and which rumours Investigate can find.
 
-**Arcane Inquiry I** remains an illustrative choice for the victory challenge
-slot, with **Arcane Inquiry II** as its replacement after a success.
+**Arcane Inquiry I** and its replacement **Arcane Inquiry II** remain
+illustrations of future ranked victory Challenges. They are not starting
+offers in the first version.
 
 A basic Wis or Wealth card provides one unit of its named resource immediately
 when played and costs no resources or Affinity. Generated ephemeral Wis and
@@ -781,11 +790,31 @@ additional once-per-turn or once-per-round restriction.
 
 ### Victory Challenges
 
-A drafted victory challenge provides a repeatable opportunity to advance one path. On success, it scores a step and is replaced by a more advanced version, as described above.
+A victory challenge provides a repeatable opportunity to advance one path.
+On success, it scores a step and is replaced by a more advanced version, as
+described above. The first-version draft offers Subjugate Rival and four inert
+placeholders instead of working ranked victory challenges.
 
 ### Activities
 
 Activity cards represent basic actions that can be performed by the wizard. In the provisional first playable draft, each Activity is played for its printed effect and may name another card as a target. An Activity does not always require a paired card. Activities are one of the primary methods to tailor the wizard's deck.
+
+#### Subjugate Rival
+
+The Domination starting Activity enables an Attack against the wizard's Target.
+It has no resource Cost or Affinity play requirement, but initiating its Attack
+requires at least one ready Minion with Might Expertise that is eligible to
+Attack. Additional eligible Might Minions may join, and Arcane Focus may support
+the Attack under the normal combat rules.
+
+The wizard must draw and play Subjugate Rival to use it. After use it goes to
+the discard pile, including when countered, and must be regained before reuse.
+The wizard may initiate only one Attack per turn. The normal comparison,
+Integrity loss, Minion exhaustion, and failed-Attack penalty apply.
+Domination points come from submission or eliminating the Target, rather than
+from merely winning the Attack. Subjugate Rival has no ranks or upgrades and
+is not replaced when Domination progress is awarded. Acquiring an
+Attack-enabling card outside the starting draft remains future content.
 
 #### Research Activity
 
@@ -849,24 +878,48 @@ The collaborate activity allows the wizard to generate rumours and opportunities
 
 ## Deck Construction
 
-The ten-card starting deck combines fixed cards with a victory challenge and
+The ten-card starting deck combines fixed cards with a victory-path card and
 a Minion chosen during the opening draft. Choosing a Chantry adds its linked
-Element to that deck; the Chantry itself starts in play. The full draft
-procedure and the identities of the victory challenge offers remain to be
-designed.
+Element to that deck; the Chantry itself starts in play.
 
 ### Drafting
 
-The opening draft offers all four Chantries, one each for Fire, Earth, Air, and
-Water. Each wizard chooses one Chantry, one victory challenge, and one of three
-Minions offered for that Chantry. The Chantry choice also determines the matching
-Element card. Place the chosen Chantry in play before the first turn. Each
-starting Minion costs 1 Wis and requires 1 Affinity in its
-Chantry's Element to play from the hand. These are play costs, not payments made
+These agreed opening rules are provisional until playtested.
+
+Drafting is personal customization with unlimited copies of every offer.
+Wizards draft independently without contact with other players or a drafting
+turn order. All offers are visible to the drafting wizard before their first
+choice. Each wizard makes these choices in order, with each choice locked
+before proceeding and no going back:
+
+1. Choose one Chantry: Fire, Earth, Air, or Water. This also supplies its
+   matching Element card for the deck.
+2. Choose one victory path from the shared menu below. Every Chantry offers
+   all five paths, each with one starting card.
+3. Choose one of the three Starting Minions offered for the chosen Chantry.
+   Selecting the Minion completes that wizard's draft.
+
+| Victory path | Starting card | First-version behavior |
+| --- | --- | --- |
+| Domination | Subjugate Rival | Activity enabling an Attack with eligible Might Minions |
+| Arcane | Arcane (placeholder) | No effect or working primary-path progression |
+| Influence | Influence (placeholder) | No effect or working primary-path progression |
+| Council | Council (placeholder) | No effect or working primary-path progression |
+| Fame | Fame (placeholder) | No effect or working primary-path progression |
+
+Each placeholder is a named card clearly marked as a placeholder and occupies
+the same single starting-deck slot as Subjugate Rival. Domination does not
+restrict the Minion choice: its wizard may choose any of the three offers,
+though attacking requires acquiring and playing a Might Minion.
+
+Every Chantry offers a Might Minion. Each Starting Minion costs 1 Wis and
+requires 1 Affinity in its Chantry's Element to play from the hand. These are
+play costs, not payments made
 during the draft. Each has exactly 1 Expertise in the domain shown below, no
 ambient Affinity, no upkeep, and no additional ability. The Minion cannot
-undertake a Challenge until its owner's next turn starts. Its Expertise
-contributes only when it is directly assigned to a Challenge.
+Attack or undertake a Challenge until its owner's next turn starts, but can
+defend immediately. Its Expertise contributes when directly assigned to a
+Challenge, or when its Might Expertise contributes to an Attack or Defence.
 
 | Chantry | Starting Minion | Role | Expertise |
 | --- | --- | --- | --- |
@@ -877,15 +930,28 @@ contributes only when it is directly assigned to a Challenge.
 | Earth | Leontine Grange | Estate agent | Nobility 1 |
 | Earth | Rurik Ironvale | Quarry guard | Might 1 |
 | Air | Mina Cloudscript | Weather reader | Air 1 |
-| Air | Cassian Bellweather | Court messenger | Nobility 1 |
+| Air | Garrick Stormward | Tower guard | Might 1 |
 | Air | Elsie Many-Tongues | Storyteller | Popularity 1 |
 | Water | Nadia Rivermark | Canal keeper | Water 1 |
 | Water | Sister Agnes Reed | Abbey healer | Church 1 |
-| Water | Samantha Twice-Born | Marsh witch | Infernal 1 |
+| Water | Tamsin Lockward | Canal guard | Might 1 |
 
 Names identify card designs, not globally unique game pieces: different
-wizards may draft copies of the same named Minion. The victory challenge offers
-and draft order remain open.
+wizards may draft copies of the same named Minion. One wizard's choices never
+remove options from another wizard.
+
+Setup waits for every wizard to complete their draft, without a deadline or
+automatic picks. Draft selections remain private after completion; they are
+not collectively revealed to rivals. Cards become visible through ordinary
+play, and the starting Chantries enter play after all drafts are complete.
+
+When the final wizard completes drafting, automatically seat the wizards in
+a random Ring, establishing Aggressor and Target relationships. Each wizard
+starts at 3 Integrity with their Chantry in play. Independently shuffle each
+ten-card starting deck and deal five cards, with no guaranteed cards or
+mulligan. The first wizard in the Ring begins their Start Phase without
+another readiness vote. The other drafted cards remain hidden in their
+owners' hands or draw piles.
 
 ### Static
 

@@ -138,6 +138,8 @@ sorted by user ID before shuffling with Go's `math/rand/v2` ChaCha8, seeded with
 32 bytes from `crypto/rand`. The initial seed, generator identifier
 `chacha8-v1`, and post-shuffle binary generator state are persisted privately.
 Rules/catalogue versions remain explicitly unbound until drafting is added.
+The agreed drafting design below moves random seating to draft completion;
+the current implementation still assigns and exposes the Ring at launch.
 Unsupported saved schema versions return `unsupported_state` without rewriting
 state. Snapshot identity/status/revision/outcome must agree with searchable
 match metadata when loading.
@@ -216,9 +218,13 @@ sequence and acceptance scenarios below define that broader work.
   clears readiness for all participants.
 - Only the lobby owner can launch, with two to four ready participants.
   Launch closes the lobby and creates a match in setup, including drafting.
-- The server randomly orders participants into the initial Ring at launch
-  and records that order. The first wizard in it takes the first turn once
-  setup is complete.
+- The server randomly orders participants into the initial Ring after every
+  wizard completes drafting and records that order. Seating is unassigned
+  during drafting; the first wizard in the Ring then takes the first turn.
+  This planned behavior replaces the implemented launch-time seating.
+- Drafting follows the agreed provisional rules in
+  [GAME.md](GAME.md#drafting): independent, private, irreversible selections,
+  followed by automatic setup completion without another readiness vote.
 - Lobby membership remains owner-managed. Each participant controls their
   own readiness; the former owner has no special gameplay authority after launch.
 - Match views and commands are available only to authenticated participants.
@@ -381,10 +387,11 @@ Completing unfinished game content is a separate design prerequisite for
 accepting the complete-game milestone. The backend plan does not settle those
 card texts or unfinished rules.
 
-- Select the small catalogue and finish its victory-card ranks.
+- Finish the other four victory paths beyond their inert drafting
+  placeholders, including the required victory challenges and ranks.
 - Define its Spell and Artifact creation pools and remaining Research rules.
 - Specify Attack Immunity duration and any other required unfinished rules.
-- Settle the game draft procedure and victory challenge offers.
+- Implement and playtest the agreed draft procedure and starting offers.
 
 ### Boundaries and stored state
 
@@ -400,8 +407,9 @@ card texts or unfinished rules.
   ownership transfers; a body-supplied owner ID never establishes authority.
 - Store match identity, membership, lifecycle/search metadata, the versioned
   snapshot, and command receipts in SQLite. Launch stores the closed-lobby link,
-  participants, random initial Ring, initial snapshot, and launch receipt in
-  one transaction.
+  participants, initial snapshot and private random state, and launch receipt
+  in one transaction. The planned draft-completion transition records random
+  seating, starting cards, and initial hands together.
 
 The snapshot contains:
 
