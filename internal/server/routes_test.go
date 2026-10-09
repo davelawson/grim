@@ -14,6 +14,8 @@ func TestSharedEndpointsMatchProductionRoutes(t *testing.T) {
 		name, method, route, path string
 		wantStatus                int
 	}{
+		{"list matches", api.ListMatchesMethod, api.ListMatchesRoute, api.ListMatchesRoute, 401},
+		{"list lobbies", api.ListLobbiesMethod, api.ListLobbiesRoute, api.ListLobbiesRoute, 401},
 		{"login", api.LoginMethod, api.LoginRoute, api.LoginRoute, 400},
 		{"create user", api.CreateUserMethod, api.CreateUserRoute, api.CreateUserRoute, 400},
 		{"get user", api.GetUserByEmailMethod, api.GetUserByEmailRoute, api.GetUserByEmailRoute, 401},

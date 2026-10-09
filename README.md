@@ -320,3 +320,18 @@ To setup Swagger:
 1. Generate the swagger documentation: `swag init .`
 1. Run the application (detailed in earlier section)
 1. Open the web page: `http://localhost:8080/swagger/index.html#`
+
+### List your matches and lobbies
+
+Authenticated `GET /matches` and `GET /lobbies` list memberships for the user
+identified by the raw token in the `Authorization` header. Responses are
+`{"matches":[{"id":"…","status":"setup"}]}` and
+`{"lobbies":[{"id":"…","status":"open"}]}`. Each entry contains only ID and
+status; use the single-item endpoints for details. Empty results return arrays
+(`[]`), never null.
+
+Lists include every nondeleted state, are ordered by ID, and are not paginated.
+Lobby results reflect current memberships; leaving removes a lobby from that
+user's list. Match listings read metadata without decoding saved game state.
+Administrators also receive only their own memberships. Missing or invalid
+tokens return 401; storage failures use the standard generic 500 error.

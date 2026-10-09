@@ -10,6 +10,11 @@ import (
 // :name syntax; clients use the corresponding Path helpers to substitute IDs.
 // Paths are relative to the server origin and do not include a base URL.
 const (
+	ListMatchesMethod = http.MethodGet
+	ListMatchesRoute  = "/matches"
+	ListLobbiesMethod = http.MethodGet
+	ListLobbiesRoute  = "/lobbies"
+
 	LoginMethod = http.MethodPost
 	LoginRoute  = "/login"
 

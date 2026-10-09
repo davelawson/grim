@@ -26,6 +26,7 @@ func AddUserRoutes(authService authService, router *gin.Engine, controller *user
 }
 
 func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lobby.Controller) {
+	router.Handle(api.ListLobbiesMethod, api.ListLobbiesRoute, createAuthedHandler(authService, controller.List))
 	router.Handle(api.CreateLobbyMethod, api.CreateLobbyRoute, createAuthedHandler(authService, controller.CreateLobby))
 	router.Handle(api.DeleteLobbyMethod, api.DeleteLobbyRoute, createAuthedHandler(authService, controller.DeleteLobby))
 	router.Handle(api.GetLobbyMethod, api.GetLobbyRoute, createAuthedHandler(authService, controller.GetLobby))
@@ -37,6 +38,7 @@ func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 }
 
 func AddMatchRoutes(authService authService, router *gin.Engine, controller *match.Controller) {
+	router.Handle(api.ListMatchesMethod, api.ListMatchesRoute, createAuthedHandler(authService, controller.List))
 	router.Handle(api.GetMatchMethod, api.GetMatchRoute, createAuthedHandler(authService, controller.Get))
 	router.Handle(api.SubmitMatchCommandMethod, api.SubmitMatchCommandRoute, createAuthedHandler(authService, controller.Command))
 	router.Handle(api.GetCatalogueMethod, api.GetCatalogueRoute, createAuthedHandler(authService, controller.Catalogue))
