@@ -3,17 +3,13 @@ package match
 import (
 	"encoding/json"
 	"io"
-	"main/game"
+	"main/api"
 	"main/model"
 	"main/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
-
-type Response struct {
-	Match *game.View `json:"match"`
-}
 
 type Controller struct{ service *ServiceFacade }
 
@@ -25,8 +21,8 @@ func NewController(service *ServiceFacade) *Controller { return &Controller{serv
 // @Tags match
 // @Produce json
 // @Param id path string true "Match ID"
-// @Success 200 {object} match.Response
-// @Failure 401,403,404,409,500 {object} util.ErrorResponse
+// @Success 200 {object} api.MatchResponse
+// @Failure 401,403,404,409,500 {object} api.ErrorResponse
 // @Router /match/{id} [get]
 func (c *Controller) Get(ctx *gin.Context) {
 	actor := ctx.MustGet("reqUser").(*model.User)
@@ -35,7 +31,7 @@ func (c *Controller) Get(ctx *gin.Context) {
 		util.WriteAPIError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{Match: view})
+	ctx.JSON(http.StatusOK, api.MatchResponse{Match: view})
 }
 
 // Command locks one opening draft choice, or replays an identical accepted retry.
@@ -45,12 +41,12 @@ func (c *Controller) Get(ctx *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Match ID"
-// @Param command body CommandRequest true "Draft command; expectedrevision is required"
-// @Success 200 {object} Response
-// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Param command body api.CommandRequest true "Draft command; expectedrevision is required"
+// @Success 200 {object} api.MatchResponse
+// @Failure 400,401,403,404,409,500 {object} api.ErrorResponse
 // @Router /match/{id}/commands [post]
 func (c *Controller) Command(ctx *gin.Context) {
-	var command CommandRequest
+	var command api.CommandRequest
 	decoder := json.NewDecoder(ctx.Request.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&command); err != nil {
@@ -67,11 +63,7 @@ func (c *Controller) Command(ctx *gin.Context) {
 		util.WriteAPIError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, Response{Match: view})
-}
-
-type CatalogueResponse struct {
-	Catalogue *game.Catalogue `json:"catalogue"`
+	ctx.JSON(http.StatusOK, api.MatchResponse{Match: view})
 }
 
 // Catalogue returns the definitions pinned to this participant's match.
@@ -80,8 +72,8 @@ type CatalogueResponse struct {
 // @Tags match
 // @Produce json
 // @Param id path string true "Match ID"
-// @Success 200 {object} CatalogueResponse
-// @Failure 401,403,404,409,500 {object} util.ErrorResponse
+// @Success 200 {object} api.CatalogueResponse
+// @Failure 401,403,404,409,500 {object} api.ErrorResponse
 // @Router /match/{id}/catalogue [get]
 func (c *Controller) Catalogue(ctx *gin.Context) {
 	actor := ctx.MustGet("reqUser").(*model.User)
@@ -90,7 +82,7 @@ func (c *Controller) Catalogue(ctx *gin.Context) {
 		util.WriteAPIError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, CatalogueResponse{Catalogue: catalogue})
+	ctx.JSON(http.StatusOK, api.CatalogueResponse{Catalogue: catalogue})
 }
 
 // End soft-deletes a match while preserving its saved state.
@@ -101,7 +93,7 @@ func (c *Controller) Catalogue(ctx *gin.Context) {
 // @Produce json
 // @Param id path string true "Match ID"
 // @Success 204 "No Content"
-// @Failure 401,403,404,500 {object} util.ErrorResponse
+// @Failure 401,403,404,500 {object} api.ErrorResponse
 // @Router /admin/match/{id}/end [post]
 func (c *Controller) End(ctx *gin.Context) {
 	actor := ctx.MustGet("reqUser").(*model.User)

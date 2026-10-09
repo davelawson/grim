@@ -8,6 +8,30 @@ Powerful wizards compete with one another to be the first to Ascend in this turn
 
 The Go application is a simple RESTful api the can receive requests from any sort of front end such as a Discord Bot, a Web Page, or a CLI.
 
+### Shared Go API definitions
+
+The `api` package contains the HTTP request and response types, including nested
+match and catalogue types. It depends only on the Go standard library. Backend
+route registration lives in `internal/server`.
+
+Each operation exposes a method and route constant, such as `api.GetMatchMethod`
+and `api.GetMatchRoute`. Routes with parameters also expose a concrete path helper:
+
+```go
+req, err := http.NewRequestWithContext(ctx, api.GetMatchMethod,
+    serverURL+api.GetMatchPath(matchID), nil)
+```
+
+Use route constants directly for endpoints without parameters, such as
+`api.LoginRoute`. Parameterized route constants use server-side `:id` syntax;
+clients use path helpers, which escape each ID as a URL path segment. The caller
+supplies the server origin (without a trailing slash), authentication, and HTTP
+transport configuration. Protected endpoints currently take the raw login token
+in the `Authorization` header.
+
+The module is still named `main`; backend imports use `main/api`. A separately
+maintained client will require an importable module path, as a separate change.
+
 ### DB
 
 State is stored in a simple sqlite3 database.

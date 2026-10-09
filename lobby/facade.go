@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+	"main/api"
 	"main/game"
 	"main/util"
 )
@@ -48,14 +49,14 @@ func (sf *ServiceFacade) CreateLobby(name string, userId string) (*string, error
 	})()
 }
 
-func (sf *ServiceFacade) GetLobby(id string, requestorId string) (*Lobby, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*Lobby, error) {
+func (sf *ServiceFacade) GetLobby(id string, requestorId string) (*api.Lobby, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) {
 		return sf.service.GetLobbyForUser(tx, id, requestorId)
 	})()
 }
 
-func (sf *ServiceFacade) SetReady(id, requestorId string, ready bool) (*Lobby, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*Lobby, error) { return sf.service.SetReady(tx, id, requestorId, ready) })()
+func (sf *ServiceFacade) SetReady(id, requestorId string, ready bool) (*api.Lobby, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.SetReady(tx, id, requestorId, ready) })()
 }
 
 func (sf *ServiceFacade) Launch(id, actorID, requestID string) (*game.View, error) {

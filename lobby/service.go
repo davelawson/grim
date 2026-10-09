@@ -3,6 +3,7 @@ package lobby
 import (
 	"database/sql"
 	"errors"
+	"main/api"
 	"main/game"
 	"main/match"
 	"main/model"
@@ -188,7 +189,7 @@ var GetLobbyErrors = GetLobbyErrorsType{
 	NotFound: util.ErrNotFound,
 }
 
-func (ls *Service) GetLobby(tx *sql.Tx, id string) (*Lobby, error) {
+func (ls *Service) GetLobby(tx *sql.Tx, id string) (*api.Lobby, error) {
 	lobby, err := ls.repo.GetLobby(tx, id)
 	if err != nil {
 		return nil, err
@@ -205,7 +206,7 @@ func (ls *Service) GetLobby(tx *sql.Tx, id string) (*Lobby, error) {
 	return lobby, err
 }
 
-func (ls *Service) GetLobbyForUser(tx *sql.Tx, id, requestorId string) (*Lobby, error) {
+func (ls *Service) GetLobbyForUser(tx *sql.Tx, id, requestorId string) (*api.Lobby, error) {
 	lobby, err := ls.GetLobby(tx, id)
 	if err != nil {
 		return nil, err
@@ -216,7 +217,7 @@ func (ls *Service) GetLobbyForUser(tx *sql.Tx, id, requestorId string) (*Lobby, 
 	return lobby, nil
 }
 
-func (ls *Service) SetReady(tx *sql.Tx, id, requestorId string, ready bool) (*Lobby, error) {
+func (ls *Service) SetReady(tx *sql.Tx, id, requestorId string, ready bool) (*api.Lobby, error) {
 	lobby, err := ls.GetLobbyForUser(tx, id, requestorId)
 	if err != nil {
 		return nil, err

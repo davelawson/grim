@@ -3,7 +3,6 @@ package api
 import (
 	"encoding/json"
 	"errors"
-	"main/model"
 	"strings"
 )
 
@@ -45,12 +44,4 @@ func (req *CreateUserRequest) UnmarshalJSON(data []byte) error {
 	// The alias avoids invoking this method recursively.
 	type request CreateUserRequest
 	return json.Unmarshal(data, (*request)(req))
-}
-
-func NewUser(user *model.User) User {
-	return User{
-		Id:    user.Id,
-		Name:  user.Name,
-		Email: user.Email,
-	}
 }

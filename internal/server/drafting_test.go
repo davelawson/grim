@@ -1,10 +1,10 @@
-package api
+package server
 
 import (
 	"encoding/json"
 	"fmt"
+	"main/api"
 	"main/game"
-	"main/match"
 	"net/http/httptest"
 	"reflect"
 	"slices"
@@ -61,7 +61,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			launch, launchID, launchResponse := f.launch(lobbyID)
 			_, initial := f.saved(launch.ID)
 			catalogueResponse := f.call(200, "GET", "/match/"+launch.ID+"/catalogue", "member", "")
-			var catalogue match.CatalogueResponse
+			var catalogue api.CatalogueResponse
 			if err := json.Unmarshal(catalogueResponse.Body.Bytes(), &catalogue); err != nil {
 				t.Fatal(err)
 			}
@@ -186,7 +186,7 @@ func TestDraftCommandValidationAuthorizationAndRetries(t *testing.T) {
 	f.choose(view.ID, "owner", "choose_victory_path", "subjugate_rival")
 	errorCode(t, f.call(400, "POST", path, "owner", commandBody(uuid.NewString(), 3, "choose_minion", "nadia_rivermark")), "invalid_choice")
 	// Whitespace, key ordering and UUID casing do not change canonical input.
-	var reordered match.CommandRequest
+	var reordered api.CommandRequest
 	if err := json.Unmarshal([]byte(valid), &reordered); err != nil {
 		t.Fatal(err)
 	}

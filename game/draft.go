@@ -3,6 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
+	"main/api"
 	randv2 "math/rand/v2"
 	"slices"
 )
@@ -14,20 +15,9 @@ var (
 	ErrNotParticipant = errors.New("actor is not a participant")
 )
 
-type Draft struct {
-	Step        string `json:"step"`
-	Chantry     string `json:"chantry,omitempty"`
-	VictoryPath string `json:"victorypath,omitempty"`
-	Minion      string `json:"minion,omitempty"`
-}
+type Draft = api.Draft
 
-type CardInstance struct {
-	ID        string `json:"id"`
-	DesignID  string `json:"designid"`
-	Owner     string `json:"owner"`
-	Location  string `json:"location"`
-	Exhausted bool   `json:"exhausted"`
-}
+type CardInstance = api.CardInstance
 
 type Wizard struct {
 	Draft           Draft          `json:"draft"`
@@ -40,29 +30,11 @@ type Wizard struct {
 	Discard         []CardInstance `json:"discard"`
 }
 
-type Turn struct {
-	Number       int    `json:"number"`
-	ActiveWizard string `json:"activewizard"`
-	Phase        string `json:"phase"`
-	Step         string `json:"step"`
-}
+type Turn = api.Turn
 
-type WizardView struct {
-	DraftComplete   bool           `json:"draftcomplete"`
-	Integrity       *int           `json:"integrity,omitempty"`
-	Affinities      map[string]int `json:"affinities,omitempty"`
-	VictoryProgress map[string]int `json:"victoryprogress,omitempty"`
-	InPlay          []CardInstance `json:"inplay,omitempty"`
-	Discard         []CardInstance `json:"discard"`
-	HandCount       int            `json:"handcount"`
-	DrawCount       int            `json:"drawcount"`
-}
+type WizardView = api.WizardView
 
-type PrivateView struct {
-	Draft    Draft          `json:"draft"`
-	Hand     []CardInstance `json:"hand"`
-	DrawPile []CardInstance `json:"drawpile"`
-}
+type PrivateView = api.PrivateView
 
 // Choose returns a new state; even a failed automatic transition leaves the
 // input and its random state intact. HTTP envelopes belong to the service.

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"main/api"
 	randv2 "math/rand/v2"
 	"slices"
 	"strings"
@@ -40,22 +41,7 @@ type RandomState struct {
 }
 
 // View is separate from State so new private fields cannot leak by default.
-type View struct {
-	ID               string                `json:"id"`
-	Name             string                `json:"name"`
-	LobbyID          string                `json:"lobbyid"`
-	Status           string                `json:"status"`
-	Revision         int64                 `json:"revision"`
-	Participants     []string              `json:"participants"`
-	Ring             []string              `json:"ring"`
-	Outcome          *string               `json:"outcome"`
-	RulesVersion     string                `json:"rulesversion"`
-	CatalogueVersion string                `json:"catalogueversion"`
-	Wizards          map[string]WizardView `json:"wizards"`
-	Turn             *Turn                 `json:"turn"`
-	DraftOffers      *Offers               `json:"draftoffers,omitempty"`
-	You              *PrivateView          `json:"you,omitempty"`
-}
+type View = api.MatchView
 
 func NewSetup(id, name, lobbyID string, participants []string) (*State, error) {
 	var seed [32]byte

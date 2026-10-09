@@ -2,8 +2,8 @@ package user
 
 import (
 	"fmt"
+	"main/api"
 	"main/model"
-	"main/model/api"
 	"net/http"
 	"strings"
 
@@ -55,7 +55,7 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 		return
 	}
 
-	resp := api.GetUserResponse{User: api.NewUser(user)}
+	resp := api.GetUserResponse{User: userResponse(user)}
 
 	c.JSON(http.StatusOK, resp)
 }

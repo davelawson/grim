@@ -2,6 +2,7 @@ package match
 
 import (
 	"database/sql"
+	"main/api"
 	"main/game"
 	"main/util"
 )
@@ -23,7 +24,7 @@ func (sf *ServiceFacade) End(id, actorID string) error {
 	return util.InTx(sf.db, func(tx *sql.Tx) error { return sf.service.End(tx, id, actorID) })()
 }
 
-func (sf *ServiceFacade) Command(id, actorID string, command CommandRequest) (*game.View, error) {
+func (sf *ServiceFacade) Command(id, actorID string, command api.CommandRequest) (*game.View, error) {
 	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Command(tx, id, actorID, command) })()
 }
 

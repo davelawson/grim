@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+	"main/api"
 	"main/util"
 
 	"github.com/google/uuid"
@@ -38,7 +39,7 @@ func (repo *LobbyRepo) AddUserToLobby(tx *sql.Tx, lobbyId string, userId string)
 	return err
 }
 
-func (repo *LobbyRepo) GetLobby(tx *sql.Tx, id string) (*Lobby, error) {
+func (repo *LobbyRepo) GetLobby(tx *sql.Tx, id string) (*api.Lobby, error) {
 	row := tx.QueryRow("select id, name, owner_id, status, match_id from lobbies where id = ? and deleted_at is null", id)
 	return repo.scanLobby(row)
 }
@@ -61,7 +62,7 @@ func (repo *LobbyRepo) GetLobbyMembers(tx *sql.Tx, id string) ([]string, error) 
 	return userIds, queryRows.Err()
 }
 
-func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*Lobby, error) {
+func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*api.Lobby, error) {
 	row := repo.db.QueryRow("select id, name, owner_id, status, match_id from lobbies where name = ? and owner_id = ? and deleted_at is null", name, ownerId)
 	return repo.scanLobby(row)
 }
@@ -80,8 +81,8 @@ func (repo *LobbyRepo) RemoveMemberFromLobby(tx *sql.Tx, lobbyId string, userId 
 	return err
 }
 
-func (repo *LobbyRepo) scanLobby(row *sql.Row) (*Lobby, error) {
-	lobby := Lobby{}
+func (repo *LobbyRepo) scanLobby(row *sql.Row) (*api.Lobby, error) {
+	lobby := api.Lobby{}
 	err := row.Scan(&lobby.Id, &lobby.Name, &lobby.Owner, &lobby.Status, &lobby.MatchID)
 	if err == sql.ErrNoRows {
 		return nil, nil

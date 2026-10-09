@@ -21,8 +21,11 @@ logic.
 The current implementation is a Go HTTP API with persistent opening drafting,
 atomic game start, and administrative termination; the complete game engine is still in
 development. There is no client application in this repository. `main.go`
-creates one Gin router; the `api` package registers login, user, lobby, and
-match routes, and startup registers Swagger.
+creates one Gin router; `internal/server` registers login, user, lobby, and
+match routes using endpoint definitions from `api`, and startup registers Swagger.
+The `api` package owns shared request, response, and nested public types and
+depends only on the Go standard library. Private saved game state remains in
+`game`; aliases there preserve its existing names for shared public types.
 Controllers bind JSON requests, call application services, and write HTTP
 responses. Swagger documentation is generated from comments in the Go code
 using Swaggo and served by the application.

@@ -1,4 +1,4 @@
-package lobby
+package api
 
 type CreateLobbyRequest struct {
 	Name string `json:"name" binding:"required"`

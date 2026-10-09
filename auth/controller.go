@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"main/model/api"
+	"main/api"
 	"net/http"
 	"strings"
 

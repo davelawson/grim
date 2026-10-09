@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"main/api"
 	"main/auth"
 	"main/docs"
+	"main/internal/server"
 	"main/lobby"
 	"main/match"
 	"main/user"
@@ -48,20 +48,20 @@ func main() {
 	authService := auth.NewService(userRepo)
 	authFacade := auth.NewServiceFacade(authService, db)
 	authController := auth.NewController(authFacade)
-	api.AddAuthRoutes(router, authController)
+	server.AddAuthRoutes(router, authController)
 
 	userService := user.NewService(userRepo)
 	userFacade := user.NewServiceFacade(userService)
 	userController := user.NewController(userFacade)
-	api.AddUserRoutes(authFacade, router, userController)
+	server.AddUserRoutes(authFacade, router, userController)
 
 	matchService := match.NewService(match.NewRepo(db), userRepo)
 	matchController := match.NewController(match.NewServiceFacade(matchService))
-	api.AddMatchRoutes(authFacade, router, matchController)
+	server.AddMatchRoutes(authFacade, router, matchController)
 	lobbyService := lobby.NewService(lobbyRepo, userRepo, matchService)
 	lobbyFacade := lobby.NewServiceFacade(lobbyService)
 	lobbyController := lobby.NewController(lobbyFacade)
-	api.AddLobbyRoutes(authFacade, router, lobbyController)
+	server.AddLobbyRoutes(authFacade, router, lobbyController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 

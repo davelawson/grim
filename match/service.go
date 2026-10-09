@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"main/api"
 	"main/game"
 	"main/util"
 	"strings"
@@ -78,14 +79,7 @@ func (s *Service) Get(tx *sql.Tx, id, actorID string) (*game.View, error) {
 	return state.View(actorID), nil
 }
 
-type CommandRequest struct {
-	RequestID        string `json:"requestid" binding:"required" format:"uuid"`
-	ExpectedRevision *int64 `json:"expectedrevision" binding:"required" minimum:"0"`
-	Type             string `json:"type" binding:"required" enums:"choose_chantry,choose_victory_path,choose_minion"`
-	CardID           string `json:"cardid" binding:"required"`
-}
-
-func (s *Service) Command(tx *sql.Tx, id, actorID string, command CommandRequest) (*game.View, error) {
+func (s *Service) Command(tx *sql.Tx, id, actorID string, command api.CommandRequest) (*game.View, error) {
 	parsed, err := uuid.Parse(command.RequestID)
 	if err != nil || !strings.EqualFold(command.RequestID, parsed.String()) || command.ExpectedRevision == nil ||
 		*command.ExpectedRevision < 0 || command.CardID == "" {

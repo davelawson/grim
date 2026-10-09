@@ -1,16 +1,16 @@
-package api
+package server
 
 import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"main/api"
 	"main/auth"
 	"main/game"
 	"main/lobby"
 	"main/match"
 	"main/model"
 	"main/user"
-	"main/util"
 	randv2 "math/rand/v2"
 	"net/http"
 	"net/http/httptest"
@@ -44,7 +44,7 @@ func newLifecycleFixture(t *testing.T) *lifecycleFixture {
 	f := &lifecycleFixture{t: t, path: filepath.Join(t.TempDir(), "lifecycle.db"), ids: make(map[string]string)}
 	f.open()
 	t.Cleanup(func() { f.db.Close() })
-	schema, err := os.ReadFile("../sql/create-database.sql")
+	schema, err := os.ReadFile("../../sql/create-database.sql")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -74,6 +74,7 @@ func (f *lifecycleFixture) wire() {
 	matches := match.NewService(match.NewRepo(f.db), users)
 	lobbies := lobby.NewService(lobby.NewLobbyRepo(f.db), users, matches)
 	f.router = gin.New()
+	AddAuthRoutes(f.router, auth.NewController(authentication))
 	AddLobbyRoutes(authentication, f.router, lobby.NewController(lobby.NewServiceFacade(lobbies)))
 	AddMatchRoutes(authentication, f.router, match.NewController(match.NewServiceFacade(matches)))
 	AddUserRoutes(authentication, f.router, user.NewController(user.NewServiceFacade(user.NewService(users))))
@@ -118,7 +119,7 @@ func (f *lifecycleFixture) call(status int, method, path, actor, body string) *h
 func (f *lifecycleFixture) createLobby(size int) string {
 	f.t.Helper()
 	w := f.call(200, "POST", "/lobby", "owner", `{"name":"Test match"}`)
-	var response lobby.CreateLobbyResponse
+	var response api.CreateLobbyResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 		f.t.Fatal(err)
 	}
@@ -139,7 +140,7 @@ func launchBody(requestID string) string { return fmt.Sprintf(`{"requestid":%q}`
 
 func matchView(t *testing.T, w *httptest.ResponseRecorder) *game.View {
 	t.Helper()
-	var response match.Response
+	var response api.MatchResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 		t.Fatal(err)
 	}
@@ -195,10 +196,10 @@ func (f *lifecycleFixture) deletedAt(table, id string) sql.NullString {
 	return timestamp
 }
 
-func (f *lifecycleFixture) lobbyView(id, actor string) lobby.Lobby {
+func (f *lifecycleFixture) lobbyView(id, actor string) api.Lobby {
 	f.t.Helper()
 	w := f.call(200, "GET", "/lobby/"+id, actor, "")
-	var response lobby.GetLobbyResponse
+	var response api.GetLobbyResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil {
 		f.t.Fatal(err)
 	}
@@ -756,7 +757,7 @@ func TestAuthenticationErrors(t *testing.T) {
 	} {
 		for _, actor := range []string{"", "invalid"} {
 			w := f.call(401, route.method, route.path, actor, route.body)
-			var response util.ErrorResponse
+			var response api.ErrorResponse
 			if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil || response.Error == nil || response.Error.Code != "unauthorized" || response.Error.Message == "" || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") {
 				t.Fatalf("invalid authentication response for %s %s: %s", route.method, route.path, w.Body.String())
 			}
@@ -766,7 +767,7 @@ func TestAuthenticationErrors(t *testing.T) {
 	router.GET("/match/failure", createAuthedHandler(failedAuthentication{}, func(*gin.Context) { t.Fatal("handler called after auth error") }))
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/match/failure", nil))
-	var response util.ErrorResponse
+	var response api.ErrorResponse
 	if err := json.Unmarshal(w.Body.Bytes(), &response); err != nil || w.Code != 500 || response.Error == nil || response.Error.Code != "internal_error" || strings.Contains(w.Body.String(), "private") || !strings.HasPrefix(w.Header().Get("Content-Type"), "application/json") {
 		t.Fatalf("unsafe auth failure: %d %s", w.Code, w.Body.String())
 	}
@@ -786,7 +787,7 @@ func TestFreshSchemaAndFixtures(t *testing.T) {
 	if f.count("matches") != 0 {
 		t.Fatal("fresh fixture has matches")
 	}
-	fixture, err := os.ReadFile("../sql/populate-test-data.sql")
+	fixture, err := os.ReadFile("../../sql/populate-test-data.sql")
 	if err != nil {
 		t.Fatal(err)
 	}

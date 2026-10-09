@@ -3,7 +3,7 @@ package lobby
 import (
 	"errors"
 	"fmt"
-	"main/match"
+	"main/api"
 	"main/model"
 	"main/util"
 	"net/http"
@@ -28,11 +28,11 @@ func NewController(lobbyService *ServiceFacade) *Controller {
 // @Tags			lobby
 // @Accept			json
 // @Produce		json
-// @Param			request	body		lobby.CreateLobbyRequest	true	"Request Object"
-// @Success		200		{object}	lobby.CreateLobbyResponse
+// @Param			request	body		api.CreateLobbyRequest	true	"Request Object"
+// @Success		200		{object}	api.CreateLobbyResponse
 // @Router			/lobby [post]
 func (lc *Controller) CreateLobby(c *gin.Context) {
-	req := CreateLobbyRequest{}
+	req := api.CreateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	if reqErr != nil {
 		c.String(http.StatusBadRequest, "Invalid request body: %v", reqErr)
@@ -45,7 +45,7 @@ func (lc *Controller) CreateLobby(c *gin.Context) {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
 		return
 	}
-	resp := &CreateLobbyResponse{Id: *id}
+	resp := &api.CreateLobbyResponse{Id: *id}
 
 	c.JSON(http.StatusOK, resp)
 }
@@ -79,7 +79,7 @@ func (lc *Controller) DeleteLobby(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Param			id path string true "Lobby Id"
-// @Success		200		{object}	lobby.GetLobbyResponse
+// @Success		200		{object}	api.GetLobbyResponse
 // @Router			/lobby/{id} [get]
 func (lc *Controller) GetLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
@@ -94,7 +94,7 @@ func (lc *Controller) GetLobby(c *gin.Context) {
 		util.WriteAPIError(c, err)
 		return
 	}
-	resp := GetLobbyResponse{Lobby: *lobby}
+	resp := api.GetLobbyResponse{Lobby: *lobby}
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -103,13 +103,13 @@ func (lc *Controller) GetLobby(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
-// @Param			request	body		lobby.UpdateLobbyRequest true	"Request Object"
+// @Param			request	body		api.UpdateLobbyRequest true	"Request Object"
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id} [put]
 func (lc *Controller) UpdateLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
-	req := UpdateLobbyRequest{}
+	req := api.UpdateLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("UpdateLobby() id: ", lobbyId, ", req: ", req)
 	if reqErr != nil {
@@ -134,13 +134,13 @@ func (lc *Controller) UpdateLobby(c *gin.Context) {
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
-// @Param			request	body		lobby.AddUserToLobbyRequest true	"Request Object"
+// @Param			request	body		api.AddUserToLobbyRequest true	"Request Object"
 // @Param			id path string true "Lobby Id"
 // @Success		200
 // @Router			/lobby/{id}/user [post]
 func (lc *Controller) AddUserToLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
-	req := AddUserToLobbyRequest{}
+	req := api.AddUserToLobbyRequest{}
 	reqErr := c.ShouldBindBodyWith(&req, binding.JSON)
 	fmt.Println("AddUserToLobby() lobbyId: ", lobbyId, ", body: ", req)
 	if reqErr != nil {
@@ -205,12 +205,12 @@ func (lc *Controller) RemoveUserFromLobby(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Lobby ID"
-// @Param request body lobby.ReadyRequest true "Readiness (explicit true or false)"
-// @Success 200 {object} lobby.GetLobbyResponse
-// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Param request body api.ReadyRequest true "Readiness (explicit true or false)"
+// @Success 200 {object} api.GetLobbyResponse
+// @Failure 400,401,403,404,409,500 {object} api.ErrorResponse
 // @Router /lobby/{id}/ready [put]
 func (lc *Controller) SetReady(c *gin.Context) {
-	var request ReadyRequest
+	var request api.ReadyRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		util.WriteAPIError(c, util.ErrInvalidRequest)
 		return
@@ -221,7 +221,7 @@ func (lc *Controller) SetReady(c *gin.Context) {
 		util.WriteAPIError(c, err)
 		return
 	}
-	c.JSON(http.StatusOK, GetLobbyResponse{Lobby: *lobby})
+	c.JSON(http.StatusOK, api.GetLobbyResponse{Lobby: *lobby})
 }
 
 // Launch creates a persistent match in setup and permanently closes the lobby.
@@ -232,12 +232,12 @@ func (lc *Controller) SetReady(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Param id path string true "Lobby ID"
-// @Param request body lobby.LaunchRequest true "Launch request ID"
-// @Success 201 {object} match.Response
-// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Param request body api.LaunchRequest true "Launch request ID"
+// @Success 201 {object} api.MatchResponse
+// @Failure 400,401,403,404,409,500 {object} api.ErrorResponse
 // @Router /lobby/{id}/launch [post]
 func (lc *Controller) Launch(c *gin.Context) {
-	var request LaunchRequest
+	var request api.LaunchRequest
 	if err := c.ShouldBindJSON(&request); err != nil {
 		util.WriteAPIError(c, util.ErrInvalidRequest)
 		return
@@ -248,5 +248,5 @@ func (lc *Controller) Launch(c *gin.Context) {
 		util.WriteAPIError(c, err)
 		return
 	}
-	c.JSON(http.StatusCreated, match.Response{Match: view})
+	c.JSON(http.StatusCreated, api.MatchResponse{Match: view})
 }
