@@ -3,7 +3,9 @@ package lobby
 import (
 	"errors"
 	"fmt"
+	"main/match"
 	"main/model"
+	"main/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -41,6 +43,7 @@ func (lc *Controller) CreateLobby(c *gin.Context) {
 	id, err := lc.lobbyService.CreateLobby(req.Name, reqUser.Id)
 	if err != nil {
 		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
+		return
 	}
 	resp := &CreateLobbyResponse{Id: *id}
 
@@ -48,7 +51,7 @@ func (lc *Controller) CreateLobby(c *gin.Context) {
 }
 
 // @Summary		Deletes a lobby
-// @Description    Deletes a lobby.  The lobby must belong to the user sending the request.
+// @Description    Soft-deletes an open lobby and retains its memberships. The lobby must belong to the user sending the request.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Param			id path string true "Lobby Id"
@@ -64,7 +67,7 @@ func (lc *Controller) DeleteLobby(c *gin.Context) {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
 	} else if err != nil {
-		c.String(http.StatusInternalServerError, "Unable to process request: %v", err)
+		util.WriteAPIError(c, err)
 		return
 	}
 
@@ -72,7 +75,7 @@ func (lc *Controller) DeleteLobby(c *gin.Context) {
 }
 
 // @Summary		Get a lobby
-// @Description    Gets a lobby.
+// @Description    Gets an open or closed lobby; authenticated members only.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Param			id path string true "Lobby Id"
@@ -82,22 +85,21 @@ func (lc *Controller) GetLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
 	fmt.Println("GetLobby(): ", lobbyId)
 
-	lobby, err := lc.lobbyService.GetLobby(lobbyId)
+	reqUser := c.MustGet("reqUser").(*model.User)
+	lobby, err := lc.lobbyService.GetLobby(lobbyId, reqUser.Id)
 	if errors.Is(err, GetLobbyErrors.NotFound) {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
 	} else if err != nil {
-		c.String(http.StatusInternalServerError, "Woops: %v", err)
+		util.WriteAPIError(c, err)
 		return
-	}
-	if lobby == nil {
 	}
 	resp := GetLobbyResponse{Lobby: *lobby}
 	c.JSON(http.StatusOK, resp)
 }
 
 // @Summary		Update Lobby
-// @Description    Updates an existing lobby
+// @Description    Current owner only; ownership transfers require a member target. Closed lobbies cannot be updated.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
@@ -115,12 +117,13 @@ func (lc *Controller) UpdateLobby(c *gin.Context) {
 		return
 	}
 
-	err := lc.lobbyService.UpdateLobby(lobbyId, req.Name, req.Owner)
+	reqUser := c.MustGet("reqUser").(*model.User)
+	err := lc.lobbyService.UpdateLobby(lobbyId, req.Name, req.Owner, reqUser.Id)
 	if err == UpdateLobbyErrors.NotFound {
 		c.String(http.StatusNotFound, "Unable to process request: %v", err)
 		return
 	} else if err != nil {
-		c.String(http.StatusInternalServerError, "Woops: %v", err)
+		util.WriteAPIError(c, err)
 		return
 	}
 	c.Status(http.StatusOK)
@@ -157,13 +160,16 @@ func (lc *Controller) AddUserToLobby(c *gin.Context) {
 	} else if err == AddUserToLobbyErrors.UserAlreadyInLobby {
 		c.String(http.StatusBadRequest, "Unable to add user to lobby: %v", err)
 	} else if err != nil {
-		c.String(http.StatusInternalServerError, "Unable to add user to lobby: %v", err)
+		util.WriteAPIError(c, err)
 		return
+	}
+	if err == nil {
+		c.Status(http.StatusOK)
 	}
 }
 
 // @Summary		Remove User from Lobby
-// @Description    Remove a lobby user from an existing Lobby
+// @Description    Owner-managed removal or voluntary departure. The owner must transfer ownership before leaving. Closed lobbies reject removal.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
@@ -181,11 +187,66 @@ func (lc *Controller) RemoveUserFromLobby(c *gin.Context) {
 	err := lc.lobbyService.RemoveUserFromLobby(lobbyId, userId, reqUser.Id)
 	if err == RemoveUserFromLobbyErrors.LobbyNotFound || err == RemoveUserFromLobbyErrors.UserNotInLobby {
 		c.String(http.StatusNotFound, "Unable to remove user to lobby: %v", err)
+		return
 	} else if err == RemoveUserFromLobbyErrors.NotOwner {
 		c.String(http.StatusForbidden, "Unable to remove user to lobby: %v", err)
+		return
 	} else if err != nil {
-		c.String(http.StatusInternalServerError, "Unable to remove user to lobby: %v", err)
+		util.WriteAPIError(c, err)
 		return
 	}
 	c.Status(http.StatusOK)
+}
+
+// SetReady records only the authenticated member's own launch readiness.
+// @Summary Set own lobby readiness
+// @Security ApiKeyAuth
+// @Tags lobby
+// @Accept json
+// @Produce json
+// @Param id path string true "Lobby ID"
+// @Param request body lobby.ReadyRequest true "Readiness (explicit true or false)"
+// @Success 200 {object} lobby.GetLobbyResponse
+// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Router /lobby/{id}/ready [put]
+func (lc *Controller) SetReady(c *gin.Context) {
+	var request ReadyRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		util.WriteAPIError(c, util.ErrInvalidRequest)
+		return
+	}
+	actor := c.MustGet("reqUser").(*model.User)
+	lobby, err := lc.lobbyService.SetReady(c.Param("id"), actor.Id, *request.Ready)
+	if err != nil {
+		util.WriteAPIError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, GetLobbyResponse{Lobby: *lobby})
+}
+
+// Launch creates a persistent match in setup and permanently closes the lobby.
+// @Summary Launch a lobby once
+// @Description Owner only, with two to four ready members. Identical request-ID retries replay the original response while the match is active, or return 404 after deletion; a new ID on a closed lobby conflicts.
+// @Security ApiKeyAuth
+// @Tags lobby
+// @Accept json
+// @Produce json
+// @Param id path string true "Lobby ID"
+// @Param request body lobby.LaunchRequest true "Launch request ID"
+// @Success 201 {object} match.Response
+// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Router /lobby/{id}/launch [post]
+func (lc *Controller) Launch(c *gin.Context) {
+	var request LaunchRequest
+	if err := c.ShouldBindJSON(&request); err != nil {
+		util.WriteAPIError(c, util.ErrInvalidRequest)
+		return
+	}
+	actor := c.MustGet("reqUser").(*model.User)
+	view, err := lc.lobbyService.Launch(c.Param("id"), actor.Id, request.RequestID)
+	if err != nil {
+		util.WriteAPIError(c, err)
+		return
+	}
+	c.JSON(http.StatusCreated, match.Response{Match: view})
 }

@@ -42,6 +42,16 @@ func (repo *UserRepo) UpdateUser(tx *sql.Tx, user *model.User) error {
 	return err
 }
 
+// IsAdmin reads the current flag instead of trusting cached authentication data.
+func (repo *UserRepo) IsAdmin(tx *sql.Tx, id string) (bool, error) {
+	var admin bool
+	err := tx.QueryRow("select admin from users where id = ?", id).Scan(&admin)
+	if err == sql.ErrNoRows {
+		return false, nil
+	}
+	return admin, err
+}
+
 func (repo *UserRepo) scanUser(row *sql.Row) (*model.User, error) {
 	user := model.User{}
 	err := row.Scan(&user.Id, &user.Email, &user.Name, &user.PasswordHash)

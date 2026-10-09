@@ -22,7 +22,13 @@ State is stored in a simple sqlite3 database.
 1. Create the database by executing the create-database.sql file.
   Eg: `sqlite3 $GRIM_DB < ./sql/create-database.sql`
 1. Populate the database with some test data.
-  `sqlite3 $GRIM_DB < ./sql/create-test-data.sql`
+  `sqlite3 "$GRIM_DB" ".cd sql" ".read populate-test-data.sql"`
+
+The creation script resets the database; it is for explicit fresh setup, not
+an upgrade. This lifecycle release needs the updated schema. The server does
+not run migrations or recreate existing databases. The schema includes nullable
+`deleted_at` timestamps on matches and lobbies; existing databases require fresh
+setup to use this release.
 
 ### Generate SSL key and cert
 
@@ -49,7 +55,10 @@ This needs to be done outside of the repo, since it obviously shouldn't be commi
 
 ### Testing
 
-Currently, testing is extremely sparse.  There are a shell script files in the test folder that can be run, but they may require some hand holding, such as resetting the database before each run.
+Run `go test ./...` and `go vet ./...`. Lifecycle tests use temporary SQLite
+databases and production routes; they cover authorization, readiness, atomic
+launch, concurrent requests, safe retries, restart recovery, and soft deletion.
+Run `go test -race ./...` to check concurrent access. Tests do not use `GRIM_DB`.
 
 #### cURL
 
@@ -68,12 +77,73 @@ curl -X 'POST' \
 
 All API JSON fields use lowercase names. Login returns `{"token":"…"}`.
 Lobby requests use `name`, `owner`, and `userid` as applicable; lobby lookup
-returns `{"lobby":{"id":"…","name":"…","owner":"…","members":["…"]}}`.
+returns a `lobby` object with `id`, `name`, `owner`, `members`, `status`, nullable
+`matchid`, and `readiness` keyed by member user ID.
+Deleting an open lobby sets its `deleted_at` timestamp and preserves its
+memberships. Deleted lobbies return 404 for lookup and further operations,
+including repeated deletion. Only the owner can delete an open lobby.
 User lookup returns
 `{"user":{"id":"…","name":"…","email":"…"}}`. Registration at `POST /user`
 uses `email`, `name`, and `password`; capitalized or mixed-case versions of
 those request keys return 400. Other requests continue accepting field names
 case-insensitively.
+
+### Launch and end a match
+
+The owner adds two to four members (including themselves) using the existing
+lobby membership endpoints. Each member then sets their own readiness:
+
+```sh
+curl -k -X PUT 'https://localhost:8080/lobby/<lobby-id>/ready' \
+  -H 'Authorization: <member-token>' -H 'Content-Type: application/json' \
+  -d '{"ready":true}'
+```
+
+Changing the roster clears all readiness. Set `ready` to false to withdraw your
+own agreement. An ordinary member can leave with
+`DELETE /lobby/<lobby-id>/user/<their-user-id>`; the owner transfers ownership
+to another member through the existing lobby update before leaving.
+
+Once everyone is ready, the owner launches with a client-generated UUID request
+ID. Keep that ID to retry the same request if its response is lost:
+
+```sh
+curl -k -X POST 'https://localhost:8080/lobby/<lobby-id>/launch' \
+  -H 'Authorization: <owner-token>' -H 'Content-Type: application/json' \
+  -d '{"requestid":"72e865f9-2d58-465e-b3bb-708411adfb22"}'
+```
+
+Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
+`status`, `revision`, `participants`, `ring`, and `outcome`. The match starts in
+setup at revision 0 with null outcome; drafting and gameplay come in a later
+slice. The lobby closes permanently and points to the match. Identical retries
+replay the original result; a new request ID on the closed lobby returns 409.
+Once the match is deleted, retries using its accepted request ID return 404.
+Authenticated participants fetch current state with `GET /match/<match-id>`.
+
+The operator grants administrator permission directly in the database:
+
+```sh
+sqlite3 "$GRIM_DB" "UPDATE users SET admin = 1 WHERE id = '<admin-user-id>';"
+```
+
+An authenticated administrator can terminate any existing match, including
+finished matches and matches with unsupported saved state:
+
+```sh
+curl -k -X POST 'https://localhost:8080/admin/match/<match-id>/end' \
+  -H 'Authorization: <admin-token>'
+```
+
+Termination returns 204 with no body and sets the match's `deleted_at` to the
+current UTC timestamp. It preserves status, outcome, revision, snapshot, players,
+and launch receipts. Match lookup then returns 404. Repeating termination returns
+204 without changing the original timestamp; an unknown match returns 404.
+The linked closed lobby remains visible with its match link and cannot be
+reopened or changed. Admins need no match membership to terminate a match;
+lookup remains participant-only. Revoking the stored flag blocks the next admin
+request. Player abandonment voting is deferred. New endpoint errors use
+`{"error":{"code":"…","message":"…"}}`.
 
 ### Swagger
 

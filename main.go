@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"main/api"
 	"main/auth"
 	"main/docs"
 	"main/lobby"
-	"main/model"
+	"main/match"
 	"main/user"
-	"main/util"
-	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -25,10 +24,6 @@ type config struct {
 	SslFolder  string `json:"grim_ssl"`
 }
 
-type authService interface {
-	VerifyBearerToken(token string) (*model.User, error)
-}
-
 // @SecurityDefinitions.apiKey ApiKeyAuth
 // @in header
 // @name Authorization
@@ -39,7 +34,7 @@ func main() {
 		return
 	}
 
-	db, err := sql.Open("sqlite3", config.DbLocation+"?_foreign_keys=on")
+	db, err := sql.Open("sqlite3", config.DbLocation+"?_foreign_keys=on&_txlock=immediate&_busy_timeout=5000")
 	if err != nil {
 		fmt.Println("Error opening database at ", config.DbLocation, ": ", err)
 		return
@@ -53,17 +48,20 @@ func main() {
 	authService := auth.NewService(userRepo)
 	authFacade := auth.NewServiceFacade(authService, db)
 	authController := auth.NewController(authFacade)
-	addAuthRoutes(router, authController)
+	api.AddAuthRoutes(router, authController)
 
 	userService := user.NewService(userRepo)
 	userFacade := user.NewServiceFacade(userService)
 	userController := user.NewController(userFacade)
-	addUserRoutes(authFacade, router, userController)
+	api.AddUserRoutes(authFacade, router, userController)
 
-	lobbyService := lobby.NewService(lobbyRepo, userRepo)
+	matchService := match.NewService(match.NewRepo(db), userRepo)
+	matchController := match.NewController(match.NewServiceFacade(matchService))
+	api.AddMatchRoutes(authFacade, router, matchController)
+	lobbyService := lobby.NewService(lobbyRepo, userRepo, matchService)
 	lobbyFacade := lobby.NewServiceFacade(lobbyService)
 	lobbyController := lobby.NewController(lobbyFacade)
-	addLobbyRoutes(authFacade, router, lobbyController)
+	api.AddLobbyRoutes(authFacade, router, lobbyController)
 
 	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
@@ -101,43 +99,4 @@ func addSwaggerInfo() {
 	docs.SwaggerInfo.Host = "localhost"
 	docs.SwaggerInfo.BasePath = "/v2"
 	docs.SwaggerInfo.Schemes = []string{"https"}
-}
-
-func addAuthRoutes(router *gin.Engine, controller *auth.Controller) {
-	group := router.Group("/login")
-	group.POST("", controller.Login)
-}
-
-func addUserRoutes(authService authService, router *gin.Engine, controller *user.Controller) {
-	group := router.Group("/user")
-	group.POST("", controller.CreateUser)
-
-	group = router.Group("/user/getbyemail")
-	group.POST("", createAuthedHandler(authService, controller.GetUserByEmail))
-}
-
-func addLobbyRoutes(authService authService, router *gin.Engine, controller *lobby.Controller) {
-	group := router.Group("/lobby")
-	group.POST("", createAuthedHandler(authService, controller.CreateLobby))
-	group.DELETE(":id", createAuthedHandler(authService, controller.DeleteLobby))
-	group.GET(":id", createAuthedHandler(authService, controller.GetLobby))
-	group.PUT(":id", createAuthedHandler(authService, controller.UpdateLobby))
-	group.POST(":id/user", createAuthedHandler(authService, controller.AddUserToLobby))
-	group.DELETE(":id/user/:user_id", createAuthedHandler(authService, controller.RemoveUserFromLobby))
-}
-
-func createAuthedHandler(authService authService, handler func(*gin.Context)) func(*gin.Context) {
-	return func(c *gin.Context) {
-		reqUser, authErr := authService.VerifyBearerToken(util.GetBearerToken(c))
-		if authErr != nil {
-			c.String(http.StatusInternalServerError, "Invalid authentication token", authErr)
-			return
-		}
-		if reqUser == nil {
-			c.String(http.StatusUnauthorized, "Bad or missing authentication token")
-			return
-		}
-		c.Set("reqUser", reqUser)
-		handler(c)
-	}
 }

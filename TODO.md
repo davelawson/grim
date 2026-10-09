@@ -70,10 +70,11 @@ When we have lists, should we use a simple update on the base item to manage the
 ## Between Game Functionality
 
 Implement the confirmed [backend expansion](ARCHITECTURE.md#planned-match-backend)
-in its documented sequence. Begin with incremental migrations, admin storage
-and authorization, lobby readiness/departure/ownership transfer, saved match
-setup, and atomic one-time launch. Fix UpdateLobby's missing requester ownership
-check before using it for ownership transfer.
+in its documented sequence. Lobby readiness/departure/ownership transfer,
+saved match setup, atomic one-time launch, and administrative termination are
+implemented, including UpdateLobby authorization. Incremental database and
+saved-document upgrades remain deferred; the current creation script sets up
+the complete lifecycle schema directly.
 
 - Endpoints
   - Implemented
@@ -84,14 +85,18 @@ check before using it for ownership transfer.
     - Lobby
       - Create
         - owner_id should probably be removed in favour of the join table having a permissions field
+      - Get (members only)
+      - Update and ownership transfer (owner only)
+      - Add/remove members and voluntary departure
+      - Delete an open lobby
+      - Set own readiness
+      - Atomic one-time launch
+    - Match
+      - Participant lookup
+      - Administrative termination
   - Upcoming
     - Lobby
-      - Join
-        - lobby-player join table
-          - might end up being where permissions are stored
-          - store ready status here as well?
-      - Delete
-      - Leave
+      - Self-service join policy (currently owner-managed)
       - Get
         - My Lobbies
         - Search by lobby name

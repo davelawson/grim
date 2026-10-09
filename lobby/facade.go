@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+	"main/game"
 	"main/util"
 )
 
@@ -29,9 +30,9 @@ func (sf *ServiceFacade) RemoveUserFromLobby(lobbyId string, userId string, requ
 	})()
 }
 
-func (sf *ServiceFacade) UpdateLobby(lobbyId string, name string, ownerId string) error {
+func (sf *ServiceFacade) UpdateLobby(lobbyId string, name string, ownerId string, requestorId string) error {
 	return util.InTx(sf.db, func(tx *sql.Tx) error {
-		return sf.service.UpdateLobby(tx, lobbyId, name, ownerId)
+		return sf.service.UpdateLobby(tx, lobbyId, name, ownerId, requestorId)
 	})()
 }
 
@@ -47,8 +48,16 @@ func (sf *ServiceFacade) CreateLobby(name string, userId string) (*string, error
 	})()
 }
 
-func (sf *ServiceFacade) GetLobby(id string) (*Lobby, error) {
+func (sf *ServiceFacade) GetLobby(id string, requestorId string) (*Lobby, error) {
 	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*Lobby, error) {
-		return sf.service.GetLobby(tx, id)
+		return sf.service.GetLobbyForUser(tx, id, requestorId)
 	})()
+}
+
+func (sf *ServiceFacade) SetReady(id, requestorId string, ready bool) (*Lobby, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*Lobby, error) { return sf.service.SetReady(tx, id, requestorId, ready) })()
+}
+
+func (sf *ServiceFacade) Launch(id, actorID, requestID string) (*game.View, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Launch(tx, id, actorID, requestID) })()
 }

@@ -21,6 +21,14 @@ Changing the roster clears every participant's agreement.
 One game of Grimoire played by two to four players, from opening setup through
 victory or another agreed ending.
 
+**Launch**:
+The one-time transition from a Lobby to a Match in setup, fixing its
+participants and initial Ring and closing the Lobby.
+
+**Match setup**:
+A Match's opening stage, beginning at Launch and continuing through drafting
+before ordinary play begins.
+
 **Required choice**:
 A decision that a designated player must make before play can advance, such
 as selecting a card to discard during an effect's Resolution.
@@ -31,8 +39,12 @@ casts an immutable ballot, then requires a strict majority to pass. Ballots
 are open without voter identities; failed rounds never carry support forward.
 
 **Abandoned match**:
-A Match ended without a winner by an approved End-game vote or a server
-administrator, without resolving its remaining pending effects.
+A Match ended without a winner by an approved End-game vote, without resolving
+its remaining pending effects.
+
+**Deleted match**:
+A Match withdrawn from normal access by a server administrator, with its
+history and last saved result preserved.
 
 **Ring**:
 The arrangement of wizards that defines their Aggressor and Target

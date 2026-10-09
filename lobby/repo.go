@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+	"main/util"
 
 	"github.com/google/uuid"
 )
@@ -24,8 +25,11 @@ func (repo *LobbyRepo) CreateLobby(tx *sql.Tx, name string, ownerId string) (str
 }
 
 func (repo *LobbyRepo) UpdateLobby(tx *sql.Tx, lobbyId string, name string, ownerId string) (int, error) {
-	result, err := tx.Exec("update lobbies set name = ?, owner_id = ? where id = ?", name, ownerId, lobbyId)
-	rowsAffected, _ := result.RowsAffected()
+	result, err := tx.Exec("update lobbies set name = ?, owner_id = ? where id = ? and deleted_at is null", name, ownerId, lobbyId)
+	if err != nil {
+		return 0, err
+	}
+	rowsAffected, err := result.RowsAffected()
 	return int(rowsAffected), err
 }
 
@@ -35,16 +39,17 @@ func (repo *LobbyRepo) AddUserToLobby(tx *sql.Tx, lobbyId string, userId string)
 }
 
 func (repo *LobbyRepo) GetLobby(tx *sql.Tx, id string) (*Lobby, error) {
-	row := tx.QueryRow("select id, name, owner_id from lobbies where id = ?", id)
+	row := tx.QueryRow("select id, name, owner_id, status, match_id from lobbies where id = ? and deleted_at is null", id)
 	return repo.scanLobby(row)
 }
 
 func (repo *LobbyRepo) GetLobbyMembers(tx *sql.Tx, id string) ([]string, error) {
-	queryRows, err := tx.Query("select user_id from lobby_users where lobby_id = ?", id)
+	queryRows, err := tx.Query("select user_id from lobby_users where lobby_id = ? order by user_id", id)
 	if err != nil {
 		return nil, err
 	}
-	var userIds []string
+	defer queryRows.Close()
+	userIds := []string{}
 	for queryRows.Next() {
 		var userId string
 		scanErr := queryRows.Scan(&userId)
@@ -53,20 +58,20 @@ func (repo *LobbyRepo) GetLobbyMembers(tx *sql.Tx, id string) ([]string, error) 
 		}
 		userIds = append(userIds, userId)
 	}
-	return userIds, nil
+	return userIds, queryRows.Err()
 }
 
 func (repo *LobbyRepo) GetLobbyByNameAndOwner(name string, ownerId string) (*Lobby, error) {
-	row := repo.db.QueryRow("select uuid, name, owner from lobbies where name = ? and owner_id = ?", name, ownerId)
+	row := repo.db.QueryRow("select id, name, owner_id, status, match_id from lobbies where name = ? and owner_id = ? and deleted_at is null", name, ownerId)
 	return repo.scanLobby(row)
 }
 
 func (repo *LobbyRepo) DeleteLobby(tx *sql.Tx, lobbyId string, ownerId string) (int, error) {
-	result, err := tx.Exec("delete from lobbies where id = ? and owner_id = ?", lobbyId, ownerId)
+	result, err := tx.Exec("update lobbies set deleted_at = datetime('now') where id = ? and owner_id = ? and deleted_at is null", lobbyId, ownerId)
 	if err != nil {
 		return 0, err
 	}
-	rowsAffected, _ := result.RowsAffected()
+	rowsAffected, err := result.RowsAffected()
 	return int(rowsAffected), err
 }
 
@@ -77,11 +82,54 @@ func (repo *LobbyRepo) RemoveMemberFromLobby(tx *sql.Tx, lobbyId string, userId 
 
 func (repo *LobbyRepo) scanLobby(row *sql.Row) (*Lobby, error) {
 	lobby := Lobby{}
-	err := row.Scan(&lobby.Id, &lobby.Name, &lobby.Owner)
+	err := row.Scan(&lobby.Id, &lobby.Name, &lobby.Owner, &lobby.Status, &lobby.MatchID)
 	if err == sql.ErrNoRows {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	}
 	return &lobby, err
+}
+
+func (repo *LobbyRepo) GetReadiness(tx *sql.Tx, id string) (map[string]bool, error) {
+	rows, err := tx.Query("select user_id, ready from lobby_users where lobby_id = ?", id)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	readiness := make(map[string]bool)
+	for rows.Next() {
+		var userID string
+		var ready bool
+		if err := rows.Scan(&userID, &ready); err != nil {
+			return nil, err
+		}
+		readiness[userID] = ready
+	}
+	return readiness, rows.Err()
+}
+
+func (repo *LobbyRepo) ClearReadiness(tx *sql.Tx, id string) error {
+	_, err := tx.Exec("update lobby_users set ready = 0 where lobby_id = ?", id)
+	return err
+}
+
+func (repo *LobbyRepo) SetReady(tx *sql.Tx, id, userID string, ready bool) error {
+	_, err := tx.Exec("update lobby_users set ready = ? where lobby_id = ? and user_id = ?", ready, id, userID)
+	return err
+}
+
+func (repo *LobbyRepo) Close(tx *sql.Tx, id, matchID string) error {
+	result, err := tx.Exec("update lobbies set status = 'closed', match_id = ? where id = ? and status = 'open' and deleted_at is null", matchID, id)
+	if err != nil {
+		return err
+	}
+	count, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+	if count != 1 {
+		return util.ErrLobbyClosed
+	}
+	return nil
 }

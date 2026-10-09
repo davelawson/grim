@@ -16,6 +16,20 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
+No lifecycle work remains. Lobby-to-match creation, participant lookup, and
+administrator termination are implemented and verified. Their lasting contract
+is recorded in [ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle)
+and usage in [README.md](README.md#launch-and-end-a-match). Drafting, gameplay,
+player votes, and migrations remain deferred.
+
+The pending registration design is retained below; it is not part of the
+completed lifecycle slice.
+
+## Previous slice: user creation (retained)
+
+The prior registration design below remains pending and is retained rather
+than folded into the lifecycle slice.
+
 User creation: registration design recorded; broader implementation remains
 pending. The separately approved lowercase user-JSON subset is implemented
 and verified; its lasting behavior is recorded in [ARCHITECTURE.md](ARCHITECTURE.md).

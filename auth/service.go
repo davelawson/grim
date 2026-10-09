@@ -61,11 +61,5 @@ func (as *Service) Login(tx *sql.Tx, email string, password string) (*string, er
 }
 
 func (as *Service) VerifyBearerToken(tx *sql.Tx, token string) (*model.User, error) {
-	user, err := as.userRepo.GetUserByToken(tx, token)
-	if user == nil {
-		fmt.Println("Unable to verify auth token ", token)
-	} else {
-		fmt.Println("Verified auth token ", token)
-	}
-	return user, err
+	return as.userRepo.GetUserByToken(tx, token)
 }
