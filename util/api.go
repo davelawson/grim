@@ -2,7 +2,7 @@ package util
 
 import (
 	"errors"
-	"main/api"
+	"github.com/davelawson/grim/api"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

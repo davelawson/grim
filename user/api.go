@@ -1,8 +1,8 @@
 package user
 
 import (
-	"main/api"
-	"main/model"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/model"
 )
 
 func userResponse(user *model.User) api.User {

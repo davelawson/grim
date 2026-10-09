@@ -1,7 +1,7 @@
 package server
 
 import (
-	"main/api"
+	"github.com/davelawson/grim/api"
 	"net/http"
 	"strings"
 	"testing"

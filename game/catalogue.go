@@ -1,7 +1,7 @@
 package game
 
 import (
-	"main/api"
+	"github.com/davelawson/grim/api"
 	"maps"
 )
 

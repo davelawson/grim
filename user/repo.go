@@ -2,7 +2,7 @@ package user
 
 import (
 	"database/sql"
-	"main/model"
+	"github.com/davelawson/grim/model"
 
 	uuid "github.com/google/uuid"
 )

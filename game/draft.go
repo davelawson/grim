@@ -3,7 +3,7 @@ package game
 import (
 	"errors"
 	"fmt"
-	"main/api"
+	"github.com/davelawson/grim/api"
 	randv2 "math/rand/v2"
 	"slices"
 )

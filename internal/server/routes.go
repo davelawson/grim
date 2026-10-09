@@ -1,13 +1,13 @@
 package server
 
 import (
-	"main/api"
-	"main/auth"
-	"main/lobby"
-	"main/match"
-	"main/model"
-	"main/user"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/auth"
+	"github.com/davelawson/grim/lobby"
+	"github.com/davelawson/grim/match"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/user"
+	"github.com/davelawson/grim/util"
 
 	"github.com/gin-gonic/gin"
 )

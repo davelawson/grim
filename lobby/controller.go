@@ -3,9 +3,9 @@ package lobby
 import (
 	"errors"
 	"fmt"
-	"main/api"
-	"main/model"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

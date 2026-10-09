@@ -6,8 +6,8 @@ import (
 	"database/sql"
 	"encoding/base64"
 	"fmt"
-	"main/model"
-	"main/util"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/util"
 )
 
 type userRepo interface {

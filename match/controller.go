@@ -2,10 +2,10 @@ package match
 
 import (
 	"encoding/json"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/util"
 	"io"
-	"main/api"
-	"main/model"
-	"main/util"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

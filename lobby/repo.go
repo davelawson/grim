@@ -2,8 +2,8 @@ package lobby
 
 import (
 	"database/sql"
-	"main/api"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/util"
 
 	"github.com/google/uuid"
 )

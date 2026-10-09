@@ -3,11 +3,11 @@ package lobby
 import (
 	"database/sql"
 	"errors"
-	"main/api"
-	"main/game"
-	"main/match"
-	"main/model"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/match"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/util"
 	"slices"
 	"strings"
 

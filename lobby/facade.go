@@ -2,9 +2,9 @@ package lobby
 
 import (
 	"database/sql"
-	"main/api"
-	"main/game"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/util"
 )
 
 type ServiceFacade struct {

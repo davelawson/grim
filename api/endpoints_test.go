@@ -1,7 +1,7 @@
 package api_test
 
 import (
-	"main/api"
+	"github.com/davelawson/grim/api"
 	"net/url"
 	"strings"
 	"testing"

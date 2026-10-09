@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
-	"main/api"
+	"github.com/davelawson/grim/api"
 	randv2 "math/rand/v2"
 	"slices"
 	"strings"

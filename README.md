@@ -29,8 +29,83 @@ supplies the server origin (without a trailing slash), authentication, and HTTP
 transport configuration. Protected endpoints currently take the raw login token
 in the `Authorization` header.
 
-The module is still named `main`; backend imports use `main/api`. A separately
-maintained client will require an importable module path, as a separate change.
+Separate Go clients import `github.com/davelawson/grim/api`. Grimoire continues
+running as an HTTP server; the client owns HTTP transport and authentication.
+The `api` package is the intended client-facing contract.
+
+After the module rename is merged and the initial `v0.1.0` tag is published,
+install it from the consuming repository:
+
+```sh
+go get github.com/davelawson/grim@v0.1.0
+```
+
+For local development before publication, point the consuming module at this
+checkout instead:
+
+```sh
+go mod edit -replace=github.com/davelawson/grim=/absolute/path/to/grim
+go get github.com/davelawson/grim/api
+```
+
+Remove the local replacement before switching to a published version:
+
+```sh
+go mod edit -dropreplace=github.com/davelawson/grim
+go get github.com/davelawson/grim@v0.1.0
+```
+
+For a private repository, configure authenticated Git access and add
+`github.com/davelawson/grim` to `GOPRIVATE` (preserving any existing entries).
+
+For example, fetch a match using the caller's configured HTTP client and token:
+
+```go
+package example
+
+import (
+    "context"
+    "encoding/json"
+    "fmt"
+    "net/http"
+
+    "github.com/davelawson/grim/api"
+)
+
+func GetMatch(ctx context.Context, client *http.Client, serverURL, token, matchID string) (*api.MatchView, error) {
+    req, err := http.NewRequestWithContext(ctx, api.GetMatchMethod,
+        serverURL+api.GetMatchPath(matchID), nil)
+    if err != nil {
+        return nil, err
+    }
+    req.Header.Set("Authorization", token)
+    resp, err := client.Do(req)
+    if err != nil {
+        return nil, err
+    }
+    defer resp.Body.Close()
+
+    if resp.StatusCode != http.StatusOK {
+        var failure api.ErrorResponse
+        if err := json.NewDecoder(resp.Body).Decode(&failure); err != nil || failure.Error == nil {
+            return nil, fmt.Errorf("get match: HTTP %d", resp.StatusCode)
+        }
+        failure.Error.Status = resp.StatusCode // Status is excluded from JSON.
+        return nil, failure.Error
+    }
+    var result api.MatchResponse
+    if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+        return nil, err
+    }
+    return result.Match, nil
+}
+```
+
+For requests with bodies, marshal the corresponding API request type with
+`json.Marshal`, pass the bytes through `bytes.NewReader`, and set
+`Content-Type: application/json`. Obtain the token with `api.LoginRequest` and
+`api.LoginResponse`. Use an HTTP client with a suitable timeout and TLS trust
+configuration for the server.
 
 ### DB
 

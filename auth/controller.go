@@ -2,7 +2,7 @@ package auth
 
 import (
 	"fmt"
-	"main/api"
+	"github.com/davelawson/grim/api"
 	"net/http"
 	"strings"
 

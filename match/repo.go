@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"main/game"
-	"main/util"
+	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/util"
 )
 
 type Repo struct{ db *sql.DB }

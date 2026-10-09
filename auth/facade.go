@@ -2,8 +2,8 @@ package auth
 
 import (
 	"database/sql"
-	"main/model"
-	"main/util"
+	"github.com/davelawson/grim/model"
+	"github.com/davelawson/grim/util"
 )
 
 type ServiceFacade struct {

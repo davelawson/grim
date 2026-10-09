@@ -3,8 +3,8 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"main/api"
-	"main/game"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/game"
 	"net/http/httptest"
 	"reflect"
 	"slices"

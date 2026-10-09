@@ -2,8 +2,8 @@ package user
 
 import (
 	"fmt"
-	"main/api"
-	"main/model"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/model"
 	"net/http"
 	"strings"
 

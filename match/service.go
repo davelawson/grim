@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
-	"main/api"
-	"main/game"
-	"main/util"
+	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/util"
 	"strings"
 
 	"github.com/google/uuid"
