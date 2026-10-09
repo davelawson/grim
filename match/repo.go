@@ -71,9 +71,40 @@ func (r *Repo) save(tx *sql.Tx, state *game.State, expectedRevision int64) error
 		return err
 	}
 	if rows != 1 {
-		return errors.New("match revision changed during transaction")
+		return util.ErrStaleRevision
 	}
 	return nil
+}
+
+func (r *Repo) commandReceipt(tx *sql.Tx, id, actorID, requestID, input string) (*game.View, error) {
+	var savedInput string
+	var response []byte
+	err := tx.QueryRow(`select command, response from command_receipts
+		where match_id = ? and actor_id = ? and request_id = ?`, id, actorID, requestID).Scan(&savedInput, &response)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	if savedInput != input {
+		return nil, &util.APIError{Status: 409, Code: "request_id_conflict", Message: "Request ID already used for different input"}
+	}
+	var view game.View
+	if err := json.Unmarshal(response, &view); err != nil {
+		return nil, err
+	}
+	return &view, nil
+}
+
+func (r *Repo) saveCommandReceipt(tx *sql.Tx, id, actorID, requestID, input string, view *game.View) error {
+	response, err := json.Marshal(view)
+	if err != nil {
+		return err
+	}
+	_, err = tx.Exec(`insert into command_receipts(match_id, actor_id, request_id, command, response)
+		values(?, ?, ?, ?, ?)`, id, actorID, requestID, input, string(response))
+	return err
 }
 
 func (r *Repo) launchReceipt(tx *sql.Tx, lobbyID, actorID, requestID string) (*game.View, error) {

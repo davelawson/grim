@@ -42,6 +42,8 @@ func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 
 func AddMatchRoutes(authService authService, router *gin.Engine, controller *match.Controller) {
 	router.GET("/match/:id", createAuthedHandler(authService, controller.Get))
+	router.POST("/match/:id/commands", createAuthedHandler(authService, controller.Command))
+	router.GET("/match/:id/catalogue", createAuthedHandler(authService, controller.Catalogue))
 	router.POST("/admin/match/:id/end", createAuthedHandler(authService, controller.End))
 }
 

@@ -1,6 +1,8 @@
 package match
 
 import (
+	"encoding/json"
+	"io"
 	"main/game"
 	"main/model"
 	"main/util"
@@ -17,7 +19,7 @@ type Controller struct{ service *ServiceFacade }
 
 func NewController(service *ServiceFacade) *Controller { return &Controller{service: service} }
 
-// Get returns the authenticated participant's lifecycle view.
+// Get returns the authenticated participant's private and public match view.
 // @Summary Get a match
 // @Security ApiKeyAuth
 // @Tags match
@@ -34,6 +36,61 @@ func (c *Controller) Get(ctx *gin.Context) {
 		return
 	}
 	ctx.JSON(http.StatusOK, Response{Match: view})
+}
+
+// Command locks one opening draft choice, or replays an identical accepted retry.
+// @Summary Choose an opening card
+// @Security ApiKeyAuth
+// @Tags match
+// @Accept json
+// @Produce json
+// @Param id path string true "Match ID"
+// @Param command body CommandRequest true "Draft command; expectedrevision is required"
+// @Success 200 {object} Response
+// @Failure 400,401,403,404,409,500 {object} util.ErrorResponse
+// @Router /match/{id}/commands [post]
+func (c *Controller) Command(ctx *gin.Context) {
+	var command CommandRequest
+	decoder := json.NewDecoder(ctx.Request.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&command); err != nil {
+		util.WriteAPIError(ctx, util.ErrInvalidRequest)
+		return
+	}
+	if err := decoder.Decode(new(any)); err != io.EOF {
+		util.WriteAPIError(ctx, util.ErrInvalidRequest)
+		return
+	}
+	actor := ctx.MustGet("reqUser").(*model.User)
+	view, err := c.service.Command(ctx.Param("id"), actor.Id, command)
+	if err != nil {
+		util.WriteAPIError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, Response{Match: view})
+}
+
+type CatalogueResponse struct {
+	Catalogue *game.Catalogue `json:"catalogue"`
+}
+
+// Catalogue returns the definitions pinned to this participant's match.
+// @Summary Get the match card catalogue
+// @Security ApiKeyAuth
+// @Tags match
+// @Produce json
+// @Param id path string true "Match ID"
+// @Success 200 {object} CatalogueResponse
+// @Failure 401,403,404,409,500 {object} util.ErrorResponse
+// @Router /match/{id}/catalogue [get]
+func (c *Controller) Catalogue(ctx *gin.Context) {
+	actor := ctx.MustGet("reqUser").(*model.User)
+	catalogue, err := c.service.Catalogue(ctx.Param("id"), actor.Id)
+	if err != nil {
+		util.WriteAPIError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, CatalogueResponse{Catalogue: catalogue})
 }
 
 // End soft-deletes a match while preserving its saved state.

@@ -259,7 +259,7 @@ func (ls *Service) Launch(tx *sql.Tx, id, actorID, requestID string) (*game.View
 			return nil, &util.APIError{Status: 409, Code: "lobby_not_ready", Message: "Every member must be ready before launch"}
 		}
 	}
-	view, err := ls.matches.CreateSetup(tx, lobby.Name, id, lobby.Members)
+	view, err := ls.matches.CreateSetup(tx, lobby.Name, id, lobby.Members, actorID)
 	if err != nil {
 		return nil, err
 	}

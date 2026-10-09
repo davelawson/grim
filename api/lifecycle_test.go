@@ -221,33 +221,26 @@ func TestMatchLifecycleAndRestart(t *testing.T) {
 			if uuid.Validate(view.ID) != nil || view.Name != "Test match" || view.LobbyID != id {
 				t.Fatalf("unexpected identity: %+v", view)
 			}
-			sortedRing := slices.Clone(view.Ring)
-			slices.Sort(sortedRing)
-			if !slices.Equal(sortedRing, view.Participants) {
-				t.Fatal("ring is not a permutation of participants")
+			if len(view.Ring) != 0 || view.Turn != nil || view.You == nil || view.You.Draft.Step != "chantry" {
+				t.Fatal("launch assigned seating or omitted the owner's draft")
 			}
-			for _, private := range []string{"seed", "random", "generator", "schemaversion", "rulesversion", "catalogueversion", "admin"} {
+			for _, private := range []string{"seed", "random", "generator", "schemaversion", "admin"} {
 				if strings.Contains(original, `"`+private+`"`) {
 					t.Fatalf("private state exposed: %s", private)
 				}
 			}
 			before, state := f.saved(view.ID)
-			if state.RulesVersion != nil || state.CatalogueVersion != nil || state.Random.Generator != "chacha8-v1" {
+			if state.RulesVersion != game.OpeningRulesVersion || state.CatalogueVersion != game.OpeningCatalogueVersion || state.Random.Generator != "chacha8-v1" {
 				t.Fatal("unexpected setup binding/random algorithm")
 			}
 			seed := [32]byte(state.Random.Seed)
 			generator := randv2.NewChaCha8(seed)
-			reproduced := slices.Clone(state.Participants)
-			randv2.New(generator).Shuffle(size, func(i, j int) { reproduced[i], reproduced[j] = reproduced[j], reproduced[i] })
-			if !slices.Equal(reproduced, view.Ring) {
-				t.Fatal("initial seed does not reproduce ring")
-			}
 			resumed := randv2.NewChaCha8([32]byte{})
 			if err := resumed.UnmarshalBinary(state.Random.State); err != nil {
 				t.Fatal(err)
 			}
 			if generator.Uint64() != resumed.Uint64() {
-				t.Fatal("post-shuffle random state does not resume exactly")
+				t.Fatal("launch consumed randomness before drafting")
 			}
 			closed := f.lobbyView(id, "member")
 			if closed.Status != "closed" || closed.MatchID == nil || *closed.MatchID != view.ID {
@@ -261,7 +254,7 @@ func TestMatchLifecycleAndRestart(t *testing.T) {
 			if !slices.Equal(before, after) {
 				t.Fatal("restart changed state")
 			}
-			get := f.call(200, "GET", "/match/"+view.ID, "member", "")
+			get := f.call(200, "GET", "/match/"+view.ID, "owner", "")
 			if get.Body.String() != original {
 				t.Fatal("lookup differs after restart")
 			}
@@ -757,6 +750,8 @@ func TestAuthenticationErrors(t *testing.T) {
 		{"PUT", "/lobby/missing/ready", `{"ready":true}`},
 		{"POST", "/lobby/missing/launch", launchBody(uuid.NewString())},
 		{"GET", "/match/missing", ""},
+		{"GET", "/match/missing/catalogue", ""},
+		{"POST", "/match/missing/commands", commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire")},
 		{"POST", "/admin/match/missing/end", ""},
 	} {
 		for _, actor := range []string{"", "invalid"} {

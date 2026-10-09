@@ -25,10 +25,10 @@ State is stored in a simple sqlite3 database.
   `sqlite3 "$GRIM_DB" ".cd sql" ".read populate-test-data.sql"`
 
 The creation script resets the database; it is for explicit fresh setup, not
-an upgrade. This lifecycle release needs the updated schema. The server does
-not run migrations or recreate existing databases. The schema includes nullable
-`deleted_at` timestamps on matches and lobbies; existing databases require fresh
-setup to use this release.
+an upgrade. This drafting release requires fresh setup with the updated schema,
+including `playing` match status and command receipts. The server does not run
+migrations or recreate existing databases. Previous match snapshot schemas and
+unknown rules/catalogue versions return `409 unsupported_state`.
 
 ### Generate SSL key and cert
 
@@ -57,7 +57,9 @@ This needs to be done outside of the repo, since it obviously shouldn't be commi
 
 Run `go test ./...` and `go vet ./...`. Lifecycle tests use temporary SQLite
 databases and production routes; they cover authorization, readiness, atomic
-launch, concurrent requests, safe retries, restart recovery, and soft deletion.
+launch, private drafting, atomic game start, concurrent requests, safe retries,
+restart recovery, rollback, and soft deletion. Engine tests cover all opening
+offers, deck composition, and reproducible random seating and deals.
 Run `go test -race ./...` to check concurrent access. Tests do not use `GRIM_DB`.
 
 #### cURL
@@ -118,12 +120,70 @@ curl -k -X POST 'https://localhost:8080/lobby/<lobby-id>/launch' \
 ```
 
 Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
-`status`, `revision`, `participants`, `ring`, and `outcome`. The match starts in
-setup at revision 0 with null outcome; drafting and gameplay come in a later
-slice. The lobby closes permanently and points to the match. Identical retries
+`status`, `revision`, `participants`, `ring`, `outcome`, `rulesversion`,
+`catalogueversion`, `wizards`, `turn`, `draftoffers`, and the owner's `you` view.
+The match starts in setup at revision 0 with an empty Ring, null turn and
+outcome, and pinned `opening-v1` rules/catalogue. The lobby closes permanently
+and points to the match. Identical retries
 replay the original result; a new request ID on the closed lobby returns 409.
 Once the match is deleted, retries using its accepted request ID return 404.
 Authenticated participants fetch current state with `GET /match/<match-id>`.
+
+### Draft starting cards
+
+Participants fetch the pinned opening definitions and every draft offer with
+`GET /match/<match-id>/catalogue`, which returns `{"catalogue":{...}}`. Cards
+have stable design IDs and structured costs, requirements, Expertise, Affinity,
+income, persistence, disposal, resource values, and typed effect identifiers.
+The catalogue contains 31 opening designs, including four clearly marked inert
+victory placeholders; it does not include rumours or execute card effects.
+
+Each participant makes three irreversible choices independently, in order:
+`choose_chantry`, `choose_victory_path`, then `choose_minion`. Each command uses
+the same endpoint and the participant's own authentication token:
+
+```sh
+curl -k -X POST 'https://localhost:8080/match/<match-id>/commands' \
+  -H 'Authorization: <participant-token>' -H 'Content-Type: application/json' \
+  -d '{"requestid":"9493d7de-393b-49e2-a13b-bc41dc33a3de","expectedrevision":0,"type":"choose_chantry","cardid":"chantry_fire"}'
+```
+
+Use a new UUID and the latest match revision for each new choice. For example,
+after choosing `chantry_fire`, select `subjugate_rival` for Domination (or one
+of the offered placeholders), then a Fire offer such as `bastian_redhand`.
+All five victory paths are available with every Chantry. Choosing Domination
+does not restrict which offered Minion can be selected. Drafting has no payments.
+
+Commands return `200 {"match":{...}}`. The required nonnegative integer
+`expectedrevision` refers to the whole match, so another participant's choice
+may cause `409 stale_revision`; refresh before submitting at the new revision.
+Retry a lost response using exactly the same request ID and input: it replays
+the original participant view even if the match has since advanced. Changed
+input under an accepted request ID returns `409 request_id_conflict`.
+Malformed or unknown command fields return `400 invalid_request`; a card not
+offered for that step returns `400 invalid_choice`; attempting the wrong step
+or changing a locked choice returns `409 draft_sequence`. New choices after
+game start return `409 draft_closed`. Rejected requests do not change state or
+create receipts. UUID casing, whitespace, and JSON key order do not affect retries.
+
+The `you.draft` object shows only the caller's step and selected design IDs.
+Other wizards expose only `draftcomplete` while setup is pending. Choices have
+unlimited copies, no deadline, and no automatic picks. The final Minion choice
+atomically creates a random Ring, gives each wizard 3 Integrity and a Chantry
+in play, independently shuffles their ten-card deck, and deals five cards.
+It enters `playing` with `turn` identifying Ring's first wizard, number 1,
+phase `start`, and step `recovery`. No turn step, income, or rumour has executed;
+turn execution is a later slice.
+
+After start, `wizards` contains public Integrity, Affinities, victory progress,
+in-play cards, ordered discards, and hand/draw-pile counts. `you.hand` shows the
+caller's cards; `you.drawpile` lists their remaining cards sorted by instance
+ID, never in draw order. Other draft selections remain private. Card instances
+identify their design, owner, location, and exhaustion state separately from
+the shared definition. A deleted match returns 404 for lookup, catalogue,
+and command submission, including accepted-command retries.
+
+### Administrative termination
 
 The operator grants administrator permission directly in the database:
 

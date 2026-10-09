@@ -18,8 +18,8 @@ logic.
 
 ## Service and API
 
-The current implementation is a Go HTTP API with persistent pre-draft match
-setup and administrative termination; the complete game engine is still in
+The current implementation is a Go HTTP API with persistent opening drafting,
+atomic game start, and administrative termination; the complete game engine is still in
 development. There is no client application in this repository. `main.go`
 creates one Gin router; the `api` package registers login, user, lobby, and
 match routes, and startup registers Swagger.
@@ -113,12 +113,15 @@ does not. Each member controls only their own readiness.
 | Set own readiness | `PUT /lobby/:id/ready` | `{"ready":true}` or `{"ready":false}` | 200 with `lobby` |
 | Launch once | `POST /lobby/:id/launch` | `{"requestid":"<UUID>"}` | 201 with `match` |
 | Get participant view | `GET /match/:id` | No body | 200 with `match` |
+| Choose opening card | `POST /match/:id/commands` | Request ID, expected revision, type, card ID | 200 with `match` |
+| Get pinned opening catalogue | `GET /match/:id/catalogue` | No body | 200 with `catalogue` |
 | Administrative termination | `POST /admin/match/:id/end` | No body or expected revision | 204, no body |
 
 Launch requires the owner to be a member of an open lobby with two to four
 members, all ready. In one transaction it stores match identity/membership,
-schema-version-1 setup state, the random initial Ring, the closed lobby's match
-link, and the accepted launch receipt. Database uniqueness enforces one match
+schema-version-2 setup state with empty Ring, private initial random state,
+pinned opening versions, the closed lobby's match link, and the accepted launch
+receipt. Database uniqueness enforces one match
 per source lobby. Closed lobbies remain member-readable and permanently reject
 updates, deletion, roster changes, and readiness changes, including after the
 match ends.
@@ -131,25 +134,64 @@ match for current state. After soft deletion, an accepted launch retry returns
 ID recorded for a different operation conflicts. Failed operations/commits leave
 no partial match, closure, receipt, or changed saved random state.
 
-The `game` package contains HTTP/SQL-independent pre-draft setup state and a
-separate public view. The `match` package owns application services and SQLite
-persistence; lobby launch calls it within the lobby transaction. Members are
-sorted by user ID before shuffling with Go's `math/rand/v2` ChaCha8, seeded with
-32 bytes from `crypto/rand`. The initial seed, generator identifier
-`chacha8-v1`, and post-shuffle binary generator state are persisted privately.
-Rules/catalogue versions remain explicitly unbound until drafting is added.
-The agreed drafting design below moves random seating to draft completion;
-the current implementation still assigns and exposes the Ring at launch.
-Unsupported saved schema versions return `unsupported_state` without rewriting
-state. Snapshot identity/status/revision/outcome must agree with searchable
-match metadata when loading.
+The `game` package owns HTTP/SQL-independent drafting and game-start transitions,
+opening card definitions, and participant-specific projections. The `match`
+package owns application services and SQLite persistence; lobby launch calls it
+within the lobby transaction. Launch sorts members by user ID and seeds Go's
+`math/rand/v2` ChaCha8 with 32 bytes from `crypto/rand`, without consuming random
+draws. Draft completion first shuffles the Ring, then each deck in sorted
+participant order. Initial seed, `chacha8-v1` generator identifier, and binary
+generator state remain private. Rules and catalogue are pinned to `opening-v1`.
+Unsupported schemas or pinned versions return `unsupported_state` without
+rewriting state. Snapshot identity/status/revision/outcome must agree with
+searchable match metadata when loading. Fresh database setup is required;
+there is no automatic upgrade or snapshot migration.
 
 The participant view contains `id`, `name`, `lobbyid`, `status`, `revision`,
-`participants`, `ring`, and nullable `outcome`. Participants and Ring entries
+`participants`, `ring`, nullable `outcome`, pinned versions, `wizards`, `turn`,
+setup `draftoffers`, and the caller's private `you` object. Participants and Ring entries
 are user IDs. Launch inherits the lobby name and starts at `status:"setup"`,
 revision 0, and null outcome. Views never include the private snapshot, seed,
 generator state, or administrator flag. Administrators have no extra lookup
 access unless they are participants.
+
+### Implemented drafting and game start
+
+Each wizard independently locks a Chantry, victory-path card, then an offered
+Minion using explicit `choose_chantry`, `choose_victory_path`, and `choose_minion`
+types. The envelope contains canonical UUID `requestid`, required nonnegative
+`expectedrevision`, `type`, and design `cardid`; unknown fields and trailing JSON
+are rejected. All offers are visible before choosing, copies are unlimited,
+and selections cannot be revised. The caller sees their own draft; rivals see
+only completion flags. There are no deadlines, automatic picks, or readiness
+vote after drafting.
+
+Command receipts are scoped to match, actor, and request ID. Membership and
+deletion are checked before receipt lookup; equivalent typed input replays its
+original view before revision or snapshot validation. Changed input conflicts.
+New commands require the current global revision. Every accepted command saves
+its new snapshot, metadata, incremented revision, and response receipt in one
+transaction. Immediate SQLite transactions serialize writers; the snapshot
+update also checks the expected revision. Invalid or failed commands leave no
+receipt, choice, or advanced random state. Stable added errors are
+`stale_revision` (409), `draft_sequence` (409), `draft_closed` (409), and
+`invalid_choice` (400).
+
+The final choice automatically creates random seating, eleven instances per
+wizard (one Chantry in play plus ten shuffled deck cards), 3 Integrity, five-card
+hands, elemental Affinity, and zero progress on all five victory paths. Instance
+IDs derive from match, owner, and a pre-shuffle construction index; they remain
+stable and never encode draw order. The first Ring wizard starts turn 1 at
+`start`/`recovery`, and status becomes `playing`; no turn step has executed.
+Turn execution and card-effect handlers are deferred.
+
+The opening catalogue contains 31 designs and shared draft offers, with typed
+effect identifiers and structured printed properties. Four victory cards are
+explicit inert placeholders. Catalogue access applies the same participant,
+deletion, metadata, and version checks as lookup. Public playing views contain
+Integrity, Affinities, victory progress, in-play cards, ordered discards, and
+pile counts. The caller also sees their hand and draw-pile contents sorted by
+instance ID. Draw order and other wizards' remaining selections stay private.
 
 Administrative termination checks the current `users.admin` flag inside its
 transaction; the administrator need not participate. Any existing match can
@@ -181,8 +223,8 @@ lobby operations retain their older controller success/error formats where appli
 new owner-departure and transfer checks use `owner_must_transfer` (409) and
 `invalid_owner` (400).
 
-Drafting, cards, gameplay, catalogue access, and player abandonment votes are
-not implemented. Ordered migrations and saved-state upgrades remain future work.
+Turn execution, card-effect execution, rumours, and player abandonment votes
+are not implemented. Ordered migrations and saved-state upgrades remain future work.
 
 ## Remaining technical work
 
@@ -391,7 +433,7 @@ card texts or unfinished rules.
   placeholders, including the required victory challenges and ranks.
 - Define its Spell and Artifact creation pools and remaining Research rules.
 - Specify Attack Immunity duration and any other required unfinished rules.
-- Implement and playtest the agreed draft procedure and starting offers.
+- Playtest the implemented draft procedure and starting offers.
 
 ### Boundaries and stored state
 
@@ -436,13 +478,11 @@ failures leave authoritative state, revision, and random state unchanged.
 
 ### Delivery sequence
 
-The implemented lifecycle slice narrows the first step below: update the database
-creation script directly, without ordered migrations or automatic upgrades.
-Persist setup identity, participants, Ring, lifecycle state, and private random
-state; defer rules/catalogue binding until drafting is introduced. Include
-minimal participant lookup and administrator termination, but exclude drafting,
-gameplay, and player abandonment voting. The broader version-pinning and
-migration design remains the target for subsequent work.
+The implemented lifecycle and drafting slices update the database creation
+script directly, without ordered migrations or automatic upgrades. They provide
+launch, opening drafting, atomic game start, version pinning, participant
+projections, command receipts, and administrative termination. Turn execution,
+player abandonment voting, and migrations remain subsequent work.
 
 1. Add incremental migrations, admin storage/checks, lobby authorization,
    readiness/departure/transfer, match storage, and transactional one-time launch.
@@ -454,7 +494,7 @@ migration design remains the target for subsequent work.
    effect continuations, Ring movement, elimination, and victory checkpoints;
    gate unfinished mechanics on their separate game-design decisions.
 4. Complete the separate catalogue/rules prerequisites and integrate their
-   definitions and effect handlers, including the opening draft.
+   definitions and effect handlers beyond the implemented opening catalogue.
 5. Verify complete two-, three-, and four-player matches, restart recovery,
    voting/admin endings, version compatibility, and the presentation-independent
    API. Client applications remain separate work.

@@ -71,7 +71,8 @@ When we have lists, should we use a simple update on the base item to manage the
 
 Implement the confirmed [backend expansion](ARCHITECTURE.md#planned-match-backend)
 in its documented sequence. Lobby readiness/departure/ownership transfer,
-saved match setup, atomic one-time launch, and administrative termination are
+saved match setup, atomic one-time launch, opening drafting, atomic game start,
+participant projections, pinned opening catalogue, and administrative termination are
 implemented, including UpdateLobby authorization. Incremental database and
 saved-document upgrades remain deferred; the current creation script sets up
 the complete lifecycle schema directly.
@@ -113,8 +114,8 @@ the complete lifecycle schema directly.
   and ranks beyond the four drafting placeholders, Spell and Artifact creation
   pools, and remaining Research rules. These are prerequisites for the
   complete-game backend milestone defined in [ARCHITECTURE.md](ARCHITECTURE.md).
-- Implement the agreed [drafting rules](GAME.md#drafting), including moving
-  random seating from launch to draft completion.
+- Implement turn execution from the saved first Start.Recovery, including
+  Income, rumours, effects, and ordinary gameplay commands.
 - Playtest the agreed drafting, card anatomy, turn phases, response exchanges, and
   kneeling flow in [GAME.md](GAME.md).
 - Define immunity duration precisely under continuous turns and changing

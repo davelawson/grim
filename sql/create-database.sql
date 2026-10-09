@@ -1,6 +1,7 @@
 -- Explicit database reset only. The server never runs this script.
 pragma foreign_keys = off;
 drop table if exists launch_receipts;
+drop table if exists command_receipts;
 drop table if exists players;
 drop table if exists lobby_users;
 drop table if exists matches;
@@ -22,12 +23,12 @@ create table matches (
     name text not null,
     created_at datetime not null default (datetime('now')),
     deleted_at datetime default null,
-    status text not null check (status in ('setup', 'finished')),
+    status text not null check (status in ('setup', 'playing', 'finished')),
     revision integer not null check (revision >= 0),
     outcome text,
     snapshot text not null,
     foreign key(lobby_id) references lobbies (id),
-    check ((status = 'setup' and outcome is null) or
+    check ((status in ('setup', 'playing') and outcome is null) or
            (status = 'finished' and outcome is not null))
 );
 
@@ -73,6 +74,16 @@ create table launch_receipts (
     foreign key(lobby_id) references lobbies (id),
     foreign key(actor_id) references users (id),
     foreign key(match_id) references matches (id)
+);
+
+create table command_receipts (
+    match_id text not null,
+    actor_id text not null,
+    request_id text not null,
+    command text not null,
+    response text not null,
+    primary key(match_id, actor_id, request_id),
+    foreign key(actor_id, match_id) references players (player_id, match_id)
 );
 
 pragma foreign_keys = on;

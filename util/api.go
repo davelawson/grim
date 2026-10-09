@@ -34,5 +34,6 @@ var (
 	ErrForbidden        = &APIError{403, "forbidden", "You do not have permission for this operation"}
 	ErrNotFound         = &APIError{404, "not_found", "Resource not found"}
 	ErrLobbyClosed      = &APIError{409, "lobby_closed", "This lobby has already launched"}
-	ErrUnsupportedState = &APIError{409, "unsupported_state", "The saved match schema is not supported"}
+	ErrUnsupportedState = &APIError{409, "unsupported_state", "The saved match schema, rules or catalogue version is not supported"}
+	ErrStaleRevision    = &APIError{409, "stale_revision", "The match has changed; refresh its state before choosing"}
 )
