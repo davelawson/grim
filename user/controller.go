@@ -61,7 +61,7 @@ func (us *Controller) GetUserByEmail(c *gin.Context) {
 }
 
 // @Summary		Create user
-// @Description	Create a new user
+// @Description	Create a new user using lowercase email, name, and password JSON fields.
 // @Tags			user
 // @Accept			json
 // @Produce		json

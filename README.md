@@ -66,6 +66,12 @@ curl -X 'POST' \
   "email": "tim@aol.com"
 }'`
 
+User endpoint JSON fields use lowercase names. User lookup returns
+`{"user":{"id":"…","name":"…","email":"…"}}`. Registration at `POST /user`
+uses `email`, `name`, and `password`; capitalized or mixed-case versions of
+those request keys return 400. Lookup requests continue accepting field names
+case-insensitively.
+
 ### Swagger
 
 End points are documented using a swagger interface.  This also allows manual testing of the end points.

@@ -16,7 +16,9 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-User creation: design interview in progress. Implementation has not begun.
+User creation: registration design recorded; broader implementation remains
+pending. The separately approved lowercase user-JSON subset is implemented
+and verified; its lasting behavior is recorded in [ARCHITECTURE.md](ARCHITECTURE.md).
 The previously confirmed backend architecture remains recorded in
 [ARCHITECTURE.md](ARCHITECTURE.md#planned-match-backend).
 
@@ -104,8 +106,9 @@ The existing backend architecture and game-content backlog remain in effect.
 
 ## Implementation plan
 
-1. Define registration-specific request/response models and error codes. Parse
-   the request locally to this endpoint, tracking field presence and duplicate
+1. Build on the implemented lowercase user models and registration casing
+   check; define registration-specific response models and error codes. Complete
+   request parsing locally to this endpoint, tracking field presence and duplicate
    keys; do not change Gin's decoding policy globally. Enforce one JSON object,
    exact lowercase allowed fields and string types. Keep
    password presence separate from length so an empty password is accepted.
@@ -184,5 +187,10 @@ empty-string acceptance, separate login, response statuses, and retained scrypt
 format are confirmed. Password length and quality checks are excluded at the
 user's request. Lowercase registration JSON and strict parsing are confirmed.
 Strictly lowercase registration request keys are confirmed. The User glossary
-entry and complete implementation plan are recorded. No application code has
-changed; only overall plan confirmation remains open.
+entry and complete implementation plan are recorded. The user approved a
+narrower implementation plan: lowercase tags across user endpoint models and
+rejection of nonlowercase registration field aliases, preserving existing
+status codes, lookup decoding, and other API formats. That subset is implemented;
+focused HTTP/SQLite tests pass via `go test ./...`. Local Swagger was regenerated
+and its user field names verified; formatting checks passed. The broader
+registration plan has not been implemented or confirmed as a whole.
