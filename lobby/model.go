@@ -1,29 +1,29 @@
 package lobby
 
 type CreateLobbyRequest struct {
-	Name string `binding:"required"`
+	Name string `json:"name" binding:"required"`
 }
 
 type CreateLobbyResponse struct {
-	Id string
+	Id string `json:"id"`
 }
 
 type GetLobbyResponse struct {
-	Lobby Lobby
+	Lobby Lobby `json:"lobby"`
 }
 
 type UpdateLobbyRequest struct {
-	Name  string `binding:"required"`
-	Owner string `binding:"required"`
+	Name  string `json:"name" binding:"required"`
+	Owner string `json:"owner" binding:"required"`
 }
 
 type AddUserToLobbyRequest struct {
-	UserId string `binding:"required"`
+	UserId string `json:"userid" binding:"required"`
 }
 
 type Lobby struct {
-	Id      string
-	Name    string
-	Owner   string
-	Members []string
+	Id      string   `json:"id"`
+	Name    string   `json:"name"`
+	Owner   string   `json:"owner"`
+	Members []string `json:"members"`
 }

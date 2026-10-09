@@ -66,10 +66,13 @@ curl -X 'POST' \
   "email": "tim@aol.com"
 }'`
 
-User endpoint JSON fields use lowercase names. User lookup returns
+All API JSON fields use lowercase names. Login returns `{"token":"…"}`.
+Lobby requests use `name`, `owner`, and `userid` as applicable; lobby lookup
+returns `{"lobby":{"id":"…","name":"…","owner":"…","members":["…"]}}`.
+User lookup returns
 `{"user":{"id":"…","name":"…","email":"…"}}`. Registration at `POST /user`
 uses `email`, `name`, and `password`; capitalized or mixed-case versions of
-those request keys return 400. Lookup requests continue accepting field names
+those request keys return 400. Other requests continue accepting field names
 case-insensitively.
 
 ### Swagger

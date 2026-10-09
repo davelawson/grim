@@ -30,11 +30,14 @@ The current API has both resource routes using IDs and action routes such as
 resource and command routes; broader conventions for existing routes remain
 tracked in [TODO.md](TODO.md).
 
-User endpoint JSON models explicitly use lowercase field names. User lookup
-returns `{"user":{"id":"…","name":"…","email":"…"}}`. Registration rejects
+All API JSON models explicitly use lowercase field names, including `userid`
+for lobby membership requests. Login returns `{"token":"…"}`, and lobby lookup
+returns `{"lobby":{"id":"…","name":"…","owner":"…","members":["…"]}}`.
+User lookup returns `{"user":{"id":"…","name":"…","email":"…"}}`.
+Registration rejects
 capitalized or mixed-case variants of its `email`, `name`, and `password`
-request keys with 400, while lookup decoding remains case-insensitive. Broader
-registration validation and response changes remain planned separately.
+request keys with 400, while other request decoding remains case-insensitive.
+Broader registration validation and response changes remain planned separately.
 
 ## Application layers
 

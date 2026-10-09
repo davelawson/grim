@@ -21,8 +21,8 @@ import (
 )
 
 type config struct {
-	DbLocation string `json:"GRIM_DB"`
-	SslFolder  string `json:"GRIM_SSL"`
+	DbLocation string `json:"grim_db"`
+	SslFolder  string `json:"grim_ssl"`
 }
 
 type authService interface {

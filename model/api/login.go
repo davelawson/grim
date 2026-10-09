@@ -1,10 +1,10 @@
 package api
 
 type LoginRequest struct {
-	Email    string
-	Password string
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type LoginResponse struct {
-	Token string // base64 encoded value
+	Token string `json:"token"` // base64 encoded value
 }
