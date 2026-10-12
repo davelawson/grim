@@ -92,14 +92,15 @@ the complete lifecycle schema directly.
       - Delete an open lobby
       - Set own readiness
       - Atomic one-time launch
+      - Public available-lobby summaries and self-service join
+      - Four-member capacity and one-open-lobby membership limits
+      - My lobbies (membership list)
     - Match
       - Participant lookup
       - Administrative termination
   - Upcoming
     - Lobby
-      - Self-service join policy (currently owner-managed)
       - Get
-        - My Lobbies
         - Search by lobby name
         - Search by participant
         - All lobbies

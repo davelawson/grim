@@ -134,3 +134,13 @@ func (repo *LobbyRepo) Close(tx *sql.Tx, id, matchID string) error {
 	}
 	return nil
 }
+
+// HasOtherOpenLobby ignores historical memberships and the specified lobby.
+func (repo *LobbyRepo) HasOtherOpenLobby(tx *sql.Tx, userID, exceptID string) (bool, error) {
+	var exists bool
+	err := tx.QueryRow(`select exists (
+ select 1 from lobby_users membership join lobbies lobby on lobby.id = membership.lobby_id
+ where membership.user_id = ? and lobby.id <> ?
+ and lobby.status = 'open' and lobby.deleted_at is null)`, userID, exceptID).Scan(&exists)
+	return exists, err
+}

@@ -13,6 +13,8 @@ func TestEndpointPaths(t *testing.T) {
 		path func(string) string
 		want string
 	}{
+		{"leave lobby", api.LeaveLobbyPath, "/lobby/ID/leave"},
+		{"join lobby", api.JoinLobbyPath, "/lobby/ID/join"},
 		{"delete lobby", api.DeleteLobbyPath, "/lobby/ID"},
 		{"get lobby", api.GetLobbyPath, "/lobby/ID"},
 		{"update lobby", api.UpdateLobbyPath, "/lobby/ID"},

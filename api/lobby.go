@@ -38,3 +38,15 @@ type Lobby struct {
 	MatchID   *string         `json:"matchid"`
 	Readiness map[string]bool `json:"readiness"`
 }
+
+// PublicLobbySummary exposes an available lobby without its roster or readiness.
+type PublicLobbySummary struct {
+	ID          string `json:"id"`
+	Name        string `json:"name"`
+	Owner       string `json:"owner"`
+	MemberCount int    `json:"membercount"`
+}
+
+type ListPublicLobbiesResponse struct {
+	Lobbies []PublicLobbySummary `json:"lobbies"`
+}

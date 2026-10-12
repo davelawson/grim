@@ -16,12 +16,17 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-No active implementation slice. Opening drafting and atomic game start through
-persisted first Start.Recovery are implemented and verified. Accepted game
-rules remain in [GAME.md](GAME.md#drafting); the implementation contract is in
-[ARCHITECTURE.md](ARCHITECTURE.md#implemented-drafting-and-game-start), and usage
-is in [README.md](README.md#draft-starting-cards). Turn execution, rumours,
-card-effect execution, player votes, and migrations remain backlog work.
+No active implementation slice. Public lobby discovery and self-service joining
+are implemented and verified, including four-member capacity, one-open-lobby
+membership enforcement, readiness resets, safe repeated joins, rollback, and
+concurrent membership/launch/deletion requests. The lasting contract is in
+[ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle), with
+usage in [README.md](README.md#launch-and-end-a-match). No schema changes were
+needed. `go test ./...`, `go vet ./...`, and `go test -race ./...` pass;
+local Swagger definitions have been regenerated.
+
+Turn execution, rumours, card-effect execution, player votes, and migrations
+remain backlog work.
 
 ### Completed match slices
 

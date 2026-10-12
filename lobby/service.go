@@ -67,6 +67,9 @@ func (ls *Service) AddUserToLobby(tx *sql.Tx, lobbyId string, userId string, req
 		return AddUserToLobbyErrors.UserNotFound
 	}
 
+	if err := ls.checkNewMember(tx, lobby, userId); err != nil {
+		return err
+	}
 	if err := ls.repo.AddUserToLobby(tx, lobbyId, userId); err != nil {
 		return err
 	}
@@ -141,6 +144,9 @@ func (ls *Service) UpdateLobby(tx *sql.Tx, lobbyId string, name string, ownerId 
 }
 
 func (ls *Service) CreateLobby(tx *sql.Tx, name string, userId string) (*string, error) {
+	if err := ls.checkOpenMembership(tx, userId, ""); err != nil {
+		return nil, err
+	}
 	lobbyId, err := ls.repo.CreateLobby(tx, name, userId)
 	if err != nil {
 		return nil, err
@@ -252,7 +258,7 @@ func (ls *Service) Launch(tx *sql.Tx, id, actorID, requestID string) (*game.View
 	if lobby.Status != "open" {
 		return nil, util.ErrLobbyClosed
 	}
-	if len(lobby.Members) < 2 || len(lobby.Members) > 4 {
+	if len(lobby.Members) < 2 || len(lobby.Members) > maxLobbyMembers {
 		return nil, &util.APIError{Status: 409, Code: "invalid_roster_size", Message: "Launch requires two to four members"}
 	}
 	for _, member := range lobby.Members {
@@ -271,4 +277,53 @@ func (ls *Service) Launch(tx *sql.Tx, id, actorID, requestID string) (*game.View
 		return nil, err
 	}
 	return view, nil
+}
+
+const maxLobbyMembers = 4
+
+var (
+	errLobbyFull          = &util.APIError{Status: 409, Code: "lobby_full", Message: "The lobby is full"}
+	errAlreadyInOpenLobby = &util.APIError{Status: 409, Code: "already_in_open_lobby", Message: "Leave your current open lobby before creating or joining another"}
+)
+
+func (ls *Service) checkOpenMembership(tx *sql.Tx, userID, exceptID string) error {
+	exists, err := ls.repo.HasOtherOpenLobby(tx, userID, exceptID)
+	if err != nil {
+		return err
+	}
+	if exists {
+		return errAlreadyInOpenLobby
+	}
+	return nil
+}
+
+func (ls *Service) checkNewMember(tx *sql.Tx, lobby *api.Lobby, userID string) error {
+	if len(lobby.Members) >= maxLobbyMembers {
+		return errLobbyFull
+	}
+	return ls.checkOpenMembership(tx, userID, lobby.Id)
+}
+
+func (ls *Service) Join(tx *sql.Tx, id, actorID string) (*api.Lobby, error) {
+	lobby, err := ls.GetLobby(tx, id)
+	if err != nil {
+		return nil, err
+	}
+	if lobby.Status != "open" {
+		return nil, util.ErrLobbyClosed
+	}
+	// A retry never changes the roster or clears readiness, even when full.
+	if slices.Contains(lobby.Members, actorID) {
+		return lobby, nil
+	}
+	if err := ls.checkNewMember(tx, lobby, actorID); err != nil {
+		return nil, err
+	}
+	if err := ls.repo.AddUserToLobby(tx, id, actorID); err != nil {
+		return nil, err
+	}
+	if err := ls.repo.ClearReadiness(tx, id); err != nil {
+		return nil, err
+	}
+	return ls.GetLobby(tx, id)
 }

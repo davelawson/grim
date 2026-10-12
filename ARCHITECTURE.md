@@ -104,15 +104,42 @@ transaction rollback, concurrent requests, restart recovery, and authorization.
 
 ## Implemented lobby and match lifecycle
 
-Lobby reads are member-only. The authenticated owner controls additions,
-removals, updates, and transfers; a transfer target must already be a member.
-Ordinary members can leave using the existing member-removal route. The owner
+Full lobby reads are member-only. All lobbies are public. Authenticated users
+browse `GET /lobbies/public` and join themselves with `POST /lobby/:id/join`.
+The authenticated owner also controls additions, removals, updates, and transfers;
+a transfer target must already be a member.
+Ordinary members leave with bodyless `DELETE /lobby/:id/leave`, which infers
+identity from authentication and calls the same transactional removal service.
+It returns 200 without a body and standard JSON errors. The explicit-target
+`DELETE /lobby/:id/user/:user_id` route retains its existing authorization.
+Both routes keep the lobby ID, supporting future multiple-lobby membership. The owner
 must transfer ownership or delete the open lobby instead of removing themselves.
 Changing the roster clears every member's readiness; ownership transfer alone
 does not. Each member controls only their own readiness.
 
+Public discovery returns `{"lobbies":[...]}` with only `id`, `name`, `owner`,
+and `membercount`, ordered by ID without pagination. It excludes deleted,
+closed, and full lobbies, returns an empty array when none are available, and
+is accessible even to users already in an open lobby. `GET /lobbies` retains
+its existing membership-list contract.
+
+Capacity is four members. Creation, self-join, and owner additions enforce
+at most one nondeleted open lobby per user. Creation includes its owner as an
+unready member. Self-join takes no body and returns `200` with `lobby`;
+rejoining an open lobby already joined returns the current view without
+clearing readiness, even when full. Other membership additions clear all
+readiness. Capacity and membership checks run with insertion and readiness
+reset in the same immediate transaction, serializing concurrent changes.
+Leaving, deletion, or launch releases the open-membership restriction.
+Historical memberships remain preserved; conflicting legacy memberships are
+not automatically repaired. This feature requires no schema change.
+
 | Operation | Endpoint | Request | Success |
 | --- | --- | --- | --- |
+| Browse public lobbies | `GET /lobbies/public` | No body | 200 with `lobbies` summaries |
+| Join public lobby | `POST /lobby/:id/join` | No body | 200 with `lobby` |
+| Leave as authenticated user | `DELETE /lobby/:id/leave` | No body | 200, no body |
+| Remove explicit user | `DELETE /lobby/:id/user/:user_id` | No body | 200, no body |
 | Set own readiness | `PUT /lobby/:id/ready` | `{"ready":true}` or `{"ready":false}` | 200 with `lobby` |
 | Launch once | `POST /lobby/:id/launch` | `{"requestid":"<UUID>"}` | 201 with `match` |
 | Get participant view | `GET /match/:id` | No body | 200 with `match` |
@@ -128,6 +155,10 @@ receipt. Database uniqueness enforces one match
 per source lobby. Closed lobbies remain member-readable and permanently reject
 updates, deletion, roster changes, and readiness changes, including after the
 match ends.
+
+The CLI and interactive wrapper send the lobby UUID as the launch `requestid`.
+Retries therefore use a deterministic ID without extra client state; the launch
+API continues accepting canonical UUIDs with the same receipt behavior.
 
 Receipts are scoped to lobby, authenticated actor, and request ID. Authorization
 is checked before receipt access. An identical accepted retry returns its
@@ -220,7 +251,8 @@ internal details. Launch/readiness JSON names are lowercase, with existing
 case-insensitive decoding. Readiness requires a present boolean, including
 false; launch requires a canonical UUID request ID. Stable codes include
 `invalid_request`, `unauthorized`, `forbidden`, `not_found`, `lobby_not_ready`,
-`invalid_roster_size`, `lobby_closed`, `request_id_conflict`,
+`invalid_roster_size`, `lobby_closed`, `lobby_full`, `already_in_open_lobby`,
+`request_id_conflict`,
 `unsupported_state`, and `internal_error`. Existing
 lobby operations retain their older controller success/error formats where applicable;
 new owner-departure and transfer checks use `owner_must_transfer` (409) and
@@ -270,12 +302,15 @@ sequence and acceptance scenarios below define that broader work.
 - Drafting follows the agreed provisional rules in
   [GAME.md](GAME.md#drafting): independent, private, irreversible selections,
   followed by automatic setup completion without another readiness vote.
-- Lobby membership remains owner-managed. Each participant controls their
-  own readiness; the former owner has no special gameplay authority after launch.
+- All lobbies are public with capacity four. Authenticated users can discover
+  available lobby summaries and join themselves; owners can also add members.
+  Each user may belong to only one nondeleted open lobby. Each participant
+  controls their own readiness; the former owner has no special gameplay
+  authority after launch.
 - Match views and commands are available only to authenticated participants.
 - Members may leave before launch, clearing readiness. The owner must
   transfer ownership to another member or delete the open lobby before leaving.
-- Lobby access is restricted to members. After launch, retain a closed lobby
+- Full lobby details are restricted to members. After launch, retain a closed lobby
   record pointing to its match and reject roster changes. Disconnecting
   preserves match participation; ending the match follows its vote/admin policy.
 

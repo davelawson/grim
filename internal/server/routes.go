@@ -17,32 +17,35 @@ type authService interface {
 }
 
 func AddAuthRoutes(router *gin.Engine, controller *auth.Controller) {
-	router.Handle(api.LoginMethod, api.LoginRoute, controller.Login)
+	router.Handle(api.Login.Method, api.Login.Route, controller.Login)
 }
 
 func AddUserRoutes(authService authService, router *gin.Engine, controller *user.Controller) {
-	router.Handle(api.CreateUserMethod, api.CreateUserRoute, controller.CreateUser)
-	router.Handle(api.GetUserByEmailMethod, api.GetUserByEmailRoute, createAuthedHandler(authService, controller.GetUserByEmail))
+	router.Handle(api.CreateUser.Method, api.CreateUser.Route, controller.CreateUser)
+	router.Handle(api.GetUserByEmail.Method, api.GetUserByEmail.Route, createAuthedHandler(authService, controller.GetUserByEmail))
 }
 
 func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lobby.Controller) {
-	router.Handle(api.ListLobbiesMethod, api.ListLobbiesRoute, createAuthedHandler(authService, controller.List))
-	router.Handle(api.CreateLobbyMethod, api.CreateLobbyRoute, createAuthedHandler(authService, controller.CreateLobby))
-	router.Handle(api.DeleteLobbyMethod, api.DeleteLobbyRoute, createAuthedHandler(authService, controller.DeleteLobby))
-	router.Handle(api.GetLobbyMethod, api.GetLobbyRoute, createAuthedHandler(authService, controller.GetLobby))
-	router.Handle(api.UpdateLobbyMethod, api.UpdateLobbyRoute, createAuthedHandler(authService, controller.UpdateLobby))
-	router.Handle(api.AddUserToLobbyMethod, api.AddUserToLobbyRoute, createAuthedHandler(authService, controller.AddUserToLobby))
-	router.Handle(api.RemoveUserFromLobbyMethod, api.RemoveUserFromLobbyRoute, createAuthedHandler(authService, controller.RemoveUserFromLobby))
-	router.Handle(api.SetReadyMethod, api.SetReadyRoute, createAuthedHandler(authService, controller.SetReady))
-	router.Handle(api.LaunchMatchMethod, api.LaunchMatchRoute, createAuthedHandler(authService, controller.Launch))
+	router.Handle(api.ListPublicLobbies.Method, api.ListPublicLobbies.Route, createAuthedHandler(authService, controller.ListPublic))
+	router.Handle(api.JoinLobby.Method, api.JoinLobby.Route, createAuthedHandler(authService, controller.Join))
+	router.Handle(api.ListLobbies.Method, api.ListLobbies.Route, createAuthedHandler(authService, controller.List))
+	router.Handle(api.CreateLobby.Method, api.CreateLobby.Route, createAuthedHandler(authService, controller.CreateLobby))
+	router.Handle(api.DeleteLobby.Method, api.DeleteLobby.Route, createAuthedHandler(authService, controller.DeleteLobby))
+	router.Handle(api.GetLobby.Method, api.GetLobby.Route, createAuthedHandler(authService, controller.GetLobby))
+	router.Handle(api.UpdateLobby.Method, api.UpdateLobby.Route, createAuthedHandler(authService, controller.UpdateLobby))
+	router.Handle(api.AddUserToLobby.Method, api.AddUserToLobby.Route, createAuthedHandler(authService, controller.AddUserToLobby))
+	router.Handle(api.LeaveLobby.Method, api.LeaveLobby.Route, createAuthedHandler(authService, controller.Leave))
+	router.Handle(api.RemoveUserFromLobby.Method, api.RemoveUserFromLobby.Route, createAuthedHandler(authService, controller.RemoveUserFromLobby))
+	router.Handle(api.SetReady.Method, api.SetReady.Route, createAuthedHandler(authService, controller.SetReady))
+	router.Handle(api.LaunchMatch.Method, api.LaunchMatch.Route, createAuthedHandler(authService, controller.Launch))
 }
 
 func AddMatchRoutes(authService authService, router *gin.Engine, controller *match.Controller) {
-	router.Handle(api.ListMatchesMethod, api.ListMatchesRoute, createAuthedHandler(authService, controller.List))
-	router.Handle(api.GetMatchMethod, api.GetMatchRoute, createAuthedHandler(authService, controller.Get))
-	router.Handle(api.SubmitMatchCommandMethod, api.SubmitMatchCommandRoute, createAuthedHandler(authService, controller.Command))
-	router.Handle(api.GetCatalogueMethod, api.GetCatalogueRoute, createAuthedHandler(authService, controller.Catalogue))
-	router.Handle(api.EndMatchMethod, api.EndMatchRoute, createAuthedHandler(authService, controller.End))
+	router.Handle(api.ListMatches.Method, api.ListMatches.Route, createAuthedHandler(authService, controller.List))
+	router.Handle(api.GetMatch.Method, api.GetMatch.Route, createAuthedHandler(authService, controller.Get))
+	router.Handle(api.SubmitMatchCommand.Method, api.SubmitMatchCommand.Route, createAuthedHandler(authService, controller.Command))
+	router.Handle(api.GetCatalogue.Method, api.GetCatalogue.Route, createAuthedHandler(authService, controller.Catalogue))
+	router.Handle(api.EndMatch.Method, api.EndMatch.Route, createAuthedHandler(authService, controller.End))
 }
 
 // createAuthedHandler authenticates protected routes and returns JSON errors.

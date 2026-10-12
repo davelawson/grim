@@ -14,16 +14,17 @@ The `api` package contains the HTTP request and response types, including nested
 match and catalogue types. It depends only on the Go standard library. Backend
 route registration lives in `internal/server`.
 
-Each operation exposes a method and route constant, such as `api.GetMatchMethod`
-and `api.GetMatchRoute`. Routes with parameters also expose a concrete path helper:
+Each operation exposes an `Endpoint` value with `Method` and `Route` fields,
+such as `api.GetMatch.Method` and `api.GetMatch.Route`. Routes with parameters also
+expose a concrete path helper:
 
 ```go
-req, err := http.NewRequestWithContext(ctx, api.GetMatchMethod,
+req, err := http.NewRequestWithContext(ctx, api.GetMatch.Method,
     serverURL+api.GetMatchPath(matchID), nil)
 ```
 
-Use route constants directly for endpoints without parameters, such as
-`api.LoginRoute`. Parameterized route constants use server-side `:id` syntax;
+Use the `Route` field directly for endpoints without parameters, such as
+`api.Login.Route`. Parameterized routes use server-side `:id` syntax;
 clients use path helpers, which escape each ID as a URL path segment. The caller
 supplies the server origin (without a trailing slash), authentication, and HTTP
 transport configuration. Protected endpoints currently take the raw login token
@@ -73,7 +74,7 @@ import (
 )
 
 func GetMatch(ctx context.Context, client *http.Client, serverURL, token, matchID string) (*api.MatchView, error) {
-    req, err := http.NewRequestWithContext(ctx, api.GetMatchMethod,
+    req, err := http.NewRequestWithContext(ctx, api.GetMatch.Method,
         serverURL+api.GetMatchPath(matchID), nil)
     if err != nil {
         return nil, err
@@ -195,8 +196,47 @@ case-insensitively.
 
 ### Launch and end a match
 
-The owner adds two to four members (including themselves) using the existing
-lobby membership endpoints. Each member then sets their own readiness:
+Create a public lobby with `POST /lobby` and `{"name":"Friday game"}`. It
+returns `200 {"id":"…"}` and makes the authenticated creator its owner and
+first member, initially unready. All lobbies are public and hold at most four
+members; each user may belong to only one nondeleted open lobby.
+
+Browse available lobbies using authenticated `GET /lobbies/public`:
+
+```json
+{"lobbies":[{"id":"…","name":"Friday game","owner":"…","membercount":1}]}
+```
+
+Discovery includes only open, nondeleted lobbies with fewer than four members,
+ordered by ID, with no pagination. Empty results are `{"lobbies":[]}`. Users
+who already belong to an open lobby can still browse. Full lobby details,
+including roster and readiness, remain member-only.
+
+Join as the authenticated user with no request body:
+
+```sh
+curl -k -X POST 'https://localhost:8080/lobby/<lobby-id>/join' \
+  -H 'Authorization: <member-token>'
+```
+
+Joining returns `200 {"lobby":{...}}` with the current roster and readiness.
+An identical join to an open lobby already joined returns its current view,
+even when full, without clearing readiness. A new member joining clears all
+members' readiness. Owners can also add users through the existing membership
+endpoint, subject to the same capacity and open-membership limits.
+
+Creation, joining, and owner additions enforce the one-open-lobby rule.
+Conflicts return `409` with `lobby_full` or `already_in_open_lobby` in the
+standard JSON error envelope. Joining a closed lobby returns `409 lobby_closed`;
+a missing/deleted lobby returns `404 not_found`. Requests require the existing
+raw login token in `Authorization`. Membership checks and updates are atomic,
+including competing joins. Leave your current open lobby before joining or
+creating another; owners must transfer ownership or delete it before leaving.
+Launch or deletion releases members to enter another lobby while preserving
+historical memberships. Existing conflicting legacy memberships are not
+rewritten automatically. No database migration is required for this feature.
+
+Once at least two members have joined, each member sets their own readiness:
 
 ```sh
 curl -k -X PUT 'https://localhost:8080/lobby/<lobby-id>/ready' \
@@ -206,8 +246,20 @@ curl -k -X PUT 'https://localhost:8080/lobby/<lobby-id>/ready' \
 
 Changing the roster clears all readiness. Set `ready` to false to withdraw your
 own agreement. An ordinary member can leave with
-`DELETE /lobby/<lobby-id>/user/<their-user-id>`; the owner transfers ownership
-to another member through the existing lobby update before leaving.
+`DELETE /lobby/<lobby-id>/leave` with no body. The token identifies the departing
+user. Success returns 200 with no body; errors use the standard JSON envelope.
+The owner must transfer ownership to another member through the existing lobby
+update or delete the open lobby before leaving (`409 owner_must_transfer`).
+Closed lobbies return `409 lobby_closed`; missing/deleted lobbies return
+`404 not_found`. The existing `DELETE /lobby/<lobby-id>/user/<user-id>` remains
+available for owner-managed removal and explicit self-departure with its existing
+authorization. Both routes retain the lobby ID explicitly.
+
+The sibling `grimcli` repository supports the full flow through `public-lobbies`,
+`lobby`, `lobby-create`, `lobby-join`, `lobby-ready`, `lobby-launch`, `lobby-leave`,
+`lobby-remove-user`, and `lobby-delete`. Its interactive Bash wrapper keeps lobby
+and match selections separately. Launch commands use the lobby's UUID as
+`requestid`, so retrying requires no separately saved request ID.
 
 Once everyone is ready, the owner launches with a client-generated UUID request
 ID. Keep that ID to retry the same request if its response is lost:

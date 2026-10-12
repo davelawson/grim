@@ -52,23 +52,23 @@ func TestMembershipLists(t *testing.T) {
 			t.Fatalf("%s as %s: %s", path, actor, response.Body.String())
 		}
 	}
-	check(api.ListMatchesRoute, "matches", "owner", []map[string]string{{"id": "match-a", "status": "setup"}, {"id": "match-b", "status": "playing"}, {"id": "match-c", "status": "finished"}})
-	check(api.ListLobbiesRoute, "lobbies", "owner", []map[string]string{{"id": "lobby-a", "status": "open"}, {"id": "lobby-c", "status": "open"}, {"id": "lobby-match-a", "status": "closed"}})
-	check(api.ListMatchesRoute, "matches", "outsider", []map[string]string{{"id": "match-outsider", "status": "setup"}})
-	check(api.ListLobbiesRoute, "lobbies", "outsider", []map[string]string{{"id": "lobby-outsider", "status": "open"}})
-	check(api.ListLobbiesRoute, "lobbies", "member", []map[string]string{{"id": "lobby-a", "status": "open"}})
+	check(api.ListMatches.Route, "matches", "owner", []map[string]string{{"id": "match-a", "status": "setup"}, {"id": "match-b", "status": "playing"}, {"id": "match-c", "status": "finished"}})
+	check(api.ListLobbies.Route, "lobbies", "owner", []map[string]string{{"id": "lobby-a", "status": "open"}, {"id": "lobby-c", "status": "open"}, {"id": "lobby-match-a", "status": "closed"}})
+	check(api.ListMatches.Route, "matches", "outsider", []map[string]string{{"id": "match-outsider", "status": "setup"}})
+	check(api.ListLobbies.Route, "lobbies", "outsider", []map[string]string{{"id": "lobby-outsider", "status": "open"}})
+	check(api.ListLobbies.Route, "lobbies", "member", []map[string]string{{"id": "lobby-a", "status": "open"}})
 	for _, actor := range []string{"third", "admin"} {
-		check(api.ListMatchesRoute, "matches", actor, []map[string]string{})
-		check(api.ListLobbiesRoute, "lobbies", actor, []map[string]string{})
+		check(api.ListMatches.Route, "matches", actor, []map[string]string{})
+		check(api.ListLobbies.Route, "lobbies", actor, []map[string]string{})
 	}
-	for _, path := range []string{api.ListMatchesRoute, api.ListLobbiesRoute} {
+	for _, path := range []string{api.ListMatches.Route, api.ListLobbies.Route} {
 		for _, actor := range []string{"", "invalid"} {
 			f.call(http.StatusUnauthorized, http.MethodGet, path, actor, "")
 		}
 	}
 	// Database failures use the established generic API error envelope.
 	f.exec("drop table players")
-	failure := f.call(http.StatusInternalServerError, api.ListMatchesMethod, api.ListMatchesRoute, "owner", "")
+	failure := f.call(http.StatusInternalServerError, api.ListMatches.Method, api.ListMatches.Route, "owner", "")
 	var result api.ErrorResponse
 	if err := json.Unmarshal(failure.Body.Bytes(), &result); err != nil || result.Error == nil || result.Error.Code != "internal_error" {
 		t.Fatalf("unexpected failure: %s", failure.Body.String())

@@ -23,13 +23,14 @@ func NewController(lobbyService *ServiceFacade) *Controller {
 }
 
 // @Summary		Creates a new lobby
-// @Description	Creates a new lobby, with the requesting user as the owner of the lobby.
+// @Description Creates a public lobby with the requesting user as owner and member. Requires no existing open lobby membership.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
 // @Produce		json
 // @Param			request	body		api.CreateLobbyRequest	true	"Request Object"
 // @Success		200		{object}	api.CreateLobbyResponse
+// @Failure 409,500 {object} api.ErrorResponse
 // @Router			/lobby [post]
 func (lc *Controller) CreateLobby(c *gin.Context) {
 	req := api.CreateLobbyRequest{}
@@ -42,7 +43,7 @@ func (lc *Controller) CreateLobby(c *gin.Context) {
 	reqUser := reqUserAny.(*model.User)
 	id, err := lc.lobbyService.CreateLobby(req.Name, reqUser.Id)
 	if err != nil {
-		c.String(http.StatusInternalServerError, "Something went wrong.  Unable to create lobby. %v", err)
+		util.WriteAPIError(c, err)
 		return
 	}
 	resp := &api.CreateLobbyResponse{Id: *id}
@@ -130,13 +131,14 @@ func (lc *Controller) UpdateLobby(c *gin.Context) {
 }
 
 // @Summary		Add User to Lobby
-// @Description    Add an existing User to an existing Lobby
+// @Description Owner only. Add an existing user to an open lobby with a free slot; the user must not belong to another open lobby.
 // @Security ApiKeyAuth
 // @Tags			lobby
 // @Accept			json
 // @Param			request	body		api.AddUserToLobbyRequest true	"Request Object"
 // @Param			id path string true "Lobby Id"
 // @Success		200
+// @Failure 409,500 {object} api.ErrorResponse
 // @Router			/lobby/{id}/user [post]
 func (lc *Controller) AddUserToLobby(c *gin.Context) {
 	lobbyId := c.Param("id")
@@ -249,4 +251,50 @@ func (lc *Controller) Launch(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusCreated, api.MatchResponse{Match: view})
+}
+
+// Join adds the authenticated user to a public open lobby.
+// @Summary Join a public lobby
+// @Description Requires a free slot and no other open lobby membership. Repeated joins return the current lobby without clearing readiness.
+// @Security ApiKeyAuth
+// @Tags lobby
+// @Produce json
+// @Param id path string true "Lobby ID"
+// @Success 200 {object} api.GetLobbyResponse
+// @Failure 401,404,409,500 {object} api.ErrorResponse
+// @Router /lobby/{id}/join [post]
+func (lc *Controller) Join(c *gin.Context) {
+	actor := c.MustGet("reqUser").(*model.User)
+	lobby, err := lc.lobbyService.Join(c.Param("id"), actor.Id)
+	if err != nil {
+		util.WriteAPIError(c, err)
+		return
+	}
+	c.JSON(http.StatusOK, api.GetLobbyResponse{Lobby: *lobby})
+}
+
+// Leave removes only the authenticated user using the transactional removal flow.
+// @Summary Leave a lobby
+// @Description The owner must transfer ownership before leaving. Departure clears remaining members' readiness. Closed or deleted lobbies reject departure.
+// @Security ApiKeyAuth
+// @Tags lobby
+// @Produce json
+// @Param id path string true "Lobby ID"
+// @Success 200
+// @Failure 401,403,404,409,500 {object} api.ErrorResponse
+// @Router /lobby/{id}/leave [delete]
+func (lc *Controller) Leave(c *gin.Context) {
+	actor := c.MustGet("reqUser").(*model.User)
+	err := lc.lobbyService.RemoveUserFromLobby(c.Param("id"), actor.Id, actor.Id)
+	switch {
+	case errors.Is(err, RemoveUserFromLobbyErrors.LobbyNotFound), errors.Is(err, RemoveUserFromLobbyErrors.UserNotInLobby):
+		err = util.ErrNotFound
+	case errors.Is(err, RemoveUserFromLobbyErrors.NotOwner):
+		err = util.ErrForbidden
+	}
+	if err != nil {
+		util.WriteAPIError(c, err)
+		return
+	}
+	c.Status(http.StatusOK)
 }

@@ -62,3 +62,7 @@ func (sf *ServiceFacade) SetReady(id, requestorId string, ready bool) (*api.Lobb
 func (sf *ServiceFacade) Launch(id, actorID, requestID string) (*game.View, error) {
 	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Launch(tx, id, actorID, requestID) })()
 }
+
+func (sf *ServiceFacade) Join(id, actorID string) (*api.Lobby, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.Join(tx, id, actorID) })()
+}

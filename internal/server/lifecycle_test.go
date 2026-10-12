@@ -340,7 +340,12 @@ func TestLaunchValidationAndAuthorization(t *testing.T) {
 	f.call(404, "GET", "/match/missing", "owner", "")
 	f.call(404, "POST", "/admin/match/missing/end", "admin", "")
 	for _, size := range []int{1, 5} {
-		id := f.createLobby(size)
+		f := newLifecycleFixture(t)
+		id := f.createLobby(1)
+		// Legacy oversized rosters must still be rejected by launch.
+		for _, actor := range roster[1:size] {
+			f.exec("insert into lobby_users(lobby_id,user_id) values(?,?)", id, f.ids[actor])
+		}
 		f.ready(id, size)
 		w := f.call(409, "POST", "/lobby/"+id+"/launch", "owner", launchBody(uuid.NewString()))
 		if !strings.Contains(w.Body.String(), "invalid_roster_size") {
