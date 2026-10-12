@@ -110,10 +110,6 @@ func (s *State) View(actorID string) *View {
 		turn := *s.Turn
 		view.Turn = &turn
 	}
-	if s.Status == "setup" {
-		offers := OpeningOffers()
-		view.DraftOffers = &offers
-	}
 	for id, wizard := range s.Wizards {
 		public := WizardView{DraftComplete: wizard.Draft.Step == "complete"}
 		if s.Turn != nil {

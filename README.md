@@ -272,7 +272,8 @@ curl -k -X POST 'https://localhost:8080/lobby/<lobby-id>/launch' \
 
 Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
 `status`, `revision`, `participants`, `ring`, `outcome`, `rulesversion`,
-`catalogueversion`, `wizards`, `turn`, `draftoffers`, and the owner's `you` view.
+`catalogueversion`, `wizards`, `turn`, and the owner's `you` view. Match responses
+do not contain draft options.
 The match starts in setup at revision 0 with an empty Ring, null turn and
 outcome, and pinned `opening-v1` rules/catalogue. The lobby closes permanently
 and points to the match. Identical retries
@@ -282,19 +283,33 @@ Authenticated participants fetch current state with `GET /match/<match-id>`.
 
 ### Draft starting cards
 
-Participants fetch the pinned opening definitions and every draft offer with
+Participants fetch the pinned opening card definitions with
 `GET /match/<match-id>/catalogue`, which returns `{"catalogue":{...}}`. Cards
 have stable design IDs and structured costs, requirements, Expertise, Affinity,
 income, persistence, disposal, resource values, and typed effect identifiers.
 The catalogue contains 31 opening designs, including four clearly marked inert
-victory placeholders; it does not include rumours or execute card effects.
+victory placeholders; it does not include rumours, identify draft offers, or
+execute card effects. Definitions remain available before and during drafting.
 
-Each participant makes three irreversible choices independently, in order:
-`choose_chantry`, `choose_victory_path`, then `choose_minion`. Each command uses
-the same endpoint and the participant's own authentication token:
+Begin or resume your draft with your own authentication token:
 
 ```sh
-curl -k -X POST 'https://localhost:8080/match/<match-id>/commands' \
+curl -k 'https://localhost:8080/match/<match-id>/draft' \
+  -H 'Authorization: <participant-token>'
+```
+
+This read-only request returns `200 {"draft":{"step":"chantry"},"cards":[...],"revision":0,"status":"setup"}`
+for a new draft. `cards` contains full card definitions for the current step
+only: first Chantries, then victory-path cards, then the chosen Chantry's
+Starting Minions. `draft` also contains your locked selections when resuming.
+Fetching options does not change the match revision or create a receipt.
+
+Each participant makes three irreversible choices independently, in order:
+`choose_chantry`, `choose_victory_path`, then `choose_minion`. Submit each choice
+to the same draft path with the participant's own authentication token:
+
+```sh
+curl -k -X POST 'https://localhost:8080/match/<match-id>/draft' \
   -H 'Authorization: <participant-token>' -H 'Content-Type: application/json' \
   -d '{"requestid":"9493d7de-393b-49e2-a13b-bc41dc33a3de","expectedrevision":0,"type":"choose_chantry","cardid":"chantry_fire"}'
 ```
@@ -305,11 +320,16 @@ of the offered placeholders), then a Fire offer such as `bastian_redhand`.
 All five victory paths are available with every Chantry. Choosing Domination
 does not restrict which offered Minion can be selected. Drafting has no payments.
 
-Commands return `200 {"match":{...}}`. The required nonnegative integer
+Selections use `api.DraftPickRequest` and return `200` with `api.DraftResponse`:
+`{"draft":{...},"cards":[...],"revision":1,"status":"setup"}`. Each accepted
+choice advances your draft and returns the next step's options. The former
+draft-only `/match/<match-id>/commands` route has been removed.
+
+The required nonnegative integer
 `expectedrevision` refers to the whole match, so another participant's choice
 may cause `409 stale_revision`; refresh before submitting at the new revision.
 Retry a lost response using exactly the same request ID and input: it replays
-the original participant view even if the match has since advanced. Changed
+the original draft progress and options even if the match has since advanced. Changed
 input under an accepted request ID returns `409 request_id_conflict`.
 Malformed or unknown command fields return `400 invalid_request`; a card not
 offered for that step returns `400 invalid_choice`; attempting the wrong step
@@ -318,7 +338,9 @@ game start return `409 draft_closed`. Rejected requests do not change state or
 create receipts. UUID casing, whitespace, and JSON key order do not affect retries.
 
 The `you.draft` object shows only the caller's step and selected design IDs.
-Other wizards expose only `draftcomplete` while setup is pending. Choices have
+Other wizards expose only `draftcomplete` while setup is pending. A completed
+player's draft endpoint returns `step:"complete"` and `cards:[]`, with status
+`setup` while waiting for others or `playing` once the game starts. Choices have
 unlimited copies, no deadline, and no automatic picks. The final Minion choice
 atomically creates a random Ring, gives each wizard 3 Integrity and a Chantry
 in play, independently shuffles their ten-card deck, and deals five cards.
@@ -332,7 +354,11 @@ caller's cards; `you.drawpile` lists their remaining cards sorted by instance
 ID, never in draw order. Other draft selections remain private. Card instances
 identify their design, owner, location, and exhaustion state separately from
 the shared definition. A deleted match returns 404 for lookup, catalogue,
-and command submission, including accepted-command retries.
+and both draft methods, including accepted-choice retries.
+
+This draft API change does not require a database reset or snapshot migration.
+Existing opening drafts can resume, and saved command and launch receipts
+remain usable; legacy offer lists are omitted from their responses.
 
 ### Administrative termination
 

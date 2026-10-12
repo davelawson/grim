@@ -14,7 +14,13 @@ const (
 type Effect = api.Effect
 type CardDesign = api.CardDesign
 type Catalogue = api.Catalogue
-type Offers = api.Offers
+
+// Offers is the engine's opening menu, separate from public card definitions.
+type Offers struct {
+	Chantries    []string
+	VictoryPaths []string
+	Minions      map[string][]string
+}
 
 const (
 	EffectChantryIncome    = api.EffectChantryIncome
@@ -45,7 +51,7 @@ func cloneStats(stats map[string]int) map[string]int { return maps.Clone(stats) 
 
 // OpeningCatalogue returns fresh definitions so callers cannot modify shared rules.
 func OpeningCatalogue() *Catalogue {
-	c := &Catalogue{RulesVersion: OpeningRulesVersion, CatalogueVersion: OpeningCatalogueVersion, DraftOffers: OpeningOffers()}
+	c := &Catalogue{RulesVersion: OpeningRulesVersion, CatalogueVersion: OpeningCatalogueVersion}
 	add := func(id, name, category string, effects ...Effect) *CardDesign {
 		c.Cards = append(c.Cards, CardDesign{ID: id, Name: name, Categories: []string{category},
 			Cost: map[string]int{}, PlayRequirements: map[string]int{}, Expertise: map[string]int{},

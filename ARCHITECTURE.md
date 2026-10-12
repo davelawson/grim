@@ -143,7 +143,8 @@ not automatically repaired. This feature requires no schema change.
 | Set own readiness | `PUT /lobby/:id/ready` | `{"ready":true}` or `{"ready":false}` | 200 with `lobby` |
 | Launch once | `POST /lobby/:id/launch` | `{"requestid":"<UUID>"}` | 201 with `match` |
 | Get participant view | `GET /match/:id` | No body | 200 with `match` |
-| Choose opening card | `POST /match/:id/commands` | Request ID, expected revision, type, card ID | 200 with `match` |
+| Get current draft options | `GET /match/:id/draft` | No body | 200 with `draft`, `cards`, `revision`, `status` |
+| Choose opening card | `POST /match/:id/draft` | Request ID, expected revision, type, card ID | 200 with `draft`, `cards`, `revision`, `status` |
 | Get pinned opening catalogue | `GET /match/:id/catalogue` | No body | 200 with `catalogue` |
 | Administrative termination | `POST /admin/match/:id/end` | No body or expected revision | 204, no body |
 
@@ -183,7 +184,7 @@ there is no automatic upgrade or snapshot migration.
 
 The participant view contains `id`, `name`, `lobbyid`, `status`, `revision`,
 `participants`, `ring`, nullable `outcome`, pinned versions, `wizards`, `turn`,
-setup `draftoffers`, and the caller's private `you` object. Participants and Ring entries
+and the caller's private `you` object, without draft offers. Participants and Ring entries
 are user IDs. Launch inherits the lobby name and starts at `status:"setup"`,
 revision 0, and null outcome. Views never include the private snapshot, seed,
 generator state, or administrator flag. Administrators have no extra lookup
@@ -195,14 +196,22 @@ Each wizard independently locks a Chantry, victory-path card, then an offered
 Minion using explicit `choose_chantry`, `choose_victory_path`, and `choose_minion`
 types. The envelope contains canonical UUID `requestid`, required nonnegative
 `expectedrevision`, `type`, and design `cardid`; unknown fields and trailing JSON
-are rejected. All offers are visible before choosing, copies are unlimited,
-and selections cannot be revised. The caller sees their own draft; rivals see
+are rejected. `GET /match/:id/draft` reveals full card designs for only the
+caller's current step, without changing state or revision. `POST` to the same
+path locks a choice and returns the next step's options. Both return
+`draft`, `cards`, `revision`, and match `status`. Completed drafts return
+`step:"complete"` and `cards:[]`, while other players finish or after game start.
+Copies are unlimited, and selections cannot be revised. The caller sees their own draft; rivals see
 only completion flags. There are no deadlines, automatic picks, or readiness
 vote after drafting.
 
 Command receipts are scoped to match, actor, and request ID. Membership and
 deletion are checked before receipt lookup; equivalent typed input replays its
-original view before revision or snapshot validation. Changed input conflicts.
+original draft progress and options before revision or snapshot validation.
+Receipts continue storing participant views; draft responses are projected
+from those recorded views instead of current state. Legacy `draftoffers`
+fields are ignored on receipt loading, including launch retries. This API
+change requires no snapshot or receipt migration. Changed input conflicts.
 New commands require the current global revision. Every accepted command saves
 its new snapshot, metadata, incremented revision, and response receipt in one
 transaction. Immediate SQLite transactions serialize writers; the snapshot
@@ -219,10 +228,12 @@ stable and never encode draw order. The first Ring wizard starts turn 1 at
 `start`/`recovery`, and status becomes `playing`; no turn step has executed.
 Turn execution and card-effect handlers are deferred.
 
-The opening catalogue contains 31 designs and shared draft offers, with typed
+The opening catalogue contains 31 designs, with typed
 effect identifiers and structured printed properties. Four victory cards are
 explicit inert placeholders. Catalogue access applies the same participant,
-deletion, metadata, and version checks as lookup. Public playing views contain
+deletion, metadata, and version checks as lookup. Definitions remain available
+before and during drafting, but the catalogue does not identify draft offers.
+Only the dedicated draft endpoint reveals the current offer list. Public playing views contain
 Integrity, Affinities, victory progress, in-play cards, ordered discards, and
 pile counts. The caller also sees their hand and draw-pile contents sorted by
 instance ID. Draw order and other wizards' remaining selections stay private.
@@ -325,10 +336,11 @@ sequence and acceptance scenarios below define that broader work.
 - The initial API uses HTTP commands and polling for current player views.
   Views respect hidden information and identify who must act next; push
   delivery is deferred.
-- Gameplay commands use `POST /match/:id/commands` with a typed payload,
+- Future gameplay commands use `POST /match/:id/commands` with a typed payload,
   request ID, and expected revision. `GET /match/:id` returns the requesting
   participant's view. Readiness and launch remain lobby operations; launch
-  must also be atomic and safe to retry.
+  must also be atomic and safe to retry. The implemented opening choices use
+  `POST /match/:id/draft`; the former draft-only `/commands` route is removed.
 - Voting uses separate endpoints and payloads: `POST /match/:id/votes` opens
   a round without casting a ballot; `POST /match/:id/votes/:roundId/ballots`
   submits a yes/no ballot. Opening a round and voting are separate requests,

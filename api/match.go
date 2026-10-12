@@ -5,11 +5,19 @@ type MatchResponse struct {
 	Match *MatchView `json:"match"`
 }
 
-type CommandRequest struct {
+type DraftPickRequest struct {
 	RequestID        string `json:"requestid" binding:"required" format:"uuid"`
 	ExpectedRevision *int64 `json:"expectedrevision" binding:"required" minimum:"0"`
 	Type             string `json:"type" binding:"required" enums:"choose_chantry,choose_victory_path,choose_minion"`
 	CardID           string `json:"cardid" binding:"required"`
+}
+
+// DraftResponse contains only the caller's progress and current draft options.
+type DraftResponse struct {
+	Draft    Draft        `json:"draft"`
+	Cards    []CardDesign `json:"cards"`
+	Revision int64        `json:"revision"`
+	Status   string       `json:"status"`
 }
 
 // MatchView excludes authoritative private state and random generator data.
@@ -26,7 +34,6 @@ type MatchView struct {
 	CatalogueVersion string                `json:"catalogueversion"`
 	Wizards          map[string]WizardView `json:"wizards"`
 	Turn             *Turn                 `json:"turn"`
-	DraftOffers      *Offers               `json:"draftoffers,omitempty"`
 	You              *PrivateView          `json:"you,omitempty"`
 }
 

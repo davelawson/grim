@@ -24,12 +24,30 @@ func (f *lifecycleFixture) current(id, actor string) *game.View {
 	return matchView(f.t, f.call(200, "GET", "/match/"+id, actor, ""))
 }
 
+func draftResult(t *testing.T, response *httptest.ResponseRecorder) *api.DraftResponse {
+	t.Helper()
+	var draft api.DraftResponse
+	if err := json.Unmarshal(response.Body.Bytes(), &draft); err != nil {
+		t.Fatal(err)
+	}
+	if draft.Draft.Step == "" || draft.Cards == nil {
+		t.Fatalf("missing draft progress or cards: %s", response.Body.String())
+	}
+	return &draft
+}
+
 func (f *lifecycleFixture) choose(id, actor, kind, card string) (*game.View, string, string) {
 	f.t.Helper()
 	requestID := uuid.NewString()
-	body := commandBody(requestID, f.current(id, actor).Revision, kind, card)
-	w := f.call(200, "POST", "/match/"+id+"/commands", actor, body)
-	return matchView(f.t, w), body, w.Body.String()
+	current := draftResult(f.t, f.call(200, "GET", "/match/"+id+"/draft", actor, ""))
+	body := commandBody(requestID, current.Revision, kind, card)
+	w := f.call(200, "POST", "/match/"+id+"/draft", actor, body)
+	result := draftResult(f.t, w)
+	view := f.current(id, actor)
+	if result.Draft != view.You.Draft || result.Revision != view.Revision || result.Status != view.Status {
+		f.t.Fatal("draft submission differs from current participant progress")
+	}
+	return view, body, w.Body.String()
 }
 
 func (f *lifecycleFixture) draft(id, actor, chantry, path, minion string) *game.View {
@@ -52,6 +70,82 @@ func errorCode(t *testing.T, w *httptest.ResponseRecorder, want string) {
 	}
 }
 
+func assertDraftCards(t *testing.T, result *api.DraftResponse, step string, ids []string) {
+	t.Helper()
+	if result.Draft.Step != step || len(result.Cards) != len(ids) || result.Cards == nil {
+		t.Fatalf("wrong %s options: %+v", step, result)
+	}
+	catalogue := game.OpeningCatalogue()
+	for i, id := range ids {
+		card, ok := catalogue.Card(id)
+		if !ok || !reflect.DeepEqual(result.Cards[i], card) {
+			t.Fatalf("expected full definition for %s, got %+v", id, result.Cards[i])
+		}
+	}
+}
+
+func TestDraftOptionsAreRevealedOneStepAtATime(t *testing.T) {
+	for _, example := range []struct {
+		chantry string
+		minions []string
+	}{
+		{"chantry_fire", []string{"vera_coalheart", "bastian_redhand", "orla_nine_cinders"}},
+		{"chantry_earth", []string{"hedda_stonewake", "leontine_grange", "rurik_ironvale"}},
+		{"chantry_air", []string{"mina_cloudscript", "garrick_stormward", "elsie_many_tongues"}},
+		{"chantry_water", []string{"nadia_rivermark", "sister_agnes_reed", "tamsin_lockward"}},
+	} {
+		t.Run(example.chantry, func(t *testing.T) {
+			f := newLifecycleFixture(t)
+			lobbyID := f.createLobby(2)
+			f.ready(lobbyID, 2)
+			launch, _, launchResponse := f.launch(lobbyID)
+			path := api.GetDraftPath(launch.ID)
+			before, _ := f.saved(launch.ID)
+			initial := f.call(200, "GET", path, "owner", "")
+			assertDraftCards(t, draftResult(t, initial), "chantry", []string{"chantry_fire", "chantry_earth", "chantry_air", "chantry_water"})
+			after, _ := f.saved(launch.ID)
+			if !slices.Equal(before, after) || f.count("command_receipts") != 0 {
+				t.Fatal("opening draft changed saved state")
+			}
+			for _, response := range []string{
+				launchResponse,
+				f.call(200, "GET", api.GetMatchPath(launch.ID), "owner", "").Body.String(),
+				f.call(200, "GET", api.GetCataloguePath(launch.ID), "owner", "").Body.String(),
+			} {
+				if strings.Contains(response, `"draftoffers"`) {
+					t.Fatal("draft offers exposed outside draft endpoint")
+				}
+			}
+			f.call(404, "POST", "/match/"+launch.ID+"/commands", "owner", commandBody(uuid.NewString(), 0, "choose_chantry", example.chantry))
+			_, _, response := f.choose(launch.ID, "owner", "choose_chantry", example.chantry)
+			var result api.DraftResponse
+			if err := json.Unmarshal([]byte(response), &result); err != nil {
+				t.Fatal(err)
+			}
+			assertDraftCards(t, &result, "victory_path", []string{"subjugate_rival", "victory_arcane", "victory_influence", "victory_council", "victory_fame"})
+			f.choose(launch.ID, "owner", "choose_victory_path", "subjugate_rival")
+			f.restart()
+			options := draftResult(t, f.call(200, "GET", path, "owner", ""))
+			assertDraftCards(t, options, "minion", example.minions)
+			if options.Draft.Chantry != example.chantry || options.Draft.VictoryPath != "subjugate_rival" {
+				t.Fatal("resumed draft lost selections")
+			}
+			// Another player's draft progress does not advance or reveal our picks.
+			other := draftResult(t, f.call(200, "GET", path, "member", ""))
+			assertDraftCards(t, other, "chantry", []string{"chantry_fire", "chantry_earth", "chantry_air", "chantry_water"})
+			if other.Draft.Chantry != "" || other.Draft.VictoryPath != "" || other.Draft.Minion != "" {
+				t.Fatal("another player's draft selections leaked")
+			}
+			completed, _, _ := f.choose(launch.ID, "owner", "choose_minion", example.minions[0])
+			assertDraftCards(t, draftResult(t, f.call(200, "GET", path, "owner", "")), "complete", nil)
+			if completed.Status != "setup" || !completed.Wizards[f.ids["owner"]].DraftComplete || completed.Wizards[f.ids["member"]].DraftComplete {
+				t.Fatal("draft completion did not mark only the caller ready")
+			}
+			errorCode(t, f.call(409, "POST", path, "owner", commandBody(uuid.NewString(), completed.Revision, "choose_minion", example.minions[1])), "draft_sequence")
+		})
+	}
+}
+
 func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 	for _, size := range []int{2, 3, 4} {
 		t.Run(fmt.Sprint(size), func(t *testing.T) {
@@ -65,7 +159,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			if err := json.Unmarshal(catalogueResponse.Body.Bytes(), &catalogue); err != nil {
 				t.Fatal(err)
 			}
-			if catalogue.Catalogue.CatalogueVersion != launch.CatalogueVersion || len(catalogue.Catalogue.Cards) != 31 || !reflect.DeepEqual(catalogue.Catalogue.DraftOffers, *launch.DraftOffers) {
+			if catalogue.Catalogue.CatalogueVersion != launch.CatalogueVersion || len(catalogue.Catalogue.Cards) != 31 {
 				t.Fatal("wrong pinned catalogue")
 			}
 			for _, actor := range roster[:size-1] {
@@ -100,7 +194,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 					t.Fatal("wrong public start state")
 				}
 			}
-			if len(view.You.Hand) != 5 || len(view.You.DrawPile) != 5 || view.DraftOffers != nil {
+			if len(view.You.Hand) != 5 || len(view.You.DrawPile) != 5 {
 				t.Fatal("incorrect private start state")
 			}
 			// Opponent selections remain absent even when drafting completes.
@@ -116,11 +210,15 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			if len(state.Wizards) != size || reflect.DeepEqual(state.Random, initial.Random) || f.count("command_receipts") != size*3 {
 				t.Fatal("bad persisted start")
 			}
+			finalMatch := f.call(200, "GET", "/match/"+view.ID, actor, "").Body.String()
 			f.restart()
-			if f.call(200, "GET", "/match/"+view.ID, actor, "").Body.String() != finalResponse {
+			if f.call(200, "GET", "/match/"+view.ID, actor, "").Body.String() != finalMatch {
 				t.Fatal("restart changed participant view")
 			}
-			if f.call(200, "POST", "/match/"+view.ID+"/commands", actor, finalBody).Body.String() != finalResponse {
+			if f.call(200, "GET", "/match/"+view.ID+"/draft", actor, "").Body.String() != finalResponse {
+				t.Fatal("restart changed completed draft")
+			}
+			if f.call(200, "POST", "/match/"+view.ID+"/draft", actor, finalBody).Body.String() != finalResponse {
 				t.Fatal("final retry changed response")
 			}
 			after, _ := f.saved(view.ID)
@@ -131,7 +229,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 				t.Fatal("drafting changed launch receipt")
 			}
 			f.call(200, "GET", "/match/"+view.ID+"/catalogue", actor, "")
-			errorCode(t, f.call(409, "POST", "/match/"+view.ID+"/commands", actor, commandBody(uuid.NewString(), view.Revision, "choose_minion", "nadia_rivermark")), "draft_closed")
+			errorCode(t, f.call(409, "POST", "/match/"+view.ID+"/draft", actor, commandBody(uuid.NewString(), view.Revision, "choose_minion", "nadia_rivermark")), "draft_closed")
 		})
 	}
 }
@@ -141,17 +239,20 @@ func TestDraftCommandValidationAuthorizationAndRetries(t *testing.T) {
 	id := f.createLobby(2)
 	f.ready(id, 2)
 	view, _, _ := f.launch(id)
-	path := "/match/" + view.ID + "/commands"
+	path := "/match/" + view.ID + "/draft"
 	valid := commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire")
 	for _, actor := range []string{"", "invalid"} {
 		f.call(401, "POST", path, actor, valid)
+		f.call(401, "GET", path, actor, "")
 		f.call(401, "GET", "/match/"+view.ID+"/catalogue", actor, "")
 	}
 	for _, actor := range []string{"outsider", "admin"} {
 		f.call(403, "POST", path, actor, valid)
+		f.call(403, "GET", path, actor, "")
 		f.call(403, "GET", "/match/"+view.ID+"/catalogue", actor, "")
 	}
-	f.call(404, "POST", "/match/missing/commands", "owner", valid)
+	f.call(404, "POST", "/match/missing/draft", "owner", valid)
+	f.call(404, "GET", "/match/missing/draft", "owner", "")
 	f.call(404, "GET", "/match/missing/catalogue", "owner", "")
 	for _, body := range []string{"", "null", `{}`, `[]`, valid + valid,
 		strings.Replace(valid, `"expectedrevision":0,`, "", 1),
@@ -186,7 +287,7 @@ func TestDraftCommandValidationAuthorizationAndRetries(t *testing.T) {
 	f.choose(view.ID, "owner", "choose_victory_path", "subjugate_rival")
 	errorCode(t, f.call(400, "POST", path, "owner", commandBody(uuid.NewString(), 3, "choose_minion", "nadia_rivermark")), "invalid_choice")
 	// Whitespace, key ordering and UUID casing do not change canonical input.
-	var reordered api.CommandRequest
+	var reordered api.DraftPickRequest
 	if err := json.Unmarshal([]byte(valid), &reordered); err != nil {
 		t.Fatal(err)
 	}
@@ -196,13 +297,14 @@ func TestDraftCommandValidationAuthorizationAndRetries(t *testing.T) {
 	}
 	// Another actor's identical request ID is independent and cannot replay owner data.
 	body = commandBody(reordered.RequestID, 3, "choose_victory_path", "victory_council")
-	other := matchView(t, f.call(200, "POST", path, "member", body))
-	if other.You.Draft.Chantry != "chantry_air" || other.You.Draft.VictoryPath != "victory_council" {
+	other := draftResult(t, f.call(200, "POST", path, "member", body))
+	if other.Draft.Chantry != "chantry_air" || other.Draft.VictoryPath != "victory_council" {
 		t.Fatal("receipt leaked another actor's view")
 	}
 	f.call(204, "POST", "/admin/match/"+view.ID+"/end", "admin", "")
 	for _, actor := range []string{"owner", "outsider", "admin"} {
 		f.call(404, "POST", path, actor, valid)
+		f.call(404, "GET", path, actor, "")
 		f.call(404, "GET", "/match/"+view.ID+"/catalogue", actor, "")
 	}
 }
@@ -227,7 +329,7 @@ func TestDraftAtomicRollbackIncludingFinalStart(t *testing.T) {
 			}
 			f.exec(trigger)
 			body := commandBody(uuid.NewString(), 5, "choose_minion", "elsie_many_tongues")
-			w := f.call(500, "POST", "/match/"+view.ID+"/commands", "member", body)
+			w := f.call(500, "POST", "/match/"+view.ID+"/draft", "member", body)
 			if strings.Contains(w.Body.String(), "private") {
 				t.Fatal("exposed internal failure")
 			}
@@ -236,7 +338,7 @@ func TestDraftAtomicRollbackIncludingFinalStart(t *testing.T) {
 				t.Fatal("failed final command partially committed")
 			}
 			f.exec("drop trigger fail")
-			f.call(200, "POST", "/match/"+view.ID+"/commands", "member", body)
+			f.call(200, "POST", "/match/"+view.ID+"/draft", "member", body)
 			_, started := f.saved(view.ID)
 			if !reflect.DeepEqual(expected, started) {
 				t.Fatal("rollback changed random outcome or cards")
@@ -266,7 +368,7 @@ func TestConcurrentDraftCommandsAndFinalRetries(t *testing.T) {
 				wg.Add(1)
 				go func(input string) {
 					defer wg.Done()
-					responses <- f.request("POST", "/match/"+view.ID+"/commands", "member", input)
+					responses <- f.request("POST", "/match/"+view.ID+"/draft", "member", input)
 				}(input)
 			}
 			wg.Wait()
@@ -307,7 +409,7 @@ func TestConcurrentDraftCommandsAndFinalRetries(t *testing.T) {
 		wg.Add(1)
 		go func(actor string) {
 			defer wg.Done()
-			responses <- f.request("POST", "/match/"+view.ID+"/commands", actor, commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire"))
+			responses <- f.request("POST", "/match/"+view.ID+"/draft", actor, commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire"))
 		}(actor)
 	}
 	wg.Wait()
@@ -354,11 +456,11 @@ func TestDraftUnsupportedSnapshotsAndReceiptRecovery(t *testing.T) {
 			t.Fatal(err)
 		}
 		f.exec("update matches set snapshot = ? where id = ?", string(data), view.ID)
-		for _, path := range []string{"", "/catalogue"} {
+		for _, path := range []string{"", "/catalogue", "/draft"} {
 			errorCode(t, f.call(409, "GET", "/match/"+view.ID+path, "owner", ""), "unsupported_state")
 		}
-		errorCode(t, f.call(409, "POST", "/match/"+view.ID+"/commands", "owner", commandBody(uuid.NewString(), 1, "choose_victory_path", "subjugate_rival")), "unsupported_state")
-		if f.call(200, "POST", "/match/"+view.ID+"/commands", "owner", body).Body.String() != response {
+		errorCode(t, f.call(409, "POST", "/match/"+view.ID+"/draft", "owner", commandBody(uuid.NewString(), 1, "choose_victory_path", "subjugate_rival")), "unsupported_state")
+		if f.call(200, "POST", "/match/"+view.ID+"/draft", "owner", body).Body.String() != response {
 			t.Fatal("unsupported state broke existing receipt")
 		}
 		var after []byte
@@ -369,6 +471,63 @@ func TestDraftUnsupportedSnapshotsAndReceiptRecovery(t *testing.T) {
 			t.Fatal("unsupported snapshot rewritten")
 		}
 		f.call(204, "POST", "/admin/match/"+view.ID+"/end", "admin", "")
-		f.call(404, "POST", "/match/"+view.ID+"/commands", "owner", body)
+		f.call(404, "POST", "/match/"+view.ID+"/draft", "owner", body)
 	}
+}
+
+func TestLegacyDraftAndLaunchReceiptsRemainUsable(t *testing.T) {
+	f := newLifecycleFixture(t)
+	lobbyID := f.createLobby(2)
+	f.ready(lobbyID, 2)
+	view, launchID, launchResponse := f.launch(lobbyID)
+	_, body, accepted := f.choose(view.ID, "owner", "choose_chantry", "chantry_fire")
+	var request api.DraftPickRequest
+	if err := json.Unmarshal([]byte(body), &request); err != nil {
+		t.Fatal(err)
+	}
+	// Old receipts stored match views containing the complete shared menu.
+	addLegacyOffers := func(data string) string {
+		t.Helper()
+		var fields map[string]json.RawMessage
+		if err := json.Unmarshal([]byte(data), &fields); err != nil {
+			t.Fatal(err)
+		}
+		fields["draftoffers"] = json.RawMessage(`{"chantries":["legacy-offer"],"victorypaths":[],"minions":{}}`)
+		encoded, err := json.Marshal(fields)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(encoded)
+	}
+	var commandReceipt, launchReceipt string
+	if err := f.db.QueryRow("select response from command_receipts where request_id = ?", request.RequestID).Scan(&commandReceipt); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.db.QueryRow("select response from launch_receipts where request_id = ?", launchID).Scan(&launchReceipt); err != nil {
+		t.Fatal(err)
+	}
+	commandReceipt, launchReceipt = addLegacyOffers(commandReceipt), addLegacyOffers(launchReceipt)
+	f.exec("update command_receipts set response = ? where request_id = ?", commandReceipt, request.RequestID)
+	f.exec("update launch_receipts set response = ? where request_id = ?", launchReceipt, launchID)
+	f.choose(view.ID, "owner", "choose_victory_path", "subjugate_rival")
+	before, _ := f.saved(view.ID)
+	f.restart()
+	if response := f.call(200, "POST", api.SubmitDraftPath(view.ID), "owner", body).Body.String(); response != accepted {
+		t.Fatal("legacy command receipt did not replay original step and options")
+	}
+	if response := f.call(201, "POST", api.LaunchMatchPath(lobbyID), "owner", launchBody(launchID)).Body.String(); response != launchResponse || strings.Contains(response, "draftoffers") {
+		t.Fatal("legacy launch receipt exposed draft offers or changed participant view")
+	}
+	var savedCommand, savedLaunch string
+	if err := f.db.QueryRow("select response from command_receipts where request_id = ?", request.RequestID).Scan(&savedCommand); err != nil {
+		t.Fatal(err)
+	}
+	if err := f.db.QueryRow("select response from launch_receipts where request_id = ?", launchID).Scan(&savedLaunch); err != nil {
+		t.Fatal(err)
+	}
+	after, _ := f.saved(view.ID)
+	if savedCommand != commandReceipt || savedLaunch != launchReceipt || !slices.Equal(before, after) || f.count("command_receipts") != 2 {
+		t.Fatal("legacy receipt replay rewrote receipts or draft state")
+	}
+	assertDraftCards(t, draftResult(t, f.call(200, "GET", api.GetDraftPath(view.ID), "owner", "")), "minion", []string{"vera_coalheart", "bastian_redhand", "orla_nine_cinders"})
 }

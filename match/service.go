@@ -79,7 +79,32 @@ func (s *Service) Get(tx *sql.Tx, id, actorID string) (*game.View, error) {
 	return state.View(actorID), nil
 }
 
-func (s *Service) Command(tx *sql.Tx, id, actorID string, command api.CommandRequest) (*game.View, error) {
+func (s *Service) GetDraft(tx *sql.Tx, id, actorID string) (*api.DraftResponse, error) {
+	view, err := s.Get(tx, id, actorID)
+	if err != nil {
+		return nil, err
+	}
+	return draftResponse(view)
+}
+
+func (s *Service) SubmitDraft(tx *sql.Tx, id, actorID string, command api.DraftPickRequest) (*api.DraftResponse, error) {
+	view, err := s.command(tx, id, actorID, command)
+	if err != nil {
+		return nil, err
+	}
+	return draftResponse(view)
+}
+
+func draftResponse(view *game.View) (*api.DraftResponse, error) {
+	response, err := game.DraftView(view)
+	if errors.Is(err, game.ErrUnsupportedVersion) {
+		return nil, util.ErrUnsupportedState
+	}
+	return response, err
+}
+
+// Keep participant views in receipts to support existing saved responses.
+func (s *Service) command(tx *sql.Tx, id, actorID string, command api.DraftPickRequest) (*game.View, error) {
 	parsed, err := uuid.Parse(command.RequestID)
 	if err != nil || !strings.EqualFold(command.RequestID, parsed.String()) || command.ExpectedRevision == nil ||
 		*command.ExpectedRevision < 0 || command.CardID == "" {

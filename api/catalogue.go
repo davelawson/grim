@@ -39,13 +39,6 @@ type Catalogue struct {
 	RulesVersion     string       `json:"rulesversion"`
 	CatalogueVersion string       `json:"catalogueversion"`
 	Cards            []CardDesign `json:"cards"`
-	DraftOffers      Offers       `json:"draftoffers"`
-}
-
-type Offers struct {
-	Chantries    []string            `json:"chantries"`
-	VictoryPaths []string            `json:"victorypaths"`
-	Minions      map[string][]string `json:"minions"`
 }
 
 type CatalogueResponse struct {

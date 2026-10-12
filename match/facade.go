@@ -24,8 +24,12 @@ func (sf *ServiceFacade) End(id, actorID string) error {
 	return util.InTx(sf.db, func(tx *sql.Tx) error { return sf.service.End(tx, id, actorID) })()
 }
 
-func (sf *ServiceFacade) Command(id, actorID string, command api.CommandRequest) (*game.View, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Command(tx, id, actorID, command) })()
+func (sf *ServiceFacade) GetDraft(id, actorID string) (*api.DraftResponse, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.GetDraft(tx, id, actorID) })()
+}
+
+func (sf *ServiceFacade) SubmitDraft(id, actorID string, command api.DraftPickRequest) (*api.DraftResponse, error) {
+	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.SubmitDraft(tx, id, actorID, command) })()
 }
 
 func (sf *ServiceFacade) Catalogue(id, actorID string) (*game.Catalogue, error) {

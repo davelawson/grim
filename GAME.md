@@ -888,9 +888,10 @@ These agreed opening rules are provisional until playtested.
 
 Drafting is personal customization with unlimited copies of every offer.
 Wizards draft independently without contact with other players or a drafting
-turn order. All offers are visible to the drafting wizard before their first
-choice. Each wizard makes these choices in order, with each choice locked
-before proceeding and no going back:
+turn order. Offers are revealed to each wizard one step at a time when they
+begin or resume drafting. Later steps' offers are revealed only after the
+current choice is locked. Each wizard makes these choices in order, with no
+going back:
 
 1. Choose one Chantry: Fire, Earth, Air, or Water. This also supplies its
    matching Element card for the deck.

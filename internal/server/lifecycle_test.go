@@ -757,7 +757,8 @@ func TestAuthenticationErrors(t *testing.T) {
 		{"POST", "/lobby/missing/launch", launchBody(uuid.NewString())},
 		{"GET", "/match/missing", ""},
 		{"GET", "/match/missing/catalogue", ""},
-		{"POST", "/match/missing/commands", commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire")},
+		{"GET", "/match/missing/draft", ""},
+		{"POST", "/match/missing/draft", commandBody(uuid.NewString(), 0, "choose_chantry", "chantry_fire")},
 		{"POST", "/admin/match/missing/end", ""},
 	} {
 		for _, actor := range []string{"", "invalid"} {

@@ -24,7 +24,8 @@ func TestEndpointPaths(t *testing.T) {
 		{"ready", api.SetReadyPath, "/lobby/ID/ready"},
 		{"launch", api.LaunchMatchPath, "/lobby/ID/launch"},
 		{"get match", api.GetMatchPath, "/match/ID"},
-		{"command", api.SubmitMatchCommandPath, "/match/ID/commands"},
+		{"get draft", api.GetDraftPath, "/match/ID/draft"},
+		{"submit draft", api.SubmitDraftPath, "/match/ID/draft"},
 		{"catalogue", api.GetCataloguePath, "/match/ID/catalogue"},
 		{"end match", api.EndMatchPath, "/admin/match/ID/end"},
 	}

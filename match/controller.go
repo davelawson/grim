@@ -34,19 +34,38 @@ func (c *Controller) Get(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, api.MatchResponse{Match: view})
 }
 
-// Command locks one opening draft choice, or replays an identical accepted retry.
+// GetDraft returns the caller's current step and draftable card definitions.
+// @Summary Get current draft options
+// @Security ApiKeyAuth
+// @Tags match
+// @Produce json
+// @Param id path string true "Match ID"
+// @Success 200 {object} api.DraftResponse
+// @Failure 401,403,404,409,500 {object} api.ErrorResponse
+// @Router /match/{id}/draft [get]
+func (c *Controller) GetDraft(ctx *gin.Context) {
+	actor := ctx.MustGet("reqUser").(*model.User)
+	response, err := c.service.GetDraft(ctx.Param("id"), actor.Id)
+	if err != nil {
+		util.WriteAPIError(ctx, err)
+		return
+	}
+	ctx.JSON(http.StatusOK, response)
+}
+
+// SubmitDraft locks one opening choice and returns the next draft options.
 // @Summary Choose an opening card
 // @Security ApiKeyAuth
 // @Tags match
 // @Accept json
 // @Produce json
 // @Param id path string true "Match ID"
-// @Param command body api.CommandRequest true "Draft command; expectedrevision is required"
-// @Success 200 {object} api.MatchResponse
+// @Param command body api.DraftPickRequest true "Draft choice; expectedrevision is required"
+// @Success 200 {object} api.DraftResponse
 // @Failure 400,401,403,404,409,500 {object} api.ErrorResponse
-// @Router /match/{id}/commands [post]
-func (c *Controller) Command(ctx *gin.Context) {
-	var command api.CommandRequest
+// @Router /match/{id}/draft [post]
+func (c *Controller) SubmitDraft(ctx *gin.Context) {
+	var command api.DraftPickRequest
 	decoder := json.NewDecoder(ctx.Request.Body)
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&command); err != nil {
@@ -58,12 +77,12 @@ func (c *Controller) Command(ctx *gin.Context) {
 		return
 	}
 	actor := ctx.MustGet("reqUser").(*model.User)
-	view, err := c.service.Command(ctx.Param("id"), actor.Id, command)
+	response, err := c.service.SubmitDraft(ctx.Param("id"), actor.Id, command)
 	if err != nil {
 		util.WriteAPIError(ctx, err)
 		return
 	}
-	ctx.JSON(http.StatusOK, api.MatchResponse{Match: view})
+	ctx.JSON(http.StatusOK, response)
 }
 
 // Catalogue returns the definitions pinned to this participant's match.

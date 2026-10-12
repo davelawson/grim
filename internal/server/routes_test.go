@@ -31,7 +31,8 @@ func TestSharedEndpointsMatchProductionRoutes(t *testing.T) {
 		{"ready", api.SetReady.Method, api.SetReady.Route, api.SetReadyPath(lobbyID), 401},
 		{"launch", api.LaunchMatch.Method, api.LaunchMatch.Route, api.LaunchMatchPath(lobbyID), 401},
 		{"get match", api.GetMatch.Method, api.GetMatch.Route, api.GetMatchPath(lobbyID), 401},
-		{"command", api.SubmitMatchCommand.Method, api.SubmitMatchCommand.Route, api.SubmitMatchCommandPath(lobbyID), 401},
+		{"get draft", api.GetDraft.Method, api.GetDraft.Route, api.GetDraftPath(lobbyID), 401},
+		{"submit draft", api.SubmitDraft.Method, api.SubmitDraft.Route, api.SubmitDraftPath(lobbyID), 401},
 		{"catalogue", api.GetCatalogue.Method, api.GetCatalogue.Route, api.GetCataloguePath(lobbyID), 401},
 		{"end match", api.EndMatch.Method, api.EndMatch.Route, api.EndMatchPath(lobbyID), 401},
 	}

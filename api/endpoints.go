@@ -36,10 +36,11 @@ var (
 	SetReady            = Endpoint{Method: http.MethodPut, Route: "/lobby/:id/ready"}
 	LaunchMatch         = Endpoint{Method: http.MethodPost, Route: "/lobby/:id/launch"}
 
-	GetMatch           = Endpoint{Method: http.MethodGet, Route: "/match/:id"}
-	SubmitMatchCommand = Endpoint{Method: http.MethodPost, Route: "/match/:id/commands"}
-	GetCatalogue       = Endpoint{Method: http.MethodGet, Route: "/match/:id/catalogue"}
-	EndMatch           = Endpoint{Method: http.MethodPost, Route: "/admin/match/:id/end"}
+	GetMatch     = Endpoint{Method: http.MethodGet, Route: "/match/:id"}
+	GetDraft     = Endpoint{Method: http.MethodGet, Route: "/match/:id/draft"}
+	SubmitDraft  = Endpoint{Method: http.MethodPost, Route: "/match/:id/draft"}
+	GetCatalogue = Endpoint{Method: http.MethodGet, Route: "/match/:id/catalogue"}
+	EndMatch     = Endpoint{Method: http.MethodPost, Route: "/admin/match/:id/end"}
 )
 
 func LeaveLobbyPath(id string) string { return idPath(LeaveLobby.Route, id) }
@@ -58,12 +59,13 @@ func RemoveUserFromLobbyPath(lobbyID, userID string) string {
 	).Replace(RemoveUserFromLobby.Route)
 }
 
-func SetReadyPath(id string) string           { return idPath(SetReady.Route, id) }
-func LaunchMatchPath(id string) string        { return idPath(LaunchMatch.Route, id) }
-func GetMatchPath(id string) string           { return idPath(GetMatch.Route, id) }
-func SubmitMatchCommandPath(id string) string { return idPath(SubmitMatchCommand.Route, id) }
-func GetCataloguePath(id string) string       { return idPath(GetCatalogue.Route, id) }
-func EndMatchPath(id string) string           { return idPath(EndMatch.Route, id) }
+func SetReadyPath(id string) string     { return idPath(SetReady.Route, id) }
+func LaunchMatchPath(id string) string  { return idPath(LaunchMatch.Route, id) }
+func GetMatchPath(id string) string     { return idPath(GetMatch.Route, id) }
+func GetDraftPath(id string) string     { return idPath(GetDraft.Route, id) }
+func SubmitDraftPath(id string) string  { return idPath(SubmitDraft.Route, id) }
+func GetCataloguePath(id string) string { return idPath(GetCatalogue.Route, id) }
+func EndMatchPath(id string) string     { return idPath(EndMatch.Route, id) }
 
 func idPath(route, id string) string {
 	return strings.Replace(route, ":id", url.PathEscape(id), 1)

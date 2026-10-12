@@ -241,12 +241,12 @@ func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
 		}
 		seen[card.ID] = true
 	}
-	for _, chantry := range c.DraftOffers.Chantries {
+	for _, chantry := range OpeningOffers().Chantries {
 		card, ok := c.Card(chantry)
 		if !ok || card.Affinity[card.Element] != 1 || card.Income["ephemeral_wis"] != 1 || card.Cost["wis"] != 1 {
 			t.Fatal("wrong Chantry stats")
 		}
-		for _, id := range c.DraftOffers.Minions[chantry] {
+		for _, id := range OpeningOffers().Minions[chantry] {
 			minion, ok := c.Card(id)
 			if !ok || minion.Cost["wis"] != 1 || minion.PlayRequirements[card.Element] != 1 || len(minion.Expertise) != 1 || len(minion.Affinity) != 0 || len(minion.Income) != 0 {
 				t.Fatal("wrong Minion stats")
@@ -258,7 +258,7 @@ func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
 			}
 		}
 	}
-	for _, path := range c.DraftOffers.VictoryPaths {
+	for _, path := range OpeningOffers().VictoryPaths {
 		card, ok := c.Card(path)
 		if !ok || card.Placeholder != (path != "subjugate_rival") {
 			t.Fatal("wrong placeholder flag")
