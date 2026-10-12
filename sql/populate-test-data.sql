@@ -1,3 +1,4 @@
+-- Test users share password123; each scrypt hash uses that user's email as salt.
 insert into users (id, email, name, password_hash, token)
 values (
     '67b31dee-ac79-453a-a68b-75ef55da5a52',
@@ -12,7 +13,7 @@ values (
     '67b31dee-ac79-453a-a68b-75ef55da5a53',
     'tom@aol.com',
     'Tom Carter',
-    readfile('password_hash.dat'),
+    x'eea36129f29812d5481acee5d34548ed56ddafd67891b4d9c8fe01db26607276',
     'kihLmzc0hrW2IzkYko3sJlIXXDv5h/EwkC6DgHzMfeh='
 );
 
@@ -21,7 +22,7 @@ values (
     '67b31dee-ac79-453a-a68b-75ef55da5a54',
     'jim@aol.com',
     'Jimmy John',
-    readfile('password_hash.dat'),
+    x'2d7480f129188cbd393f5bf6596f495280bd0e428eb27e60ed5d4347a0b965c0',
     'kihLmzc0hrW2IzkYko3sJlIXXDv5h/EwkC6DgHzMfeh='
 );
 
