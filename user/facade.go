@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+
 	"github.com/davelawson/grim/model"
 	"github.com/davelawson/grim/util"
 )
@@ -25,13 +26,13 @@ func (sf *ServiceFacade) CreateUser(email string, name string, password string) 
 }
 
 func (sf *ServiceFacade) GetUserByEmail(email string) (*model.User, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*model.User, error) {
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*model.User, error) {
 		return sf.service.GetUserByEmail(tx, email)
 	})()
 }
 
 func (sf *ServiceFacade) GetUserByToken(token string) (*model.User, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*model.User, error) {
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*model.User, error) {
 		return sf.service.GetUserByToken(tx, token)
 	})()
 }

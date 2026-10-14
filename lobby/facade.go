@@ -2,6 +2,7 @@ package lobby
 
 import (
 	"database/sql"
+
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/game"
 	"github.com/davelawson/grim/util"
@@ -44,25 +45,25 @@ func (sf *ServiceFacade) DeleteLobby(lobbyId string, userId string) error {
 }
 
 func (sf *ServiceFacade) CreateLobby(name string, userId string) (*string, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*string, error) {
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*string, error) {
 		return sf.service.CreateLobby(tx, name, userId)
 	})()
 }
 
 func (sf *ServiceFacade) GetLobby(id string, requestorId string) (*api.Lobby, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) {
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.Lobby, error) {
 		return sf.service.GetLobbyForUser(tx, id, requestorId)
 	})()
 }
 
 func (sf *ServiceFacade) SetReady(id, requestorId string, ready bool) (*api.Lobby, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.SetReady(tx, id, requestorId, ready) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.SetReady(tx, id, requestorId, ready) })()
 }
 
 func (sf *ServiceFacade) Launch(id, actorID, requestID string) (*game.View, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Launch(tx, id, actorID, requestID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Launch(tx, id, actorID, requestID) })()
 }
 
 func (sf *ServiceFacade) Join(id, actorID string) (*api.Lobby, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.Join(tx, id, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.Lobby, error) { return sf.service.Join(tx, id, actorID) })()
 }

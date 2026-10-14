@@ -2,6 +2,7 @@ package match
 
 import (
 	"database/sql"
+
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/game"
 	"github.com/davelawson/grim/util"
@@ -17,7 +18,7 @@ func NewServiceFacade(service *Service) *ServiceFacade {
 }
 
 func (sf *ServiceFacade) Get(id, actorID string) (*game.View, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Get(tx, id, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*game.View, error) { return sf.service.Get(tx, id, actorID) })()
 }
 
 func (sf *ServiceFacade) End(id, actorID string) error {
@@ -25,13 +26,13 @@ func (sf *ServiceFacade) End(id, actorID string) error {
 }
 
 func (sf *ServiceFacade) GetDraft(id, actorID string) (*api.DraftResponse, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.GetDraft(tx, id, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.GetDraft(tx, id, actorID) })()
 }
 
 func (sf *ServiceFacade) SubmitDraft(id, actorID string, command api.DraftPickRequest) (*api.DraftResponse, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.SubmitDraft(tx, id, actorID, command) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.DraftResponse, error) { return sf.service.SubmitDraft(tx, id, actorID, command) })()
 }
 
 func (sf *ServiceFacade) Catalogue(id, actorID string) (*game.Catalogue, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*game.Catalogue, error) { return sf.service.Catalogue(tx, id, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*game.Catalogue, error) { return sf.service.Catalogue(tx, id, actorID) })()
 }

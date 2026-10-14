@@ -2,11 +2,12 @@ package match
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/model"
 	"github.com/davelawson/grim/util"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func (r *Repo) listForUser(tx *sql.Tx, actorID string) ([]api.MatchSummary, error) {
@@ -35,7 +36,7 @@ func (s *Service) List(tx *sql.Tx, actorID string) (*api.ListMatchesResponse, er
 }
 
 func (sf *ServiceFacade) List(actorID string) (*api.ListMatchesResponse, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.ListMatchesResponse, error) { return sf.service.List(tx, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.ListMatchesResponse, error) { return sf.service.List(tx, actorID) })()
 }
 
 // List returns only IDs and statuses for the authenticated user's memberships.

@@ -2,11 +2,12 @@ package lobby
 
 import (
 	"database/sql"
+	"net/http"
+
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/model"
 	"github.com/davelawson/grim/util"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 func (r *LobbyRepo) listForUser(tx *sql.Tx, actorID string) ([]api.LobbySummary, error) {
@@ -35,7 +36,7 @@ func (s *Service) List(tx *sql.Tx, actorID string) (*api.ListLobbiesResponse, er
 }
 
 func (sf *ServiceFacade) List(actorID string) (*api.ListLobbiesResponse, error) {
-	return util.InTypedTx(sf.db, func(tx *sql.Tx) (*api.ListLobbiesResponse, error) { return sf.service.List(tx, actorID) })()
+	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*api.ListLobbiesResponse, error) { return sf.service.List(tx, actorID) })()
 }
 
 // List returns only IDs and statuses for the authenticated user's memberships.
@@ -85,7 +86,7 @@ func (s *Service) ListPublic(tx *sql.Tx) (*api.ListPublicLobbiesResponse, error)
 }
 
 func (sf *ServiceFacade) ListPublic() (*api.ListPublicLobbiesResponse, error) {
-	return util.InTypedTx(sf.db, sf.service.ListPublic)()
+	return util.InTxWithResult(sf.db, sf.service.ListPublic)()
 }
 
 // ListPublic returns available public lobby summaries to authenticated users.

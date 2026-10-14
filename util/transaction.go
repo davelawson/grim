@@ -21,7 +21,7 @@ func InTx(db *sql.DB, callback func(*sql.Tx) error) func() error {
 	}
 }
 
-func InTypedTx[K any, PK *K](db *sql.DB, callback func(*sql.Tx) (PK, error)) func() (PK, error) {
+func InTxWithResult[K any, PK *K](db *sql.DB, callback func(*sql.Tx) (PK, error)) func() (PK, error) {
 	return func() (PK, error) {
 		tx, err := db.Begin()
 		if err != nil {
