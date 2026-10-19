@@ -29,7 +29,8 @@ Kneeling skips that End Phase and therefore provides no hand refresh.
 
 Complete these steps in order:
 
-1. **Recovery:** Recover the active wizard's exhausted cards. Newly played
+1. **Recovery:** Recover the active wizard's exhausted cards, except those
+   skipping this Recovery because of a card effect. Newly played
    Minions become eligible to Attack and undertake Challenges at this owner's
    turn start.
 2. **Income:** Recurring income generates its printed resources or resource
@@ -38,7 +39,7 @@ Complete these steps in order:
    recurring income at its owner's next Start Phase.
 3. **Maintenance:** Pay the active wizard's recurring upkeep costs. Resource
    cards, including cards generated during Income, may be played as part of a
-   payment without separate response windows. An Asset whose upkeep is not
+   payment without separate response windows. A card whose upkeep is not
    paid is discarded. Grants from later Start Phase card effects are not yet
    available to fund this step.
 4. **Bend the Knee:** A Target eligible to submit after a successful Attack
@@ -80,7 +81,8 @@ action is chosen. Each action resolves against the state surviving earlier
 actions and Reactions.
 
 Used hand cards must be regained before reuse. Minions exhaust on commitment
-and recover during their owner's next Recovery step. Cards supply actions,
+and normally recover during their owner's next Recovery step; card effects may
+delay recovery. Cards supply actions,
 with no separate action-slot limit. One action can combine a Challenger and
 committed support cards.
 
@@ -167,8 +169,11 @@ Each side totals its wizard's current Might Affinity and the Might Expertise
 of its committed Minions, plus 1 Might if Arcane Focus supports that side.
 Defensive Spell effects may modify the comparison or remove participants at
 their printed timing. Removed Minions do not contribute at resolution.
-The Attack succeeds only when attacking Might exceeds defending Might by at
-least 2. Success reduces the Target's Integrity by exactly 1; an Attack does
+At resolution, at least one committed attacking Minion with Might Expertise
+must remain in play; otherwise the Attack fails regardless of standing Might
+or Spell bonuses. With a surviving eligible attacker, the Attack succeeds only
+when attacking Might exceeds defending Might by at least 2. Success reduces
+the Target's Integrity by exactly 1; an Attack does
 not instead select an Asset or resource as its objective.
 
 On an unsuccessful Attack, the attacker chooses and discards one surviving
@@ -282,7 +287,7 @@ before its deadline still avoids that penalty. Each effect resolves as one
 uninterrupted operation: perform portions that remain legal and apply normal
 failure consequences if its success requirements are unmet. Challenge success
 rewards require every requirement to be satisfied. On an unsuccessful Attack,
-the attacker chooses and discards a surviving committed attacking Minion
+the attacker chooses and discards a surviving committed attacking Minion, if any,
 during resolution, before another response window opens.
 Neighbours may react to ordinary actions; only an original
 global action admits wider participation, and a global Reaction never expands
@@ -290,7 +295,8 @@ the eligible participants.
 
 All players see the current table state and declared cards, commitments,
 targets, options, and payments as they happen. Each wizard can inspect their
-own hand and the contents of their own draw pile, but not the draw pile's order.
+own hand and the contents of their own draw pile, but not the draw pile's order
+unless a card explicitly permits inspection, as Scrying Pool does.
 Every wizard can inspect every discard pile, including its order. Opponents'
 hands and draw-pile contents are hidden. Draft selections are private and are
 not disclosed when drafting finishes; selected cards become visible through
@@ -318,6 +324,8 @@ requirements may involve resources provided by cards, Affinity thresholds, or
 any combination.
 Arcane Focus and an Element may both support the same Challenge: each pairs
 with that Challenge, contributes only to that attempt, and is used once.
+Eligible [Support Spells](#spell-support-and-timing-provisional) may also be
+committed with the attempt, without a separate count limit.
 The wizard cannot begin an attempt without enough capacity from the chosen
 Challenger, support, Affinities, Expertise, and payable resources to meet every
 printed requirement.
@@ -332,8 +340,8 @@ random modifier yet. A newly played Minion cannot Attack or undertake a
 Challenge until its owner's next turn starts, but can defend and provide
 passive Affinity immediately. Committed support cards follow their normal discard or
 destruction rule after an attempt. An assigned Minion exhausts when committed
-and remains exhausted until the start of its wizard's next turn; its passive Affinities
-remain available.
+and normally recovers during its wizard's next Recovery, unless an effect
+delays recovery; its passive Affinities remain available.
 An unused, reusable victory-path card returns to the discard pile unchanged
 unless retained; it does not Fail.
 A rumour remains in play for its printed duration and leaves play as its card
@@ -391,14 +399,14 @@ offers in the first version.
 A basic Wis or Wealth card provides one unit of its named resource immediately
 when played and costs no resources or Affinity. Generated ephemeral Wis and
 Wealth cards have the same zero cost and one-unit value unless their source
-states otherwise. Research Spell creates a new spell card in the discard pile;
-Research Artifact creates a new artifact card there. When an Element is
-committed with either Research card, it supplies one point of its Affinity and
-the created card comes from that Element's creation pool and prints an
-appropriate Affinity requirement. Association describes the elemental inputs
-used during creation; it is not printed on the finished card. Without an
-Element, the creation is unaligned. An Element may instead be committed with one other card to provide
-one point of its Affinity for that action. It does not change the wizard's
+states otherwise. Research Spell creates either a new Spell or a chosen
+Element card in the discard pile. Its [discovery recipes](#research-spell)
+select an unaligned, elemental, or hybrid Spell pool. Research Artifact creates
+a new Artifact in discard, associated with its paired Element or unaligned
+without one; its selection rules remain to be designed. Association describes
+the elemental inputs used during creation; it is not printed on the finished
+card. An Element may also be committed with one other card to provide one
+point of its Affinity for that action. It does not change the wizard's
 general Affinity total or ordinary rumour eligibility. Each play supports one
 action; the card follows its normal disposal and must be regained before reuse,
 without any additional usage counter.
@@ -410,8 +418,9 @@ is made, to that action only. Neither contribution enters the wizard's general
 resource or Affinity pool. The paired cards form one action and are each used
 once.
 
-For example, pairing a Fire Element with Research Spell puts a spell with an
-appropriate Fire requirement into the discard pile. Pairing Arcane Focus with an Arcane Inquiry I that
+For example, pairing a Fire Element with Research Spell's discovery mode puts
+a Spell with an appropriate Fire requirement into the discard pile. Pairing
+Arcane Focus with an Arcane Inquiry I that
 requires 1 Wis and Might 1 satisfies both requirements if Might is the Affinity
 chosen for Arcane Focus. A starting Minion assigned to a Challenge contributes
 all of its matching Expertise in addition to the wizard's reusable Affinity
@@ -505,9 +514,11 @@ By completing epic quests that appear during play, a wizard can become eternally
 
 #### Cost
 
-Cost is the resource payment required to play a card or use an ability.
-Paying Wis or Wealth depletes that resource. It is printed separately from
-Affinity requirements.
+Cost is the payment required to play a card or use an ability. Paying Wis or
+Wealth depletes that resource; printed additional costs may also require a
+card to be discarded or exhausted. Costs are paid at declaration, are not
+refunded if the effect is countered, and are printed separately from Affinity
+requirements.
 
 #### Play Requirements
 
@@ -591,7 +602,7 @@ Start.Rumour of the following turn.
 #### Upkeep
 
 A recurring cost paid during the owner's Start Phase Maintenance step; if
-unpaid, the Asset is discarded.
+unpaid, the card is discarded.
 
 ## Card Categories
 
@@ -615,7 +626,7 @@ to appear on a card that does not use it.
 | Asset — Minion | Passive Affinities; Expertise by domain; recurring income; Upkeep; abilities |
 | Asset — Location | Passive Affinities; recurring income; Upkeep; abilities |
 | Asset — Artifact | Passive Affinities; recurring income; Upkeep; abilities; fields of another category if present |
-| Spell | Effect-specific numbers; ability timing and Reaction permission; duration; explicit Challenger exception if present |
+| Spell | Effect-specific numbers; support contributions; ability timing and Reaction permission; duration; explicit Challenger exception; passive Affinities, recurring income, and Upkeep if printed |
 | Rumour | Eligibility requirements; duration; immediate or ongoing abilities, beneficial or disruptive; offered Challenges and their outcomes |
 | Resource | Resource kind and yield |
 | Element | Element represented and paired-action contribution |
@@ -650,7 +661,8 @@ In the provisional first playable draft, a ready Minion in play may be assigned
 to a Challenge and contribute all of its matching Expertise alongside support
 cards committed from the hand. An assigned Minion becomes exhausted when
 committed, even if its pending effect is countered. Exhausted cards cannot be assigned or activated again
-until they recover at the start of their wizard's next turn. A newly played
+until they recover, normally during their owner's next Recovery unless an
+effect delays it. A newly played
 Minion can defend immediately, but cannot Attack or undertake a Challenge
 until its owner's next turn starts.
 
@@ -705,6 +717,172 @@ types may require any Affinity that fits their fiction.
 Spells have no universal Power stat: amounts are printed in individual effects.
 Duration appears when applicable, and Reaction permission and any Challenger
 exception are part of the relevant ability.
+
+#### Spell support and timing (provisional)
+
+The first-playable Spell design is agreed but remains provisional until
+playtested. Its catalogue contains 32 designs across 11 Research pools: four
+for each Element, four unaligned, and two for each of the six elemental pairs.
+Every elemental quartet provides offense, defence, Challenge support, and
+lasting utility. Hybrid Spells require both associated Elements. None of
+these Spells directly reduces Integrity or independently enables an Attack.
+
+Ordinary Spells and the play of lasting Spells are ordinary Actions Phase
+actions unless their text expressly permits a Reaction or committed support.
+Reaction Spells require the printed pending Attack or Spell effect, and use
+the normal response eligibility and Stack rules. An opposing committed Minion
+is a defender during your Attack or an attacker during an Attack against you.
+Check requirements and declare targets, costs, and any declaration-time
+choices before the response window. Choices arising during resolution, such
+as which newly drawn card to discard, are made then. Resolve legal portions
+against the surviving state as usual.
+
+Support Spells are committed from hand with a Challenge, alongside its
+Challenger and other support. Any number of eligible Support Spells may be
+committed. Check every Support Spell's own Affinity requirements using only
+standing Affinity and paired Element and Arcane Focus contributions, before
+adding any Support Spell contributions. Minion Expertise and Support Spell
+bonuses cannot supply those Spells' own play requirements. Once legal, add
+their printed contributions to the attempt's capacity. A Spell cannot enable
+itself or another Support Spell in the same declaration.
+
+Pay the Challenge's and its support's costs at declaration. Committed Support
+Spells share the Challenge's Stack entry rather than creating separate pending
+effects; Counterspell cannot target them separately. Their contributions apply
+only to that attempt. They go to discard when the Challenge resolves or is
+countered, without refunds. Unbound Will supplies permission to attempt a
+Challenge without a Minion or Arcane Focus, but supplies no capacity itself.
+
+Other Spell cards go to their owner's discard pile after resolving or being
+countered, unless successfully played as lasting Spells. Lasting Spells remain
+in play until removed; duplicate copies coexist and their benefits stack.
+Each Rampart has its own 1-Wis Maintenance upkeep; no other Spell in this
+catalogue has upkeep. Normal Recovery applies to exhausted Healing Springs.
+Verdant Spring's recurring income starts at its owner's next Start.Income,
+and its ephemeral Wealth follows the normal resource and expiry rules.
+
+Attack modifiers last for the specified Attack. Apply surviving bonuses and
+penalties to the comparison; per-Minion reductions do not change the Minion's
+Expertise, and each Minion's contribution has a minimum of zero. Rampart's
+bonus applies only to Defence, not to general Might Affinity or Challenges.
+Counterspell can counter pending Spell actions, Spell activated or triggered
+effects, and another Counterspell. Passive benefits and recurring income that
+does not enter the Stack are not pending effects it can counter. Countering
+an activation does not refund costs or ready an exhausted card.
+
+#### Delayed recovery and returning Minions (provisional)
+
+A recovery delay makes an affected Minion skip its owner's next Recovery
+step. Multiple delays overlapping before that step do not accumulate: skip
+that Recovery once, then the delay ends. Recovery still occurs before Bend
+the Knee, so a kneeling turn consumes the skipped Recovery normally. A delay
+does not prevent another effect from readying a card.
+
+A Minion leaving play clears exhaustion and temporary effects, including
+recovery delays. Returning a Minion to hand preserves its card-instance identity,
+ownership, and permanent traits, including a Pupil's fixed Expertise. Replaying
+it follows normal deployment: it may defend immediately but cannot Attack or
+undertake Challenges until its owner's next turn starts.
+
+#### First-playable Spell catalogue (provisional)
+
+Costs below are Wis payments, separate from reusable Affinity requirements.
+All values are provisional. Card text beginning with Reaction, Challenge
+support, or Lasting uses the shared rules above; other effects are ordinary
+actions. A lasting Spell is played as an ordinary action, with any later
+ability using its printed timing.
+
+##### Elemental and unaligned Spells
+
+| Spell | Cost | Requirement | Card effect |
+| --- | --- | --- | --- |
+| Flame Lash | 1 | Fire 1 | Reaction during your Attack: add 2 attacking Might for that Attack. |
+| Firewall | 2 | Fire 2 | Reaction against an Attack on you: discard one committed attacking Minion. |
+| Flamecraft | 0 | Fire 1 | Challenge support: contribute 2 Fire. |
+| Inner Flame | 2 | Fire 1 | Lasting: provide 1 Fire Affinity. |
+| Rockslide | 1 | Earth 1 | Reaction during your Attack: each committed attacking Minion contributes 1 additional Might. |
+| Stoneward | 0 | Earth 1 | Reaction against an Attack on you: add 2 defensive Might. |
+| Shape Stone | 0 | Earth 1 | Challenge support: contribute 2 Earth. |
+| Rampart | 2 | Earth 2 | Lasting: add 2 Might when defending. Upkeep: 1 Wis. |
+| Dislocate | 1 | Air 2 | Reaction during your Attack: return one committed defending Minion to its owner's hand. |
+| Deflect | 1 | Air 1 | Reaction against an Attack on you: return one committed attacking Minion to its owner's hand. |
+| Keen Insight | 0 | Air 1 | Challenge support: contribute 1 point in one chosen Affinity. |
+| Whispering Wind | 2 | Air 2 | Lasting: at your Start.Effects, optionally draw one card, then discard one. |
+| Deep Freeze | 2 | Water 2 | Exhaust one ready Minion belonging to your Aggressor or Target; it skips its next Recovery. |
+| Moat | 0 | Water 1 | Reaction against an Attack on you: up to two committed attacking Minions skip their next Recovery. |
+| Flowing Form | 0 | Water 1 | Challenge support: contribute 1 point in each of two different chosen Affinities. |
+| Healing Spring | 2 | Water 2 | Lasting: during your Actions Phase, pay 3 Wis and exhaust this to restore 1 Integrity, maximum 3. |
+| Counterspell | 1 | None | Reaction: counter one pending Spell effect. |
+| Study | 1 | None | Draw two cards, then discard one. |
+| Unbound Will | 0 | None | Challenge support: permit an attempt without a Minion or Arcane Focus; contribute no capacity. |
+| Mnemonic Seal | 2 | None | Lasting: increase maximum hand size by one. |
+
+##### Hybrid Spells
+
+Every hybrid requires 1 Affinity in each listed Element. These designs are
+specialised combinations; three- and four-Element designs are deferred.
+
+| Pair | Spell | Cost | Card effect |
+| --- | --- | --- | --- |
+| Fire–Earth | Molten Armour | 2 | Reaction against an Attack on you: add 2 defensive Might and discard one attacking Minion with Might Expertise 1 or less. |
+| Fire–Earth | Forgeheart | 2 | Lasting: provide 1 Fire and 1 Earth Affinity. |
+| Fire–Air | Wildfire | 2 | Reaction during your Attack: discard one committed defending Minion. |
+| Fire–Air | Flash of Insight | 1 | Draw two cards, then either discard or destroy one card from your hand. |
+| Fire–Water | Scalding Mist | 2 | Reaction during your Attack or an Attack on you: discard one opposing committed Minion with Might Expertise 1 or less; up to one other opposing committed Minion skips its next Recovery. |
+| Fire–Water | Purifying Steam | 1 | Additional declaration cost: discard one hand card. Restore 1 Integrity, maximum 3. |
+| Earth–Air | Sandstorm | 1 | Reaction during your Attack or an Attack on you: opposing committed Minions each contribute 1 less Might, minimum zero per Minion. |
+| Earth–Air | Wind Road | 2 | Lasting: reduce your Minions' Wis play costs by 1, minimum zero. |
+| Earth–Water | Quagmire | 1 | Reaction against an Attack on you: up to two attacking Minions each contribute 1 less Might, minimum zero, and skip their next Recovery. |
+| Earth–Water | Verdant Spring | 2 | Lasting: generate one ephemeral basic Wealth card at your Start.Income. |
+| Air–Water | Freezing Fog | 1 | Reaction against an Attack on you: return one attacking Minion with Might Expertise 1 or less to hand; up to one other attacker skips its next Recovery. |
+| Air–Water | Scrying Pool | 1 | Privately inspect up to the top three cards of your draw pile, take one into hand, and return the remainder to the top in any order. Do not reshuffle to find more cards. |
+
+Study, Flash of Insight, and Scrying Pool each resolve as one uninterrupted
+effect, with no response between their instructions. Scrying Pool's inspection,
+selection, and returned order remain private. Its selected card enters hand
+without being revealed. Purifying Steam's additional discard is paid at
+declaration even if the effect is later countered. Wind Road reduces only Wis
+play costs, not other costs or upkeep, and stacked reductions cannot make a
+cost negative.
+
+#### Spell interaction checks
+
+These walkthroughs record the intended provisional outcomes for playtesting:
+
+- **Hybrid access:** A Fire wizard pays 1 Wis with Research Spell to create a
+  Water Element in discard. On a later play, Research paired with Fire and
+  Water offers Scalding Mist and Purifying Steam; choose one into discard.
+  Neither design needs to be currently castable, and already owning either
+  design does not remove it from future offers.
+- **Stacked support:** Standing Earth 1 meets each of two Shape Stones' own
+  requirements. Together they contribute 4 Earth, yielding Earth capacity 5
+  for the Challenge. Unbound Will may permit that attempt without a Challenger.
+  Keen Insight's bonus cannot supply a different Support Spell's requirement.
+- **Countered costs:** Counterspell may counter another Counterspell or a
+  Healing Spring activation, but cannot target a committed Shape Stone
+  separately. A countered Spring remains exhausted and its 3 Wis stay spent;
+  countered Purifying Steam does not refund its additional discarded card.
+- **Failure loss:** Two attacking Minions each have Might Expertise 1 and
+  their wizard has Might Affinity 2, against defensive Might 2. Firewall removes
+  one Minion; the remaining attacking Might 3 misses the required margin of 2,
+  so the attacker discards the surviving Minion as the failure penalty. If all
+  attackers instead leave play, the Attack fails even with ample standing
+  Might, and there is no surviving attacker to discard.
+- **Delayed recovery:** Moat and Quagmire on the same attacker skip one
+  Recovery, not two. A kneeling turn still consumes that skip. Deflect returning
+  the Minion to hand clears the delay; its identity and any fixed Expertise
+  survive, and normal deployment restrictions apply when it is replayed.
+- **Stacked assets:** Two Ramparts add 4 defensive Might and require two
+  separate 1-Wis upkeep payments; discard any copy whose upkeep is unpaid.
+  Two Mnemonic Seals raise the provisional maximum hand size from 5 to 7.
+  Two Wind Roads reduce a 1-Wis Minion play cost to zero, not below zero.
+  Verdant Spring first produces Wealth at its owner's next Start.Income; that
+  Wealth cannot pay Wis costs and expires under the normal ephemeral rules.
+- **Private scrying:** With only two cards in the draw pile, Scrying Pool
+  privately inspects those two without shuffling the discard pile, takes one,
+  and puts the other back. No Reaction can interrupt after inspection and
+  before selection. The selected card and the remaining order are not made
+  public.
 
 ### Rumours
 
@@ -781,11 +959,13 @@ An Element card represents Fire, Earth, Air, or Water. Commit it with a single
 other card to supply one point of that Affinity for the paired action. This
 action-specific point does not change general Affinity totals or ordinary
 rumour eligibility; Investigate includes it for its additional draw. If the
-paired action is Research Spell or Research Artifact, the
-created card comes from that Element's creation pool and prints an appropriate
-Affinity requirement. The creation association is not a field on the finished
-card. Each play of an Element supports only one paired action. Used Elements
-follow their normal disposal and must be regained before reuse; there is no
+paired action is Research Spell discovery, zero, one, or two distinct paired
+Element cards select its unaligned, elemental, or hybrid pool respectively,
+as defined under [Research Spell](#research-spell). Research Artifact uses its
+existing elemental association; its selection rules remain to be designed.
+The creation association is not a field on the finished card, which prints
+its Affinity requirements. Each play of an Element supports only one paired
+action. Used Elements follow their normal disposal and must be regained before reuse; there is no
 additional once-per-turn or once-per-round restriction.
 
 ### Victory Challenges
@@ -818,16 +998,47 @@ Attack-enabling card outside the starting draft remains future content.
 
 #### Research Activity
 
-The two starting Research cards create new cards directly in the discard pile.
-Pairing an Element with Research determines the creation association and the
-appropriate Affinity requirement on the finished card; the association itself
-is not printed. Without an Element, the creation is unaligned. How the specific
-new Artifact is selected remains to be designed; Research Spell selection is
-recorded in the parked Spell design notes.
+The two starting Research cards are Activities that create new cards directly
+in the discard pile. Research Spell's agreed provisional rules are below.
+Research Artifact retains its existing zero-or-one Element association;
+its selection, cost, and any mixed-Element recipes remain to be designed.
 
 ##### Research Spell
 
-Creates a new spell card and adds it to the wizard's discard pile.
+Play Research Spell as an ordinary action, pay 1 Wis, and declare one of two
+alternative uses:
+
+1. **Learn an Element:** Choose Fire, Earth, Air, or Water and create one copy
+   of that Element card in your discard pile. No Element input is required.
+2. **Discover a Spell:** Commit Element cards with Research to select exactly
+   one Research pool using the recipes below. Choose from the resulting offer
+   and create one copy of the selected Spell design in your discard pile.
+
+| Paired Element cards for discovery | Selected pool | Designs in pool | Offer |
+| --- | --- | --- | --- |
+| None | Unaligned | 4 | 3 random distinct designs |
+| One | That Element | 4 | 3 random distinct designs |
+| Two distinct Elements | That pair's hybrid pool only | 2 | Both designs |
+
+For discovery, repeated same-Element inputs and three or more Element inputs
+are illegal. Actual Element cards select the pool; standing Affinity and
+Arcane Focus do not substitute for those inputs. Paired Arcane Focus may still
+provide its normal payment support. No additional Wis is charged for hybrid
+discovery. Declare the mode and, where applicable, chosen Element or creation
+inputs with the action; the Required choice from an offer occurs during
+resolution.
+
+Offer up to three random distinct designs from the whole selected pool,
+without filtering for current casting capacity or designs already owned.
+Separate offers may repeat designs, multiple copies may be gained, and pools
+do not deplete. A pool with fewer than three designs offers all of them.
+Hybrid offers do not include their component single-Element pools. The
+[first-playable Spell catalogue](#first-playable-spell-catalogue-provisional)
+defines all 11 pools.
+
+Research Spell and its paired inputs go to discard after use under the normal
+Activity and support rules; neither mode leaves Research in play. Its name
+does not make this Activity a Spell effect for Counterspell.
 
 ##### Research Artifact
 
@@ -961,7 +1172,9 @@ one basic Wealth, Arcane Focus, and Investigate.
 
 ### Meta
 
-The two starting Research cards create new spells or artifacts, allowing players to develop their deck over successive turns. The pace of this growth remains to be tested.
+The two starting Research cards create new Spells, Elements, or Artifacts,
+allowing players to develop their deck over successive turns. The pace of
+this growth remains to be tested.
 
 ## Affinities and Expertise
 
@@ -1006,8 +1219,10 @@ Investigate's additional draw explicitly uses both. Expertise applies to
 assigned Challenges, with Might Expertise also contributing to committed
 Attacks and Defence. An action-specific contribution can meet an Affinity
 requirement of its paired action, including a card's play requirements.
+Support Spells have the explicit exception described under
+[Spell support and timing](#spell-support-and-timing-provisional): check their
+own requirements before adding any Support Spell contributions.
 
 ## Notes To Incorporate
 
-- When performing many types of actions that involve magic, playing additional spell cards allows you to inform the results of the action.
 - When attempting a challenge, how do we add randomness to the result without screwing the player?

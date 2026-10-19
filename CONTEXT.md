@@ -66,7 +66,7 @@ be directed against their Aggressor.
 
 **Integrity**:
 A measure of the strength of a wizard's personal protections, reduced by
-successful raids or attacks and recoverable through Arcane Focus. A wizard
+successful raids or attacks and recoverable through card abilities. A wizard
 at zero Integrity remains in play; any further Integrity reduction eliminates
 them.
 
@@ -135,7 +135,7 @@ contents and order.
 **Hidden information**:
 A wizard's undisclosed draft selections, hand, and draw-pile contents are
 hidden from opponents. Draw-pile order is hidden from every wizard, including
-its owner.
+its owner, unless a card explicitly permits private inspection.
 
 **Card design**:
 The shared definition of a named card, including its printed properties and
@@ -168,9 +168,9 @@ A newly recruited Minion from Promising Pupil, with a fixed random Expertise
 domain different from the Element of its wizard's drafted Chantry.
 
 **Exhausted**:
-A card state preventing another assignment or activation; committing a Minion
-exhausts it until its owner's next turn starts, even if its effect is countered.
-Passive effects and its surviving pending contribution remain available.
+A card state preventing another assignment or activation until Recovery,
+which a card effect may delay. Passive effects and surviving pending
+contributions remain available while exhausted.
 
 **Ready**:
 A card state in which the card is available for use.
@@ -278,12 +278,13 @@ action without changing the wizard's general Affinities. Each play supports
 one action, and the card must be regained before reuse.
 
 **Cost**:
-The resource payment required to play a card or use an ability, distinct from
-Affinity requirements. Paid resources remain spent if the effect is countered.
+The payment required to play a card or use an ability, including resources or
+printed card expenditure, distinct from Affinity requirements. Paid costs are
+not refunded if the effect is countered.
 
 **Play requirement**:
 A condition that must be met to play a card, such as a numeric Affinity threshold,
-distinct from its resource Cost and any Challenge requirements.
+distinct from its Cost and any Challenge requirements.
 
 **Ability**:
 A card's passive, triggered, or activated behaviour, with its own applicable
@@ -310,6 +311,18 @@ contribute one Might to an Attack or Defence.
 A card representing a magical working. Its Affinity requirements, if any, are
 limited to Fire, Earth, Air, and Water; an explicit card property may permit
 a Challenge attempt without a Minion or Arcane Focus.
+
+**Hybrid Spell**:
+A Spell associated with multiple Elements and requiring Affinity in each of
+them.
+
+**Support Spell**:
+A Spell committed with a Challenge to contribute its printed capacity or
+permission as part of that attempt.
+
+**Research pool**:
+A set of Spell card designs available for discovery through Research Spell,
+associated with one Element, an elemental combination, or no Element.
 
 **Association**:
 The elemental inputs used when creating a Spell or Artifact. The finished card
