@@ -16,21 +16,19 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-No active implementation slice. Gameplay now uses operation-specific action,
-choice, and reaction routes, with coordinated explicit CLI commands and guided
-Bash composition. The lasting contract is in
-[ARCHITECTURE.md](ARCHITECTURE.md#implemented-playable-engine) and
-[README.md](README.md#play-through-turns-and-victory).
+No active implementation slice. The database catalogue move is implemented and
+verified. One shared `card_designs` table stores the complete catalogue,
+with columns for scalar properties and stats and JSON for lists. Definitions are
+loaded per match version and injected into the engine. SQL installation is
+additive; individual card instances and snapshot schema are unchanged. Full
+backend/CLI tests, vet, race checks, fresh bootstrap, and complete two-, three-,
+and four-player CLI games pass.
 
-Typed inputs share the engine and transactional pipeline. Receipts identify the
-precise route operation and path-bound choice ID; historical broad-route receipts
-reserve their UUIDs without being reinterpreted. Match snapshots, rules/catalogue
-versions, response projections, and tables are unchanged. Existing wrapper
-sessions must be restarted after the coordinated backend/CLI deployment.
-
-The completed playable-match engine remains in place. Voting, unfinished card
-systems, migrations, and additional clients remain deferred. The retained registration
-design below is separate from this completed slice.
+The lasting design is in
+[ADR 0005](docs/adr/0005-database-card-catalogue.md),
+[ARCHITECTURE.md](ARCHITECTURE.md#implemented-playable-engine), and
+[README.md](README.md#shared-card-catalogue). The retained registration design
+below remains separate.
 
 ## Previous slice: user creation (retained)
 

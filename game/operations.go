@@ -67,7 +67,7 @@ func (s *State) ValidateOperation(actor string, c Command, operation string) err
 		if operation == "actions/research-spell" {
 			for _, support := range c.Support {
 				_, element := find(w.Hand, support.CardID)
-				if element == nil || !category(definition(element.DesignID), "element") {
+				if element == nil || !category(s.definition(element.DesignID), "element") {
 					return ErrInvalidChoice
 				}
 			}

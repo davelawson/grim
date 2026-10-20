@@ -119,18 +119,77 @@ State is stored in a simple sqlite3 database.
 1. Make sure that you have sqlite3 installed.
 1. Set the GRIM_DB environment variable to point to where you want the sqlite3 db stored.
   Eg: `export GRIM_DB=$HOME/sqlite/test.db`
-1. Create the database by executing the create-database.sql file.
-  Eg: `sqlite3 $GRIM_DB < ./sql/create-database.sql`
+1. Create a fresh database with the reset script.
+  `sqlite3 -bail "$GRIM_DB" < ./sql/create-database.sql`
+1. Install the shared card catalogue.
+  `sqlite3 -bail "$GRIM_DB" < ./sql/install-card-designs.sql`
 1. Populate the database with some test data.
   `sqlite3 "$GRIM_DB" ".cd sql" ".read populate-test-data.sql"`
 
-The creation script resets the database; it is for explicit fresh setup, not
-an upgrade. Fresh database setup uses the complete lifecycle schema, including `playing`
-match status and command receipts. The playable release requires fresh matches
-with schema 3 and `playable-v1` rules/catalogue; existing accounts and lobbies
-need no migration or database reset. The server does not run
-migrations or recreate existing databases. Previous match snapshot schemas and
-unknown rules/catalogue versions return `409 unsupported_state`.
+`new-database.sh` runs all three steps, including the optional test accounts.
+The creation script resets the database and must only be used for fresh setup.
+The server does not automatically install, migrate, seed, or reset data.
+
+To upgrade an existing database, stop the backend and run only:
+
+```sh
+sqlite3 -bail "$GRIM_DB" < ./sql/install-card-designs.sql
+```
+
+This additive, transactional script creates `card_designs` and seeds all 98
+original designs without changing accounts, lobbies, matches, or receipts.
+Re-running it leaves existing catalogue rows untouched. Existing schema-3
+`playable-v1` matches continue using the same definitions and design IDs;
+unsupported older snapshots still require an explicit compatibility solution.
+
+### Shared card catalogue
+
+`card_designs` contains the entire catalogue, including designs absent from any
+player's deck. One row represents a design within a catalogue version, keyed by
+`(catalogue_version, design_id)`. Individual card instances retain their
+`designid`, ownership, location, and changing state in match snapshots; those
+properties do not belong in this shared table.
+
+Names, text, timing, duration, persistence, disposal, and other ordinary properties
+have columns. Stats have individual columns, for example `cost_wis`,
+`play_requirement_fire`, `expertise_might`, and `income_ephemeral_wis`.
+`NULL` means an absent stat; `0` is an explicit zero. Categories, effect IDs,
+abilities, and Challenges use JSON arrays. Challenge reward order and repeated
+rewards are preserved. `sort_order` runs consecutively from zero and preserves
+catalogue order used by reproducible Research and rumour draws.
+
+Manage catalogue changes with SQL scripts. A version becomes immutable when its
+first match is saved: database triggers reject row additions, changes, and
+removals for versions referenced by any match, including ended or soft-deleted
+matches. Keep historical versions available. To change content, insert a complete
+new version in a transaction, keeping the existing design IDs where appropriate,
+then edit its columns before any match uses it. A stat change in an unused version
+can be made with:
+
+```sql
+UPDATE card_designs SET cost_wis = 2
+WHERE catalogue_version = 'edition-two' AND design_id = 'study';
+```
+
+Select that installed version for new matches and restart the backend:
+
+```sh
+export GRIM_CATALOGUE_VERSION=edition-two
+```
+
+The default is `playable-v1`. Catalogue versions are independent of rules versions:
+a data-only edition still uses `rules_version='playable-v1'`. New game behavior
+requires supported Go handlers and an engine release; adding a row is not a way
+to introduce arbitrary executable effects. Existing matches and draft receipts
+continue resolving their own pinned version. Public catalogue/draft responses
+and gameplay endpoints are unchanged, so the CLI needs no protocol changes.
+
+Startup validates the configured version and refuses to serve if it is missing
+or invalid. Each match operation loads its pinned definitions through the current
+database transaction; there is no process-global catalogue or built-in fallback.
+The engine receives immutable definitions and preserves them through state
+cloning without embedding them in saved snapshots. Accepted gameplay receipts
+replay before current catalogue or state validation.
 
 ### Generate SSL key and cert
 
@@ -277,7 +336,7 @@ Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
 `catalogueversion`, `wizards`, `turn`, and the owner's `you` view. Match responses
 do not contain draft options.
 The match starts in setup at revision 0 with an empty Ring, null turn and
-outcome, and pinned `playable-v1` rules/catalogue. The lobby closes permanently
+outcome, `playable-v1` rules, and the configured catalogue version. The lobby closes permanently
 and points to the match. Identical retries
 replay the original result; a new request ID on the closed lobby returns 409.
 Once the match is deleted, retries using its accepted request ID return 404.
@@ -285,11 +344,11 @@ Authenticated participants fetch current state with `GET /match/<match-id>`.
 
 ### Draft starting cards
 
-Participants fetch the pinned opening card definitions with
+Participants fetch their pinned card definitions with
 `GET /match/<match-id>/catalogue`, which returns `{"catalogue":{...}}`. Cards
 have stable design IDs and structured costs, requirements, Expertise, Affinity,
 income, persistence, disposal, resource values, and typed effect identifiers.
-The catalogue contains 98 definitions: the original 31 designs, two ephemeral
+The initial `playable-v1` catalogue contains 98 definitions: the original 31 designs, two ephemeral
 resources, 32 Spells, 20 rumours, and 13 reward designs. Research Artifact and
 the four unfinished victory paths are explicit inert placeholders. The
 catalogue includes structured Challenge requirements, upkeep, timing,
@@ -367,7 +426,7 @@ the shared definition. A deleted match returns 404 for lookup, catalogue,
 and both draft methods, including accepted-choice retries.
 
 This gameplay release needs no database reset or table migration. New matches
-use snapshot schema 3 and `playable-v1` rules/catalogue; opening-v1 snapshots
+use snapshot schema 3, `playable-v1` rules, and the configured catalogue; opening-v1 snapshots
 are unsupported and must be replaced. Stored accepted responses retain the
 existing retry rules; they do not upgrade or resume unsupported matches.
 
@@ -448,8 +507,9 @@ with changed input or operation returns `409 request_id_conflict`.
 This is a coordinated backend/client replacement: `/commands` and the broad
 `/reactions` route have been removed. Historical receipts remain untouched and
 reserve their UUIDs; new routes never reinterpret them. Match snapshots,
-catalogue/rules versions, response projections, and the database schema are
-unchanged. Deploy the backend and CLI together and restart wrapper sessions.
+catalogue/rules versions, response projections, and match storage are
+unchanged by the route replacement. The catalogue table is installed separately
+as described above. Deploy the backend and CLI together and restart wrapper sessions.
 
 Resource cards in `payment` are spent immediately. Leftover resources remain
 available for the active turn, and costs stay spent if an effect is countered.

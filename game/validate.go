@@ -55,7 +55,7 @@ func (s *State) validateSavedState() error {
 	seen := map[string]bool{}
 	checkCards := func(owner, zone string, cards []CardInstance) bool {
 		for _, c := range cards {
-			d, ok := cardDefinitions[c.DesignID]
+			d, ok := s.definitions.byID[c.DesignID]
 			if !ok || seen[c.ID] || c.ID == "" || c.Owner != owner || c.Location != zone || category(d, "rumour") {
 				return false
 			}
@@ -78,13 +78,13 @@ func (s *State) validateSavedState() error {
 		}
 		busy := map[string]bool{}
 		for _, r := range w.Rumours {
-			if r.ID == "" || busy[r.DesignID] || !category(definition(r.DesignID), "rumour") {
+			if r.ID == "" || busy[r.DesignID] || !category(s.definition(r.DesignID), "rumour") {
 				return invalid
 			}
 			busy[r.DesignID] = true
 		}
 		for _, design := range w.Reserved {
-			if busy[design] || !category(definition(design), "rumour") {
+			if busy[design] || !category(s.definition(design), "rumour") {
 				return invalid
 			}
 			busy[design] = true

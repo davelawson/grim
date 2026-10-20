@@ -90,17 +90,8 @@ func (s *State) shuffle(cards []CardInstance) error {
 	return nil
 }
 
-// Engine definitions are immutable; API catalogue callers receive fresh values.
-var cardDefinitions = func() map[string]CardDesign {
-	result := map[string]CardDesign{}
-	for _, d := range OpeningCatalogue().Cards {
-		result[d.ID] = d
-	}
-	return result
-}()
-
-func definition(id string) CardDesign      { return cardDefinitions[id] }
-func category(d CardDesign, k string) bool { return slices.Contains(d.Categories, k) }
+func (s *State) definition(id string) CardDesign { return s.definitions.byID[id] }
+func category(d CardDesign, k string) bool       { return slices.Contains(d.Categories, k) }
 func addStats(to, from map[string]int) {
 	for k, v := range from {
 		to[k] += v
@@ -140,17 +131,17 @@ func (s *State) inPlay(id string) *CardInstance {
 	}
 	return nil
 }
-func expertise(c CardInstance) map[string]int {
+func (s *State) expertise(c CardInstance) map[string]int {
 	if c.Expertise != nil {
 		return c.Expertise
 	}
-	return definition(c.DesignID).Expertise
+	return s.definition(c.DesignID).Expertise
 }
 func (s *State) affinities(owner string) map[string]int {
 	result := map[string]int{}
 	w := s.Wizards[owner]
 	for _, c := range w.InPlay {
-		addStats(result, definition(c.DesignID).Affinity)
+		addStats(result, s.definition(c.DesignID).Affinity)
 	}
 	for _, m := range w.Modifiers {
 		addStats(result, m.Affinity)
@@ -193,7 +184,7 @@ func (s *State) gain(owner, design string) error {
 	c := s.newCard(owner, design, "discard")
 	if design == "pupil" {
 		eligible := []string{}
-		el := definition(s.Wizards[owner].Draft.Chantry).Element
+		el := s.definition(s.Wizards[owner].Draft.Chantry).Element
 		for _, d := range domains {
 			if d != el {
 				eligible = append(eligible, d)
@@ -277,7 +268,7 @@ func (s *State) rumour(owner, id string) *api.RumourView {
 func (s *State) drawRumour(owner string, capacity map[string]int) (string, error) {
 	w := s.Wizards[owner]
 	available := []string{}
-	for _, d := range OpeningCatalogue().Cards {
+	for _, d := range s.definitions.catalogue.Cards {
 		if !category(d, "rumour") || !meets(capacity, d.Eligibility) {
 			continue
 		}
@@ -297,7 +288,7 @@ func (s *State) drawRumour(owner string, capacity map[string]int) (string, error
 }
 func (s *State) playRumour(owner, design string) {
 	w := s.Wizards[owner]
-	d := definition(design)
+	d := s.definition(design)
 	r := api.RumourView{ID: s.nextID("rumour"), DesignID: design, ExpiresAfterTurn: w.Turns + d.Duration - 1}
 	w.Rumours = append(w.Rumours, r)
 	switch design {

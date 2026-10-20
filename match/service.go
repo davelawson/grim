@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/davelawson/grim/api"
+	"github.com/davelawson/grim/catalogue"
 	"github.com/davelawson/grim/game"
 	"github.com/davelawson/grim/util"
 	"strings"
@@ -17,15 +18,22 @@ type adminRepo interface {
 }
 
 type Service struct {
-	repo  *Repo
-	users adminRepo
+	repo             *Repo
+	users            adminRepo
+	catalogueVersion string
 }
 
-func NewService(repo *Repo, users adminRepo) *Service { return &Service{repo: repo, users: users} }
+func NewService(repo *Repo, users adminRepo, catalogueVersion string) *Service {
+	return &Service{repo: repo, users: users, catalogueVersion: catalogueVersion}
+}
 
 // CreateSetup participates in the lobby's transaction; it never commits alone.
 func (s *Service) CreateSetup(tx *sql.Tx, name, lobbyID string, participants []string, actorID string) (*game.View, error) {
-	state, err := game.NewSetup(uuid.NewString(), name, lobbyID, participants)
+	definitions, err := s.definitions(tx, s.catalogueVersion)
+	if err != nil {
+		return nil, err
+	}
+	state, err := game.NewSetup(uuid.NewString(), name, lobbyID, participants, definitions)
 	if err != nil {
 		return nil, err
 	}
@@ -43,8 +51,23 @@ func (s *Service) SaveLaunchReceipt(tx *sql.Tx, lobbyID, actorID, requestID stri
 	return s.repo.saveLaunchReceipt(tx, lobbyID, actorID, requestID, view)
 }
 
-func decode(stored *storedMatch) (*game.State, error) {
-	state, err := game.Decode(stored.snapshot)
+func (s *Service) decode(tx *sql.Tx, stored *storedMatch) (*game.State, error) {
+	var header struct {
+		SchemaVersion    int    `json:"schemaversion"`
+		RulesVersion     string `json:"rulesversion"`
+		CatalogueVersion string `json:"catalogueversion"`
+	}
+	if err := json.Unmarshal(stored.snapshot, &header); err != nil {
+		return nil, err
+	}
+	if header.SchemaVersion != game.SchemaVersion || header.RulesVersion != game.OpeningRulesVersion {
+		return nil, util.ErrUnsupportedState
+	}
+	definitions, err := s.definitions(tx, header.CatalogueVersion)
+	if err != nil {
+		return nil, err
+	}
+	state, err := game.Decode(stored.snapshot, definitions)
 	if errors.Is(err, game.ErrUnsupportedSchema) || errors.Is(err, game.ErrUnsupportedVersion) {
 		return nil, util.ErrUnsupportedState
 	}
@@ -72,7 +95,7 @@ func (s *Service) Get(tx *sql.Tx, id, actorID string) (*game.View, error) {
 	if !member {
 		return nil, util.ErrForbidden
 	}
-	state, err := decode(stored)
+	state, err := s.decode(tx, stored)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +107,7 @@ func (s *Service) GetDraft(tx *sql.Tx, id, actorID string) (*api.DraftResponse, 
 	if err != nil {
 		return nil, err
 	}
-	return draftResponse(view)
+	return s.draftResponse(tx, view)
 }
 
 func (s *Service) SubmitDraft(tx *sql.Tx, id, actorID string, command api.DraftPickRequest) (*api.DraftResponse, error) {
@@ -92,11 +115,15 @@ func (s *Service) SubmitDraft(tx *sql.Tx, id, actorID string, command api.DraftP
 	if err != nil {
 		return nil, err
 	}
-	return draftResponse(view)
+	return s.draftResponse(tx, view)
 }
 
-func draftResponse(view *game.View) (*api.DraftResponse, error) {
-	response, err := game.DraftView(view)
+func (s *Service) draftResponse(tx *sql.Tx, view *game.View) (*api.DraftResponse, error) {
+	definitions, err := s.definitions(tx, view.CatalogueVersion)
+	if err != nil {
+		return nil, err
+	}
+	response, err := game.DraftView(view, definitions)
 	if errors.Is(err, game.ErrUnsupportedVersion) {
 		return nil, util.ErrUnsupportedState
 	}
@@ -135,7 +162,7 @@ func (s *Service) command(tx *sql.Tx, id, actorID string, command api.DraftPickR
 	if view, err := s.repo.commandReceipt(tx, id, actorID, command.RequestID, string(input)); err != nil || view != nil {
 		return view, err
 	}
-	state, err := decode(stored)
+	state, err := s.decode(tx, stored)
 	if err != nil {
 		return nil, err
 	}
@@ -167,12 +194,38 @@ func (s *Service) command(tx *sql.Tx, id, actorID string, command api.DraftPickR
 	return view, nil
 }
 
-func (s *Service) Catalogue(tx *sql.Tx, id, actorID string) (*game.Catalogue, error) {
-	// Get applies membership, deletion, metadata and version checks.
-	if _, err := s.Get(tx, id, actorID); err != nil {
+// definitions loads only the requested version, never a fallback catalogue.
+func (s *Service) definitions(tx *sql.Tx, version string) (*game.Definitions, error) {
+	c, err := catalogue.Load(tx, version)
+	if errors.Is(err, catalogue.ErrNotFound) {
+		return nil, util.ErrUnsupportedState
+	}
+	if err != nil {
 		return nil, err
 	}
-	return game.OpeningCatalogue(), nil
+	definitions, err := game.NewDefinitions(*c)
+	if errors.Is(err, game.ErrUnsupportedVersion) {
+		return nil, util.ErrUnsupportedState
+	}
+	return definitions, err
+}
+
+// ValidateCatalogue checks startup configuration without installing or modifying data.
+func (s *Service) ValidateCatalogue(tx *sql.Tx) error {
+	_, err := s.definitions(tx, s.catalogueVersion)
+	return err
+}
+
+func (s *Service) Catalogue(tx *sql.Tx, id, actorID string) (*game.Catalogue, error) {
+	view, err := s.Get(tx, id, actorID)
+	if err != nil {
+		return nil, err
+	}
+	definitions, err := s.definitions(tx, view.CatalogueVersion)
+	if err != nil {
+		return nil, err
+	}
+	return definitions.Catalogue(), nil
 }
 
 func (s *Service) End(tx *sql.Tx, id, actorID string) error {

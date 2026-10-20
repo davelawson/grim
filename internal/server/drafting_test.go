@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/internal/testcatalogue"
 	"net/http/httptest"
 	"reflect"
 	"slices"
@@ -75,7 +76,7 @@ func assertDraftCards(t *testing.T, result *api.DraftResponse, step string, ids 
 	if result.Draft.Step != step || len(result.Cards) != len(ids) || result.Cards == nil {
 		t.Fatalf("wrong %s options: %+v", step, result)
 	}
-	catalogue := game.OpeningCatalogue()
+	catalogue := testcatalogue.Load(t)
 	for i, id := range ids {
 		card, ok := catalogue.Card(id)
 		if !ok || !reflect.DeepEqual(result.Cards[i], card) {

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/internal/testcatalogue"
 	"github.com/google/uuid"
 	randv2 "math/rand/v2"
 	"reflect"
@@ -69,7 +70,7 @@ func (f *lifecycleFixture) playToVictoryUsing(view *game.View, kneel bool, submi
 	f.t.Helper()
 	id := view.ID
 	winner := f.ids["owner"]
-	catalogue := game.OpeningCatalogue()
+	catalogue := testcatalogue.Load(f.t)
 	restarted := map[string]bool{}
 	for n := 0; n < 3500 && view.Status == "playing"; n++ {
 		actor := f.actor(view.Turn.ActiveWizard)

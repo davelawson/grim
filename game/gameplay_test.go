@@ -85,7 +85,7 @@ func allAffinity(s *State, owner string) {
 }
 func resumed(t *testing.T, s *State) *State {
 	t.Helper()
-	r, err := Decode(jsonBytes(t, s))
+	r, err := Decode(jsonBytes(t, s), testDefinitions(t))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -104,7 +104,7 @@ func reject(t *testing.T, s *State, actor string, c Command, want error) {
 }
 
 func TestEveryCompletedSpell(t *testing.T) {
-	for _, d := range OpeningCatalogue().Cards {
+	for _, d := range testCatalogue(t).Cards {
 		if !category(d, "spell") {
 			continue
 		}
@@ -313,7 +313,7 @@ func TestSupportCapacityAndDeployment(t *testing.T) {
 }
 
 func TestEveryRumourChallengeAndReward(t *testing.T) {
-	for _, d := range OpeningCatalogue().Cards {
+	for _, d := range testCatalogue(t).Cards {
 		if !category(d, "rumour") {
 			continue
 		}
@@ -705,7 +705,7 @@ func TestResearchRecipesAndUnfilteredOffers(t *testing.T) {
 				t.Fatal("wrong distinct offer")
 			}
 			for _, id := range q.Options {
-				if definition(id).Pool != recipe.pool {
+				if s.definition(id).Pool != recipe.pool {
 					t.Fatal("wrong Research pool")
 				}
 			}
@@ -822,7 +822,7 @@ func TestRequiredChoiceRejectionsAndSnapshotValidation(t *testing.T) {
 	} {
 		bad := clone(s)
 		corrupt(bad)
-		if _, err := Decode(jsonBytes(t, bad)); err == nil {
+		if _, err := Decode(jsonBytes(t, bad), testDefinitions(t)); err == nil {
 			t.Fatal("corrupt continuation accepted")
 		}
 	}

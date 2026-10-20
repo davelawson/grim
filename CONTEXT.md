@@ -141,6 +141,13 @@ its owner, unless a card explicitly permits private inspection.
 The shared definition of a named card, including its printed properties and
 abilities.
 
+**Card catalogue**:
+The complete collection of Card designs available to the game, independent of
+which card instances any wizard owns or has in a deck.
+
+**Catalogue version**:
+An edition of the Card catalogue used consistently throughout a match.
+
 **Card instance**:
 An individual copy of a Card design with its own identity, ownership, location,
 and changing play state.

@@ -79,11 +79,11 @@ func (s *State) Choose(actorID, kind, cardID string) (*State, error) {
 	if !slices.Contains(offered, cardID) {
 		return nil, ErrInvalidChoice
 	}
-	if s.RulesVersion != OpeningRulesVersion || s.CatalogueVersion != OpeningCatalogueVersion {
+	if !s.compatibleDefinitions() {
 		return nil, ErrUnsupportedVersion
 	}
 
-	state := *clone(s)
+	state := *s.clone()
 	draft := &state.Wizards[actorID].Draft
 	switch step {
 	case "chantry":
@@ -122,7 +122,7 @@ func (s *State) start() error {
 	random := randv2.New(generator)
 	s.Ring = slices.Clone(s.Participants)
 	random.Shuffle(len(s.Ring), func(i, j int) { s.Ring[i], s.Ring[j] = s.Ring[j], s.Ring[i] })
-	catalogue := OpeningCatalogue()
+	catalogue := &s.definitions.catalogue
 	// Sorted participant order fixes which random draws belong to each deck.
 	for _, owner := range s.Participants {
 		wizard := s.Wizards[owner]

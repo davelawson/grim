@@ -12,3 +12,7 @@ effect handlers, while individual card instances hold ownership, location,
 and changing state. This supports the initial small catalogue without the
 language, interpreter, and compatibility burden of arbitrary card scripting;
 new behavior can require an engine release.
+
+[ADR 0005](0005-database-card-catalogue.md) specifies database storage for the
+structured definitions. They are loaded by the application and injected into
+the engine; the independent state machine and typed Go handlers remain.

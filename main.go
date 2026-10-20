@@ -7,10 +7,12 @@ import (
 	"fmt"
 	"github.com/davelawson/grim/auth"
 	"github.com/davelawson/grim/docs"
+	"github.com/davelawson/grim/game"
 	"github.com/davelawson/grim/internal/server"
 	"github.com/davelawson/grim/lobby"
 	"github.com/davelawson/grim/match"
 	"github.com/davelawson/grim/user"
+	"github.com/davelawson/grim/util"
 	"os"
 
 	"github.com/gin-gonic/gin"
@@ -20,8 +22,9 @@ import (
 )
 
 type config struct {
-	DbLocation string `json:"grim_db"`
-	SslFolder  string `json:"grim_ssl"`
+	CatalogueVersion string `json:"grim_catalogue_version"`
+	DbLocation       string `json:"grim_db"`
+	SslFolder        string `json:"grim_ssl"`
 }
 
 // @SecurityDefinitions.apiKey ApiKeyAuth
@@ -55,7 +58,11 @@ func main() {
 	userController := user.NewController(userFacade)
 	server.AddUserRoutes(authFacade, router, userController)
 
-	matchService := match.NewService(match.NewRepo(db), userRepo)
+	matchService := match.NewService(match.NewRepo(db), userRepo, config.CatalogueVersion)
+	if err := util.InTx(db, func(tx *sql.Tx) error { return matchService.ValidateCatalogue(tx) })(); err != nil {
+		fmt.Fprintln(os.Stderr, "Catalogue configuration is invalid; install the catalogue before starting:", err)
+		return
+	}
 	matchController := match.NewController(match.NewServiceFacade(matchService))
 	server.AddMatchRoutes(authFacade, router, matchController)
 	lobbyService := lobby.NewService(lobbyRepo, userRepo, matchService)
@@ -70,8 +77,12 @@ func main() {
 
 func getConfig() (*config, error) {
 	c := &config{
-		DbLocation: os.Getenv("GRIM_DB"),
-		SslFolder:  os.Getenv("GRIM_SSL"),
+		CatalogueVersion: os.Getenv("GRIM_CATALOGUE_VERSION"),
+		DbLocation:       os.Getenv("GRIM_DB"),
+		SslFolder:        os.Getenv("GRIM_SSL"),
+	}
+	if c.CatalogueVersion == "" {
+		c.CatalogueVersion = game.DefaultCatalogueVersion
 	}
 	json, _ := json.MarshalIndent(*c, "", "  ")
 	fmt.Println("config: ")

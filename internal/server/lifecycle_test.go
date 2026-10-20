@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/auth"
+	"github.com/davelawson/grim/catalogue"
 	"github.com/davelawson/grim/game"
+	"github.com/davelawson/grim/internal/testcatalogue"
 	"github.com/davelawson/grim/lobby"
 	"github.com/davelawson/grim/match"
 	"github.com/davelawson/grim/model"
@@ -31,11 +33,12 @@ import (
 var roster = []string{"owner", "member", "third", "fourth", "outsider"}
 
 type lifecycleFixture struct {
-	t      *testing.T
-	path   string
-	db     *sql.DB
-	router *gin.Engine
-	ids    map[string]string
+	t                *testing.T
+	path             string
+	db               *sql.DB
+	router           *gin.Engine
+	ids              map[string]string
+	catalogueVersion string
 }
 
 func newLifecycleFixture(t *testing.T) *lifecycleFixture {
@@ -49,6 +52,7 @@ func newLifecycleFixture(t *testing.T) *lifecycleFixture {
 		t.Fatal(err)
 	}
 	f.exec(string(schema))
+	testcatalogue.Install(t, f.db)
 	for _, name := range append(slices.Clone(roster), "admin") {
 		id := uuid.NewString()
 		f.ids[name] = id
@@ -69,9 +73,12 @@ func (f *lifecycleFixture) open() {
 }
 
 func (f *lifecycleFixture) wire() {
+	if f.catalogueVersion == "" {
+		f.catalogueVersion = game.DefaultCatalogueVersion
+	}
 	users := user.NewUserRepo(f.db)
 	authentication := auth.NewServiceFacade(auth.NewService(users), f.db)
-	matches := match.NewService(match.NewRepo(f.db), users)
+	matches := match.NewService(match.NewRepo(f.db), users, f.catalogueVersion)
 	lobbies := lobby.NewService(lobby.NewLobbyRepo(f.db), users, matches)
 	f.router = gin.New()
 	AddAuthRoutes(f.router, auth.NewController(authentication))
@@ -163,7 +170,21 @@ func (f *lifecycleFixture) saved(id string) ([]byte, *game.State) {
 	if err := f.db.QueryRow("select snapshot from matches where id = ?", id).Scan(&snapshot); err != nil {
 		f.t.Fatal(err)
 	}
-	state, err := game.Decode(snapshot)
+	var header struct {
+		Version string `json:"catalogueversion"`
+	}
+	if err := json.Unmarshal(snapshot, &header); err != nil {
+		f.t.Fatal(err)
+	}
+	c, err := catalogue.Load(f.db, header.Version)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	definitions, err := game.NewDefinitions(*c)
+	if err != nil {
+		f.t.Fatal(err)
+	}
+	state, err := game.Decode(snapshot, definitions)
 	if err != nil {
 		f.t.Fatal(err)
 	}
@@ -231,7 +252,7 @@ func TestMatchLifecycleAndRestart(t *testing.T) {
 				}
 			}
 			before, state := f.saved(view.ID)
-			if state.RulesVersion != game.OpeningRulesVersion || state.CatalogueVersion != game.OpeningCatalogueVersion || state.Random.Generator != "chacha8-v1" {
+			if state.RulesVersion != game.OpeningRulesVersion || state.CatalogueVersion != game.DefaultCatalogueVersion || state.Random.Generator != "chacha8-v1" {
 				t.Fatal("unexpected setup binding/random algorithm")
 			}
 			seed := [32]byte(state.Random.Seed)

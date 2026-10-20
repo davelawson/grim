@@ -49,7 +49,7 @@ func (s *State) Apply(actor string, c Command) (*State, error) {
 	if !slices.Contains(s.Participants, actor) {
 		return nil, ErrNotParticipant
 	}
-	if s.RulesVersion != OpeningRulesVersion || s.CatalogueVersion != OpeningCatalogueVersion {
+	if !s.compatibleDefinitions() {
 		return nil, ErrUnsupportedVersion
 	}
 	if s.Status == "finished" {
@@ -58,7 +58,7 @@ func (s *State) Apply(actor string, c Command) (*State, error) {
 	if s.Status != "playing" || (!s.alive(actor) && c.Type != "resolve_choice") {
 		return nil, ErrTiming
 	}
-	next := clone(s)
+	next := s.clone()
 	if err := next.apply(actor, c); err != nil {
 		return nil, err
 	}
@@ -142,12 +142,13 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 	d := CardDesign{}
 	cost := map[string]int{}
 	mainHand := false
+	exhaustAbility := false
 	challenge := false
 	if c.Type == "attempt_challenge" {
 		challenge = true
 		e.Kind = "challenge"
 		if r := s.rumour(actor, c.CardID); r != nil {
-			d = definition(r.DesignID)
+			d = s.definition(r.DesignID)
 			if d.ID == "rumour_full_moon" && !startHunt {
 				return ErrTiming
 			}
@@ -156,7 +157,7 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 			if card == nil || card.DesignID != "investigate" {
 				return ErrInvalidChoice
 			}
-			d = definition(card.DesignID)
+			d = s.definition(card.DesignID)
 			mainHand = true
 		}
 		var found bool
@@ -172,19 +173,33 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 		}
 	} else if c.Type == "activate_ability" {
 		_, card := find(w.InPlay, c.CardID)
-		if card == nil || card.DesignID != "spell_healing_spring" || card.Exhausted || c.AbilityID != "heal" {
+		if card == nil || card.DesignID != "spell_healing_spring" {
 			return ErrInvalidChoice
 		}
-		d = definition(card.DesignID)
-		e.Kind = "heal_activation"
-		e.Spell = true
-		cost["wis"] = 3
+		d = s.definition(card.DesignID)
+		found := false
+		for _, ability := range d.Abilities {
+			if ability.ID == c.AbilityID && ability.Timing == "action" && ability.Effect == "heal_activation" {
+				if ability.Exhaust && card.Exhausted {
+					return ErrInvalidChoice
+				}
+				e.Kind = string(ability.Effect)
+				e.Spell = category(d, "spell")
+				addStats(cost, ability.Cost)
+				exhaustAbility = ability.Exhaust
+				found = true
+				break
+			}
+		}
+		if !found {
+			return ErrInvalidChoice
+		}
 	} else {
 		_, card := find(w.Hand, c.CardID)
 		if card == nil {
 			return ErrInvalidChoice
 		}
-		d = definition(card.DesignID)
+		d = s.definition(card.DesignID)
 		if d.Placeholder || category(d, "element") || d.Timing == "support" || d.ID == "investigate" {
 			return ErrInvalidChoice
 		}
@@ -259,7 +274,7 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 		if card == nil {
 			return ErrInvalidChoice
 		}
-		sd := definition(card.DesignID)
+		sd := s.definition(card.DesignID)
 		switch {
 		case category(sd, "element"):
 			if len(x.Domains) > 0 {
@@ -297,7 +312,7 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 	}
 	for _, x := range c.Support {
 		_, card := find(w.Hand, x.CardID)
-		sd := definition(card.DesignID)
+		sd := s.definition(card.DesignID)
 		if sd.Timing != "support" {
 			continue
 		}
@@ -349,10 +364,10 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 	}
 	for _, id := range c.Minions {
 		_, card := find(w.InPlay, id)
-		if card == nil || !category(definition(card.DesignID), "minion") || card.Exhausted || card.DeployedTurn >= s.Turn.Number {
+		if card == nil || !category(s.definition(card.DesignID), "minion") || card.Exhausted || card.DeployedTurn >= s.Turn.Number {
 			return ErrInvalidChoice
 		}
-		if e.Kind == "subjugate_rival" && expertise(*card)["might"] < 1 {
+		if e.Kind == "subjugate_rival" && s.expertise(*card)["might"] < 1 {
 			return ErrInvalidChoice
 		}
 	}
@@ -450,7 +465,7 @@ func (s *State) declare(actor string, c Command, startHunt bool) error {
 		_, card := find(w.InPlay, id)
 		card.Exhausted = true
 	}
-	if c.Type == "activate_ability" {
+	if exhaustAbility {
 		_, card := find(w.InPlay, c.CardID)
 		card.Exhausted = true
 	}
@@ -472,10 +487,10 @@ func (s *State) pay(actor string, cost map[string]int, ids []string) ([]CardInst
 	payments := []CardInstance{}
 	for _, id := range ids {
 		_, card := find(w.Hand, id)
-		if card == nil || !category(definition(card.DesignID), "resource") {
+		if card == nil || !category(s.definition(card.DesignID), "resource") {
 			return nil, ErrInvalidChoice
 		}
-		addStats(available, definition(card.DesignID).Resources)
+		addStats(available, s.definition(card.DesignID).Resources)
 	}
 	if !meets(available, cost) {
 		return nil, ErrInvalidChoice
@@ -496,7 +511,7 @@ func (s *State) challengeDesign(e *PendingEffect) api.ChallengeDesign {
 	if r := s.rumour(e.Actor, e.Source); r != nil {
 		design = r.DesignID
 	}
-	for _, ch := range definition(design).Challenges {
+	for _, ch := range s.definition(design).Challenges {
 		if ch.ID == e.ChallengeID {
 			return ch
 		}
@@ -508,7 +523,7 @@ func (s *State) capacity(e *PendingEffect) map[string]int {
 	addStats(result, e.Capacity)
 	for _, id := range e.Minions {
 		if c := s.inPlay(id); c != nil {
-			addStats(result, expertise(*c))
+			addStats(result, s.expertise(*c))
 		}
 	}
 	return result
@@ -538,7 +553,7 @@ func (s *State) defend(actor string, c Command) error {
 	w := s.Wizards[actor]
 	for _, id := range c.Minions {
 		_, card := find(w.InPlay, id)
-		if card == nil || card.Exhausted || expertise(*card)["might"] < 1 {
+		if card == nil || card.Exhausted || s.expertise(*card)["might"] < 1 {
 			return ErrInvalidChoice
 		}
 	}

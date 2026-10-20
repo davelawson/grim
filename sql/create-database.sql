@@ -1,5 +1,6 @@
 -- Explicit database reset only. The server never runs this script.
 pragma foreign_keys = off;
+drop table if exists card_designs;
 drop table if exists launch_receipts;
 drop table if exists command_receipts;
 drop table if exists players;

@@ -9,11 +9,11 @@ import (
 
 // DraftView uses only a participant view, including a recorded receipt's view,
 // so retries reveal the options for the originally returned step and revision.
-func DraftView(view *View) (*api.DraftResponse, error) {
+func DraftView(view *View, definitions *Definitions) (*api.DraftResponse, error) {
 	if view == nil || view.You == nil {
 		return nil, errors.New("missing private draft view")
 	}
-	if view.RulesVersion != OpeningRulesVersion || view.CatalogueVersion != OpeningCatalogueVersion {
+	if definitions == nil || view.RulesVersion != definitions.catalogue.RulesVersion || view.CatalogueVersion != definitions.catalogue.CatalogueVersion {
 		return nil, ErrUnsupportedVersion
 	}
 	response := &api.DraftResponse{
@@ -40,7 +40,7 @@ func DraftView(view *View) (*api.DraftResponse, error) {
 	default:
 		return nil, errors.New("unknown draft step")
 	}
-	catalogue := OpeningCatalogue()
+	catalogue := &definitions.catalogue
 	for _, id := range ids {
 		card, ok := catalogue.Card(id)
 		if !ok {

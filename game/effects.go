@@ -19,7 +19,7 @@ func (s *State) validateTargets(e *PendingEffect) error {
 			owner = a.Target
 		}
 		c := s.inPlay(id)
-		return c != nil && c.Owner == owner && slices.Contains(ids, id) && (!low || expertise(*c)["might"] <= 1)
+		return c != nil && c.Owner == owner && slices.Contains(ids, id) && (!low || s.expertise(*c)["might"] <= 1)
 	}
 	switch e.Kind {
 	case "counterspell":
@@ -31,7 +31,7 @@ func (s *State) validateTargets(e *PendingEffect) error {
 			return ErrInvalidChoice
 		}
 		c := s.inPlay(e.Targets[0])
-		if c == nil || c.Exhausted || !category(definition(c.DesignID), "minion") || (c.Owner != s.neighbour(e.Actor, 1) && c.Owner != s.neighbour(e.Actor, -1)) {
+		if c == nil || c.Exhausted || !category(s.definition(c.DesignID), "minion") || (c.Owner != s.neighbour(e.Actor, 1) && c.Owner != s.neighbour(e.Actor, -1)) {
 			return ErrInvalidChoice
 		}
 	case "firewall", "dislocate", "deflect", "wildfire", "molten_armour":
@@ -77,7 +77,7 @@ func (s *State) resolve(e *PendingEffect) error {
 	case "subjugate_rival":
 		return s.resolveAttack(e)
 	case "basic_wis", "basic_wealth", "ephemeral_wis", "ephemeral_wealth":
-		addStats(w.Resources, definition(e.Kind).Resources)
+		addStats(w.Resources, s.definition(e.Kind).Resources)
 	case "arcane_focus", "heal_activation", "purifying_steam":
 		if s.alive(e.Actor) {
 			w.Integrity = min(3, w.Integrity+1)
@@ -87,7 +87,7 @@ func (s *State) resolve(e *PendingEffect) error {
 			return s.gain(e.Actor, "element_"+e.Element)
 		}
 		pool := []string{}
-		for _, d := range OpeningCatalogue().Cards {
+		for _, d := range s.definitions.catalogue.Cards {
 			if category(d, "spell") && d.Pool == e.Element {
 				pool = append(pool, d.ID)
 			}
@@ -109,7 +109,7 @@ func (s *State) resolve(e *PendingEffect) error {
 	case "burn_failure":
 		assets := []string{}
 		for _, c := range w.InPlay {
-			if !category(definition(c.DesignID), "spell") {
+			if !category(s.definition(c.DesignID), "spell") {
 				assets = append(assets, c.ID)
 			}
 		}
@@ -149,7 +149,7 @@ func (s *State) resolve(e *PendingEffect) error {
 		s.resolveCombatSpell(e)
 	default:
 		// Durable ordinary plays are the common asset/lasting-Spell handler.
-		d := definition(e.Kind)
+		d := s.definition(e.Kind)
 		if d.Persistence != "durable" {
 			return ErrInvalidChoice
 		}
@@ -198,14 +198,14 @@ func (s *State) resolveAttack(e *PendingEffect) error {
 	defence := s.affinities(e.Target)["might"] + e.BonusDefence
 	survivor := false
 	for _, id := range e.Minions {
-		if c := s.inPlay(id); c != nil && c.Owner == e.Actor && expertise(*c)["might"] > 0 {
+		if c := s.inPlay(id); c != nil && c.Owner == e.Actor && s.expertise(*c)["might"] > 0 {
 			survivor = true
-			attack += max(0, expertise(*c)["might"]+e.MinionBonuses[id])
+			attack += max(0, s.expertise(*c)["might"]+e.MinionBonuses[id])
 		}
 	}
 	for _, id := range e.Defenders {
 		if c := s.inPlay(id); c != nil && c.Owner == e.Target {
-			defence += max(0, expertise(*c)["might"]+e.MinionBonuses[id])
+			defence += max(0, s.expertise(*c)["might"]+e.MinionBonuses[id])
 		}
 	}
 	for _, c := range s.Wizards[e.Target].InPlay {
@@ -283,7 +283,7 @@ func (s *State) resolveCombatSpell(e *PendingEffect) {
 		}
 	}
 	remove := func(id, zone string, low bool) {
-		if survives(id) && (!low || expertise(*s.inPlay(id))["might"] <= 1) {
+		if survives(id) && (!low || s.expertise(*s.inPlay(id))["might"] <= 1) {
 			s.removeAsset(id, zone)
 		}
 	}

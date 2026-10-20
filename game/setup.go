@@ -18,6 +18,7 @@ var ErrUnsupportedVersion = errors.New("unsupported rules or catalogue version")
 
 // State is authoritative and private; only participant projections are served.
 type State struct {
+	definitions      *Definitions
 	RandomDraws      []RandomDraw        `json:"-"`
 	Winners          []string            `json:"winners"`
 	Sequence         int                 `json:"sequence"`
@@ -50,7 +51,10 @@ type RandomState struct {
 // View is separate from State so new private fields cannot leak by default.
 type View = api.MatchView
 
-func NewSetup(id, name, lobbyID string, participants []string) (*State, error) {
+func NewSetup(id, name, lobbyID string, participants []string, definitions *Definitions) (*State, error) {
+	if definitions == nil {
+		return nil, ErrUnsupportedVersion
+	}
 	var seed [32]byte
 	if _, err := rand.Read(seed[:]); err != nil {
 		return nil, err
@@ -67,14 +71,14 @@ func NewSetup(id, name, lobbyID string, participants []string) (*State, error) {
 		wizards[player] = &Wizard{Draft: Draft{Step: "chantry"}}
 	}
 	return &State{
-		SchemaVersion: SchemaVersion, ID: id, Name: name, LobbyID: lobbyID,
+		definitions: definitions, SchemaVersion: SchemaVersion, ID: id, Name: name, LobbyID: lobbyID,
 		Status: "setup", Participants: players, Ring: []string{}, Wizards: wizards,
-		RulesVersion: OpeningRulesVersion, CatalogueVersion: OpeningCatalogueVersion,
+		RulesVersion: definitions.catalogue.RulesVersion, CatalogueVersion: definitions.catalogue.CatalogueVersion,
 		Winners: []string{}, Random: RandomState{Generator: "chacha8-v1", Seed: seed[:], State: randomState},
 	}, nil
 }
 
-func Decode(data []byte) (*State, error) {
+func Decode(data []byte, definitions *Definitions) (*State, error) {
 	var header struct {
 		SchemaVersion int `json:"schemaversion"`
 	}
@@ -88,7 +92,8 @@ func Decode(data []byte) (*State, error) {
 	if err := json.Unmarshal(data, &state); err != nil {
 		return nil, err
 	}
-	if state.RulesVersion != OpeningRulesVersion || state.CatalogueVersion != OpeningCatalogueVersion {
+	state.definitions = definitions
+	if !state.compatibleDefinitions() {
 		return nil, ErrUnsupportedVersion
 	}
 	if len(state.Participants) < 2 || len(state.Participants) > 4 || len(state.Wizards) != len(state.Participants) || !slices.IsSorted(state.Participants) {

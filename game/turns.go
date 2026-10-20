@@ -29,7 +29,7 @@ func (s *State) advance() error {
 					continue
 				}
 				for _, resource := range []string{"ephemeral_wis", "ephemeral_wealth"} {
-					for range definition(c.DesignID).Income[resource] {
+					for range s.definition(c.DesignID).Income[resource] {
 						w.Hand = append(w.Hand, s.newCard(owner, resource, "hand"))
 					}
 				}
@@ -38,7 +38,7 @@ func (s *State) advance() error {
 		case "start/maintenance":
 			options := []string{}
 			for _, c := range w.InPlay {
-				if len(definition(c.DesignID).Upkeep) > 0 {
+				if len(s.definition(c.DesignID).Upkeep) > 0 {
 					options = append(options, c.ID)
 				}
 			}

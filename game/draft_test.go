@@ -12,7 +12,7 @@ import (
 
 func setup(t *testing.T, size int) *State {
 	t.Helper()
-	s, err := NewSetup("match", "Test", "lobby", []string{"d", "c", "b", "a"}[4-size:])
+	s, err := NewSetup("match", "Test", "lobby", []string{"d", "c", "b", "a"}[4-size:], testDefinitions(t))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -72,7 +72,7 @@ func TestAllDraftOffersAndStartingComposition(t *testing.T) {
 						if w.InPlay[0].DesignID != chantry || w.InPlay[0].Location != "inplay" {
 							t.Fatal("wrong starting Chantry")
 						}
-						design, _ := OpeningCatalogue().Card(chantry)
+						design, _ := testCatalogue(t).Card(chantry)
 						if !reflect.DeepEqual(w.Affinities, map[string]int{design.Element: 1}) || len(w.VictoryProgress) != 5 {
 							t.Fatal("incorrect public stats")
 						}
@@ -149,7 +149,7 @@ func TestDeterministicStartAndRestart(t *testing.T) {
 			}
 		}
 		before := jsonBytes(t, s)
-		restored, err := Decode(before)
+		restored, err := Decode(before, testDefinitions(t))
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -231,7 +231,7 @@ func TestParticipantPrivacyAndProjectionIsolation(t *testing.T) {
 }
 
 func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
-	c := OpeningCatalogue()
+	c := testCatalogue(t)
 	if len(c.Cards) != 98 {
 		t.Fatalf("unexpected catalogue size %d", len(c.Cards))
 	}
@@ -269,21 +269,21 @@ func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
 		}
 	}
 	c.Cards[0].Cost["wis"] = 99
-	if OpeningCatalogue().Cards[0].Cost["wis"] != 1 {
+	if testCatalogue(t).Cards[0].Cost["wis"] != 1 {
 		t.Fatal("catalogue aliases shared data")
 	}
 	s := setup(t, 2)
 	s.SchemaVersion = 1
-	if _, err := Decode(jsonBytes(t, s)); !errors.Is(err, ErrUnsupportedSchema) {
+	if _, err := Decode(jsonBytes(t, s), testDefinitions(t)); !errors.Is(err, ErrUnsupportedSchema) {
 		t.Fatal("old schema accepted")
 	}
 	s.SchemaVersion = SchemaVersion
 	s.RulesVersion = "unknown"
-	if _, err := Decode(jsonBytes(t, s)); !errors.Is(err, ErrUnsupportedVersion) {
+	if _, err := Decode(jsonBytes(t, s), testDefinitions(t)); !errors.Is(err, ErrUnsupportedVersion) {
 		t.Fatal("unknown rules accepted")
 	}
 	s.RulesVersion, s.CatalogueVersion = OpeningRulesVersion, "unknown"
-	if _, err := Decode(jsonBytes(t, s)); !errors.Is(err, ErrUnsupportedVersion) {
+	if _, err := Decode(jsonBytes(t, s), testDefinitions(t)); !errors.Is(err, ErrUnsupportedVersion) {
 		t.Fatal("unknown catalogue accepted")
 	}
 }

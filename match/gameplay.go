@@ -53,7 +53,7 @@ func (s *Service) submitGameplay(tx *sql.Tx, id, actorID string, c game.Command,
 		diagnostics.Replayed = view != nil
 		return view, err
 	}
-	state, err := decode(stored)
+	state, err := s.decode(tx, stored)
 	if err != nil {
 		return nil, err
 	}

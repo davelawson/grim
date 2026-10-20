@@ -42,7 +42,7 @@ func (s *State) resolveChoice(actor string, c Command) error {
 			if card == nil || card.Owner != actor {
 				return ErrInvalidChoice
 			}
-			addStats(cost, definition(card.DesignID).Upkeep)
+			addStats(cost, s.definition(card.DesignID).Upkeep)
 		}
 		if _, err := s.pay(actor, cost, c.Payment); err != nil {
 			return err
