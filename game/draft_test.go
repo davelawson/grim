@@ -60,13 +60,13 @@ func TestAllDraftOffersAndStartingComposition(t *testing.T) {
 						s = choose(t, s, actor, "choose_victory_path", victory)
 						s = choose(t, s, actor, "choose_minion", minion)
 					}
-					if s.Status != "playing" || s.Revision != 6 || s.Turn == nil || s.Turn.ActiveWizard != s.Ring[0] || s.Turn.Phase != "start" || s.Turn.Step != "recovery" || s.Turn.Number != 1 {
+					if s.Status != "playing" || s.Revision != 6 || s.Turn == nil || s.Turn.ActiveWizard != s.Ring[0] || s.Turn.Number != 1 {
 						t.Fatalf("incorrect game start: %+v", s)
 					}
 					seen := map[string]bool{}
 					for _, owner := range s.Participants {
 						w := s.Wizards[owner]
-						if w.Integrity != 3 || len(w.InPlay) != 1 || len(w.Hand) != 5 || len(w.DrawPile) != 5 || len(w.Discard) != 0 {
+						if w.Integrity != 3 || len(w.InPlay) != 1 || len(ordinary(w.Hand)) != 5 || len(w.DrawPile) != 5 || len(w.Discard) != 0 {
 							t.Fatal("wrong opening zones")
 						}
 						if w.InPlay[0].DesignID != chantry || w.InPlay[0].Location != "inplay" {
@@ -82,7 +82,7 @@ func TestAllDraftOffersAndStartingComposition(t *testing.T) {
 							}
 						}
 						counts := map[string]int{}
-						for _, card := range append(slices.Clone(w.Hand), w.DrawPile...) {
+						for _, card := range append(slices.Clone(ordinary(w.Hand)), w.DrawPile...) {
 							counts[card.DesignID]++
 						}
 						want := map[string]int{"element_" + design.Element: 1, "research_spell": 1, "research_artifact": 1, "basic_wis": 2, "basic_wealth": 1, "arcane_focus": 1, "investigate": 1, victory: 1, minion: 1}
@@ -101,7 +101,7 @@ func TestAllDraftOffersAndStartingComposition(t *testing.T) {
 							}
 						}
 					}
-					if len(seen) != 22 {
+					if len(seen) != 23 {
 						t.Fatal("incorrect instance count")
 					}
 				})
@@ -130,7 +130,7 @@ func TestDraftRejectionsAreImmutable(t *testing.T) {
 	s = choose(t, s, "a", "choose_minion", "orla_nine_cinders")
 	check("a", "choose_minion", "bastian_redhand", ErrDraftSequence)
 	s = choose(t, s, "b", "choose_chantry", "chantry_water")
-	s = choose(t, s, "b", "choose_victory_path", "victory_arcane")
+	s = choose(t, s, "b", "choose_victory_path", "subjugate_rival")
 	s.Random.State = []byte("bad generator state")
 	before := jsonBytes(t, s)
 	if next, err := s.Choose("b", "choose_minion", "nadia_rivermark"); next != nil || err == nil || !slices.Equal(before, jsonBytes(t, s)) {
@@ -168,13 +168,14 @@ func TestDeterministicStartAndRestart(t *testing.T) {
 		for _, actor := range s.Participants {
 			deck := []string{"element_fire", "research_spell", "research_artifact", "basic_wis", "basic_wis", "subjugate_rival", "basic_wealth", "bastian_redhand", "arcane_focus", "investigate"}
 			random.Shuffle(10, func(i, j int) { deck[i], deck[j] = deck[j], deck[i] })
-			cards := append(slices.Clone(a.Wizards[actor].Hand), a.Wizards[actor].DrawPile...)
+			cards := append(slices.Clone(ordinary(a.Wizards[actor].Hand)), a.Wizards[actor].DrawPile...)
 			for i, card := range cards {
 				if card.DesignID != deck[i] {
 					t.Fatal("seed does not reproduce deal")
 				}
 			}
 		}
+		random.IntN(9) // First normal rumour draw, after every opening deal.
 		resumed := randv2.NewChaCha8([32]byte{})
 		if err := resumed.UnmarshalBinary(a.Random.State); err != nil {
 			t.Fatal(err)
@@ -189,31 +190,31 @@ func TestParticipantPrivacyAndProjectionIsolation(t *testing.T) {
 	s := setup(t, 2)
 	before := jsonBytes(t, s.View("b"))
 	s = choose(t, s, "a", "choose_chantry", "chantry_fire")
-	s = choose(t, s, "a", "choose_victory_path", "victory_fame")
+	s = choose(t, s, "a", "choose_victory_path", "subjugate_rival")
 	otherView := s.View("b")
 	otherView.Revision = 0 // The global revision is intentionally public.
 	if !slices.Equal(before, jsonBytes(t, otherView)) {
 		t.Fatal("opponent choices or step leaked")
 	}
 	owner := s.View("a")
-	if owner.You.Draft.Chantry != "chantry_fire" || owner.You.Draft.VictoryPath != "victory_fame" {
+	if owner.You.Draft.Chantry != "chantry_fire" || owner.You.Draft.VictoryPath != "subjugate_rival" {
 		t.Fatal("own choices missing")
 	}
 	s = choose(t, s, "a", "choose_minion", "bastian_redhand")
 	if !s.View("b").Wizards["a"].DraftComplete || s.View("b").Wizards["a"].Integrity != nil {
 		t.Fatal("bad completion visibility")
 	}
-	for _, selection := range []struct{ kind, card string }{{"choose_chantry", "chantry_water"}, {"choose_victory_path", "victory_arcane"}, {"choose_minion", "nadia_rivermark"}} {
+	for _, selection := range []struct{ kind, card string }{{"choose_chantry", "chantry_water"}, {"choose_victory_path", "subjugate_rival"}, {"choose_minion", "nadia_rivermark"}} {
 		s = choose(t, s, "b", selection.kind, selection.card)
 	}
 	view := s.View("b")
 	data := string(jsonBytes(t, view))
-	for _, hidden := range []string{"bastian_redhand", "victory_fame", "seed", "random", "generator"} {
+	for _, hidden := range []string{"bastian_redhand", "seed", "random", "generator"} {
 		if strings.Contains(data, hidden) {
 			t.Fatalf("leaked %s", hidden)
 		}
 	}
-	if len(view.You.Hand) != 5 || len(view.You.DrawPile) != 5 || view.Wizards["a"].HandCount != 5 {
+	if len(ordinary(view.You.Hand)) != 5 || len(view.You.DrawPile) != 5 || view.Wizards["a"].HandCount != 6 {
 		t.Fatal("wrong pile view")
 	}
 	slices.Reverse(s.Wizards["b"].DrawPile)
@@ -231,7 +232,7 @@ func TestParticipantPrivacyAndProjectionIsolation(t *testing.T) {
 
 func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
 	c := OpeningCatalogue()
-	if len(c.Cards) != 31 {
+	if len(c.Cards) != 98 {
 		t.Fatalf("unexpected catalogue size %d", len(c.Cards))
 	}
 	seen := map[string]bool{}
@@ -285,4 +286,8 @@ func TestOpeningCataloguePropertiesAndCompatibility(t *testing.T) {
 	if _, err := Decode(jsonBytes(t, s)); !errors.Is(err, ErrUnsupportedVersion) {
 		t.Fatal("unknown catalogue accepted")
 	}
+}
+
+func ordinary(cards []CardInstance) []CardInstance {
+	return slices.DeleteFunc(slices.Clone(cards), func(c CardInstance) bool { return c.Ephemeral })
 }

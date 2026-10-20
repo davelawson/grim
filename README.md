@@ -125,8 +125,10 @@ State is stored in a simple sqlite3 database.
   `sqlite3 "$GRIM_DB" ".cd sql" ".read populate-test-data.sql"`
 
 The creation script resets the database; it is for explicit fresh setup, not
-an upgrade. This drafting release requires fresh setup with the updated schema,
-including `playing` match status and command receipts. The server does not run
+an upgrade. Fresh database setup uses the complete lifecycle schema, including `playing`
+match status and command receipts. The playable release requires fresh matches
+with schema 3 and `playable-v1` rules/catalogue; existing accounts and lobbies
+need no migration or database reset. The server does not run
 migrations or recreate existing databases. Previous match snapshot schemas and
 unknown rules/catalogue versions return `409 unsupported_state`.
 
@@ -275,7 +277,7 @@ Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
 `catalogueversion`, `wizards`, `turn`, and the owner's `you` view. Match responses
 do not contain draft options.
 The match starts in setup at revision 0 with an empty Ring, null turn and
-outcome, and pinned `opening-v1` rules/catalogue. The lobby closes permanently
+outcome, and pinned `playable-v1` rules/catalogue. The lobby closes permanently
 and points to the match. Identical retries
 replay the original result; a new request ID on the closed lobby returns 409.
 Once the match is deleted, retries using its accepted request ID return 404.
@@ -287,9 +289,11 @@ Participants fetch the pinned opening card definitions with
 `GET /match/<match-id>/catalogue`, which returns `{"catalogue":{...}}`. Cards
 have stable design IDs and structured costs, requirements, Expertise, Affinity,
 income, persistence, disposal, resource values, and typed effect identifiers.
-The catalogue contains 31 opening designs, including four clearly marked inert
-victory placeholders; it does not include rumours, identify draft offers, or
-execute card effects. Definitions remain available before and during drafting.
+The catalogue contains 98 definitions: the original 31 designs, two ephemeral
+resources, 32 Spells, 20 rumours, and 13 reward designs. Research Artifact and
+the four unfinished victory paths are explicit inert placeholders. The
+catalogue includes structured Challenge requirements, upkeep, timing,
+durations, Research pools, and abilities; fetching it does not execute effects. Definitions remain available before and during drafting.
 
 Begin or resume your draft with your own authentication token:
 
@@ -315,15 +319,15 @@ curl -k -X POST 'https://localhost:8080/match/<match-id>/draft' \
 ```
 
 Use a new UUID and the latest match revision for each new choice. For example,
-after choosing `chantry_fire`, select `subjugate_rival` for Domination (or one
-of the offered placeholders), then a Fire offer such as `bastian_redhand`.
-All five victory paths are available with every Chantry. Choosing Domination
-does not restrict which offered Minion can be selected. Drafting has no payments.
+after choosing `chantry_fire`, select `subjugate_rival` for Domination, then a Fire offer such as `bastian_redhand`.
+Domination is the only offered victory path for every Chantry. It does not restrict which offered Minion can be selected. Drafting has no payments.
 
 Selections use `api.DraftPickRequest` and return `200` with `api.DraftResponse`:
 `{"draft":{...},"cards":[...],"revision":1,"status":"setup"}`. Each accepted
-choice advances your draft and returns the next step's options. The former
-draft-only `/match/<match-id>/commands` route has been removed.
+choice advances your draft and returns the next step's options. Ordinary gameplay uses `/match/<match-id>/actions/<operation>`, required choices use
+`/match/<match-id>/choices/<choice-id>/<operation>`, and Priority responses use
+`/match/<match-id>/reactions/<operation>`. Draft choices remain
+on the dedicated draft endpoint.
 
 The required nonnegative integer
 `expectedrevision` refers to the whole match, so another participant's choice
@@ -344,21 +348,162 @@ player's draft endpoint returns `step:"complete"` and `cards:[]`, with status
 unlimited copies, no deadline, and no automatic picks. The final Minion choice
 atomically creates a random Ring, gives each wizard 3 Integrity and a Chantry
 in play, independently shuffles their ten-card deck, and deals five cards.
-It enters `playing` with `turn` identifying Ring's first wizard, number 1,
-phase `start`, and step `recovery`. No turn step, income, or rumour has executed;
-turn execution is a later slice.
+It enters `playing` and advances Ring's first wizard through automatic Start
+steps to the first input boundary. First-turn Income and the normal rumour
+draw occur in the final draft transaction; a response window or optional
+Start effect may therefore be pending before Actions.
 
 After start, `wizards` contains public Integrity, Affinities, victory progress,
-in-play cards, ordered discards, and hand/draw-pile counts. `you.hand` shows the
-caller's cards; `you.drawpile` lists their remaining cards sorted by instance
+in-play cards, ordered discards, and hand/draw-pile counts. The optional
+`you.userid` identifies the authenticated participant, including when their hand
+is empty or they are eliminated. Compare it with `turn.activewizard`,
+`exchange.priority`, and `choice.actor` to identify the next actor. This is a
+projection-only addition; snapshots and rules versions do not change. Historical
+accepted responses may lack identity, so fetch a fresh match before composing
+new input. `you.hand` shows the caller's cards; `you.drawpile` lists their remaining cards sorted by instance
 ID, never in draw order. Other draft selections remain private. Card instances
 identify their design, owner, location, and exhaustion state separately from
 the shared definition. A deleted match returns 404 for lookup, catalogue,
 and both draft methods, including accepted-choice retries.
 
-This draft API change does not require a database reset or snapshot migration.
-Existing opening drafts can resume, and saved command and launch receipts
-remain usable; legacy offer lists are omitted from their responses.
+This gameplay release needs no database reset or table migration. New matches
+use snapshot schema 3 and `playable-v1` rules/catalogue; opening-v1 snapshots
+are unsupported and must be replaced. Stored accepted responses retain the
+existing retry rules; they do not upgrade or resume unsupported matches.
+
+### Play through turns and victory
+
+Poll `GET /match/<match-id>` with the participant's token. The server advances
+only during accepted submissions, stopping for input. Check `status` first, then:
+
+1. When `choice` is present, only `choice.actor` may answer at
+   `/match/<match-id>/choices/<choice-id>/<operation>`.
+2. Otherwise, when `exchange` is present, only `exchange.priority` may respond at
+   `/match/<match-id>/reactions/<operation>`.
+3. Otherwise, `turn.activewizard` may act during Actions at
+   `/match/<match-id>/actions/<operation>`.
+
+Every route below uses `POST`, accepts `requestid` (a canonical UUID) and
+`expectedrevision` (including zero), and returns `200 {"match":{...}}` projected
+for the authenticated actor. Operation-specific bodies reject unknown fields,
+trailing JSON, and the obsolete `type`, `mode`, and body-level `choiceid` fields.
+Draft choices continue using `/draft` with their existing request format.
+
+| Action suffix | Fields beyond `requestid` and `expectedrevision` |
+| --- | --- |
+| `play-card` | `cardid`, optional `targets`, optional `support`, optional `payment`, optional `discard` |
+| `attack` | `cardid`, `minions`, optional `support`, optional `payment` |
+| `attempt-challenge` | `cardid`, `challengeid`, optional `minions`, optional `support`, optional `payment` |
+| `activate-ability` | `cardid`, `abilityid`, optional `support`, optional `payment` |
+| `research-element` | `cardid`, `element` |
+| `research-spell` | `cardid`, optional `elements` |
+| `heal-with-focus` | `cardid`, optional `support`, optional `payment` |
+| `end-turn` | None |
+
+| Choice suffix | Fields beyond `requestid` and `expectedrevision` |
+| --- | --- |
+| `maintenance` | `keep`, optional `payment` |
+| `kneel` | `kneel` |
+| `resolve-effect` | `effectid` |
+| `skip-effect` | `effectid` |
+| `undertake-hunt` | `effectid`, optional `minions`, optional `support`, optional `payment` |
+| `research` | `designid` |
+| `end-discard` | `cards` |
+| `hand-discard` | `cardid`, `disposition` |
+| `asset-loss` | `cardid` |
+| `scry` | `take`, `order` |
+
+| Reaction suffix | Fields beyond `requestid` and `expectedrevision` |
+| --- | --- |
+| `play-card` | `cardid`, optional `targets`, optional `support`, optional `payment` |
+| `defend` | optional `minions`, optional `support` |
+| `pass` | None |
+
+For example, play a Minion at `POST /match/<match-id>/actions/play-card`:
+
+```json
+{"requestid":"9493d7de-393b-49e2-a13b-bc41dc33a3de","expectedrevision":12,"cardid":"<minion-instance>","payment":["<wis-instance>"]}
+```
+
+Pass at `POST /match/<match-id>/reactions/pass`:
+
+```json
+{"requestid":"9493d7de-393b-49e2-a13b-bc41dc33a3df","expectedrevision":13}
+```
+
+A required choice pauses resolution and Priority until it finishes. Choice routes
+must match its kind. `asset-loss` serves both Asset-discard and Attack-loss prompts.
+`undertake-hunt` alone accepts Full Moon's hunt commitments; `resolve-effect`
+cannot undertake it. `skip-effect` takes the unprefixed effect ID. `kneel` requires
+an explicit boolean, including valid `false`. `hand-discard` requires explicit
+`disposition:"discard"` or `"destroy"`. Empty `keep`, `cards`, and `order` arrays
+are valid when permitted by the pending choice.
+
+Retry a lost response with the exact operation, choice ID, revision, UUID, and
+input. Receipt lookup precedes current choices, Priority, and terminal-state
+checks, so accepted inputs replay their recorded view even after restart or
+victory. Fetch current state before composing new input. Reusing an accepted UUID
+with changed input or operation returns `409 request_id_conflict`.
+
+This is a coordinated backend/client replacement: `/commands` and the broad
+`/reactions` route have been removed. Historical receipts remain untouched and
+reserve their UUIDs; new routes never reinterpret them. Match snapshots,
+catalogue/rules versions, response projections, and the database schema are
+unchanged. Deploy the backend and CLI together and restart wrapper sessions.
+
+Resource cards in `payment` are spent immediately. Leftover resources remain
+available for the active turn, and costs stay spent if an effect is countered.
+Playing a resource as an ordinary action opens its normal response exchange.
+Income creates ephemeral cards; unused resources and ephemeral cards expire at
+the active turn's end, including a turn forfeited by kneeling.
+
+All card references are instance IDs, except Research offers, which select a
+design ID. A support entry is `{"cardid":"<id>","domains":["earth"]}`.
+Elements need no `domains`; Focus on a Challenge or ordinary action chooses
+one domain, while Focus on Attack/Defence needs none. Keen Insight chooses one
+domain and Flowing Form chooses two distinct domains. Other Support Spells
+need no domains and can be committed only with a Challenge.
+
+To Attack, use `actions/attack` with Subjugate Rival and `minions` containing ready Might Minions,
+and optionally Focus in `support`. Only one Attack may be initiated each turn.
+Newly played Minions can defend immediately but cannot Attack or undertake
+Challenges before their owner's next turn. Reactions use `/reactions/play-card` during Priority; `targets` identify the printed card targets, or
+a pending Spell entry's ID for Counterspell. Scalding Mist and Freezing Fog put the removal
+or return target first and the optional different recovery-delay target second.
+
+Research uses `actions/research-element` with an `element`, or
+`actions/research-spell` with zero, one, or two supporting Element-card instance
+IDs in `elements`. Its persisted `research` choice supplies the design offer.
+Standalone Focus healing uses `actions/heal-with-focus`; another Focus in
+`support` can contribute toward its 2 Wis cost. Generic `play-card` excludes
+Attack, Research, and standalone Focus healing. Purifying Steam requires one
+hand-card ID in `discard` as an additional cost.
+
+Required choices expose their ID, actor, type, source, selection bounds, and
+context. `effects` choices list structured `effects`. Maintenance uses `keep` for
+Assets whose upkeep will be paid, plus optional resource-card `payment`;
+unselected upkeep Assets are discarded. End Phase's `end-discard` uses `cards`
+to discard, including an empty list when already within hand size. The server
+refills the retained hand and begins the next turn. Scrying Pool privately exposes
+its inspected cards; submit `take` and every remaining inspected ID in top-first
+`order`. No other gameplay interleaves with these choices, and restarts preserve
+them exactly.
+
+Other players see choice identity and timing, but no private hand or scrying
+options. Public state includes resources, immunity, rumours and reserved
+Investigate draws, commitments, Stack entries, and public modifiers. Owner draw
+piles remain sorted by instance ID in normal views, never by draw order.
+
+New gameplay errors include `400 invalid_choice` and `409 invalid_timing`,
+`wrong_priority`, `stale_choice`, or `match_finished`; the existing malformed
+request, membership, stale revision, retry conflict, and deletion errors apply.
+Invalid commands leave state, revision, receipts, and randomness unchanged.
+
+A winning match has `status:"finished"`, `outcome:"victory"`, and `winners`
+containing user IDs. A zero-survivor draw has `outcome:"draw"` and `winners:[]`.
+Five-step Domination ends the game after the awarding effect or submission;
+last-survivor victory waits until the exchange finishes. Finished state remains
+readable, and new gameplay is rejected. Two-player matches cannot use kneeling.
 
 ### Administrative termination
 
@@ -398,6 +543,36 @@ To setup Swagger:
 1. Generate the swagger documentation: `swag init .`
 1. Run the application (detailed in earlier section)
 1. Open the web page: `http://localhost:8080/swagger/index.html#`
+
+### CLI gameplay and guided sessions
+
+The sibling `grimcli` repository provides explicit action, choice, and reaction
+commands matching these routes. `challenge`, `activate`, and `react` name Challenge,
+ability, and reaction-card operations; `choose-research` answers a Research offer.
+Every submission requires explicit match ID, expected revision (including zero),
+and a canonical request UUID. Choice commands also require `--choiceid`. Repeatable
+flags compose Minions, support/domain pairs, payments, targets, discards, and order;
+the CLI imports only `github.com/davelawson/grim/api`.
+
+Its Bash session wrapper guides complete games using numbered pickers and a
+review before submission, including all required choices and private scrying.
+It keeps tokens, pinned catalogues, and exact pending submissions in memory;
+refresh is manual. Refresh or navigation retains uncertain submissions with
+the original endpoint, revision, UUID, and arguments. After success, retry only
+the authoritative GET. Account changes and exit clear session data. See
+[`grimcli` usage](../grimcli/README.md) for flags and interactive controls.
+
+To run the optional CLI integration suite against production test routes:
+
+```sh
+(cd ../grimcli && go build -o /tmp/grimcli-gameplay .)
+GRIMCLI_TEST_BINARY=/tmp/grimcli-gameplay go test ./internal/server -run '^TestCLICompleteGames$' -count=1 -v
+```
+
+It creates temporary databases and plays complete two-, three-, and four-player
+games through the external CLI. The normal backend suite skips these tests when
+`GRIMCLI_TEST_BINARY` is unset. Regenerate local Swagger with `swag init --output docs`
+after changing the public projection; generated Swagger files remain ignored by Git.
 
 ### List your matches and lobbies
 

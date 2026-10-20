@@ -70,3 +70,70 @@ func EndMatchPath(id string) string     { return idPath(EndMatch.Route, id) }
 func idPath(route, id string) string {
 	return strings.Replace(route, ":id", url.PathEscape(id), 1)
 }
+
+// Gameplay endpoints accept narrow inputs and share the match response.
+var (
+	PlayCard         = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/play-card"}
+	Attack           = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/attack"}
+	AttemptChallenge = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/attempt-challenge"}
+	ActivateAbility  = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/activate-ability"}
+	ResearchElement  = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/research-element"}
+	ResearchSpell    = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/research-spell"}
+	HealWithFocus    = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/heal-with-focus"}
+	EndTurn          = Endpoint{Method: http.MethodPost, Route: "/match/:id/actions/end-turn"}
+	Maintenance      = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/maintenance"}
+	Kneel            = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/kneel"}
+	ResolveEffect    = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/resolve-effect"}
+	SkipEffect       = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/skip-effect"}
+	UndertakeHunt    = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/undertake-hunt"}
+	ChooseResearch   = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/research"}
+	EndDiscard       = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/end-discard"}
+	HandDiscard      = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/hand-discard"}
+	AssetLoss        = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/asset-loss"}
+	Scry             = Endpoint{Method: http.MethodPost, Route: "/match/:id/choices/:choiceid/scry"}
+	React            = Endpoint{Method: http.MethodPost, Route: "/match/:id/reactions/play-card"}
+	Defend           = Endpoint{Method: http.MethodPost, Route: "/match/:id/reactions/defend"}
+	Pass             = Endpoint{Method: http.MethodPost, Route: "/match/:id/reactions/pass"}
+)
+
+func PlayCardPath(id string) string         { return idPath(PlayCard.Route, id) }
+func AttackPath(id string) string           { return idPath(Attack.Route, id) }
+func AttemptChallengePath(id string) string { return idPath(AttemptChallenge.Route, id) }
+func ActivateAbilityPath(id string) string  { return idPath(ActivateAbility.Route, id) }
+func ResearchElementPath(id string) string  { return idPath(ResearchElement.Route, id) }
+func ResearchSpellPath(id string) string    { return idPath(ResearchSpell.Route, id) }
+func HealWithFocusPath(id string) string    { return idPath(HealWithFocus.Route, id) }
+func EndTurnPath(id string) string          { return idPath(EndTurn.Route, id) }
+func MaintenancePath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(Maintenance.Route)
+}
+func KneelPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(Kneel.Route)
+}
+func ResolveEffectPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(ResolveEffect.Route)
+}
+func SkipEffectPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(SkipEffect.Route)
+}
+func UndertakeHuntPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(UndertakeHunt.Route)
+}
+func ChooseResearchPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(ChooseResearch.Route)
+}
+func EndDiscardPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(EndDiscard.Route)
+}
+func HandDiscardPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(HandDiscard.Route)
+}
+func AssetLossPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(AssetLoss.Route)
+}
+func ScryPath(id, choiceID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(id), ":choiceid", url.PathEscape(choiceID)).Replace(Scry.Route)
+}
+func ReactPath(id string) string  { return idPath(React.Route, id) }
+func DefendPath(id string) string { return idPath(Defend.Route, id) }
+func PassPath(id string) string   { return idPath(Pass.Route, id) }

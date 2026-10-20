@@ -76,22 +76,38 @@ func (r *Repo) save(tx *sql.Tx, state *game.State, expectedRevision int64) error
 	return nil
 }
 
-func (r *Repo) commandReceipt(tx *sql.Tx, id, actorID, requestID, input string) (*game.View, error) {
-	var savedInput string
-	var response []byte
+type storedCommandReceipt struct {
+	input    string
+	response []byte
+}
+
+func (r *Repo) loadCommandReceipt(tx *sql.Tx, id, actorID, requestID string) (*storedCommandReceipt, error) {
+	var receipt storedCommandReceipt
 	err := tx.QueryRow(`select command, response from command_receipts
-		where match_id = ? and actor_id = ? and request_id = ?`, id, actorID, requestID).Scan(&savedInput, &response)
+  where match_id = ? and actor_id = ? and request_id = ?`, id, actorID, requestID).Scan(&receipt.input, &receipt.response)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, err
 	}
-	if savedInput != input {
-		return nil, &util.APIError{Status: 409, Code: "request_id_conflict", Message: "Request ID already used for different input"}
+	return &receipt, nil
+}
+
+func requestIDConflict() error {
+	return &util.APIError{Status: 409, Code: "request_id_conflict", Message: "Request ID already used for different input or operation"}
+}
+
+func (r *Repo) commandReceipt(tx *sql.Tx, id, actorID, requestID, input string) (*game.View, error) {
+	receipt, err := r.loadCommandReceipt(tx, id, actorID, requestID)
+	if err != nil || receipt == nil {
+		return nil, err
+	}
+	if receipt.input != input {
+		return nil, requestIDConflict()
 	}
 	var view game.View
-	if err := json.Unmarshal(response, &view); err != nil {
+	if err := json.Unmarshal(receipt.response, &view); err != nil {
 		return nil, err
 	}
 	return &view, nil

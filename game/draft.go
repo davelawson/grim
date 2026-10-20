@@ -11,7 +11,7 @@ import (
 var (
 	ErrDraftClosed    = errors.New("drafting is complete")
 	ErrDraftSequence  = errors.New("choice is not the current draft step")
-	ErrInvalidChoice  = errors.New("card is not offered for this choice")
+	ErrInvalidChoice  = errors.New("invalid cards, targets, or payment for this choice")
 	ErrNotParticipant = errors.New("actor is not a participant")
 )
 
@@ -20,14 +20,25 @@ type Draft = api.Draft
 type CardInstance = api.CardInstance
 
 type Wizard struct {
-	Draft           Draft          `json:"draft"`
-	Integrity       int            `json:"integrity"`
-	Affinities      map[string]int `json:"affinities"`
-	VictoryProgress map[string]int `json:"victoryprogress"`
-	InPlay          []CardInstance `json:"inplay"`
-	Hand            []CardInstance `json:"hand"`
-	DrawPile        []CardInstance `json:"drawpile"`
-	Discard         []CardInstance `json:"discard"`
+	Turns           int              `json:"turns"`
+	Resources       map[string]int   `json:"resources"`
+	Eliminated      bool             `json:"eliminated"`
+	ImmuneUntil     int              `json:"immuneuntil"`
+	Kneel           bool             `json:"kneel"`
+	AttackUsed      bool             `json:"attackused"`
+	StartingChantry string           `json:"startingchantry"`
+	Rumours         []api.RumourView `json:"rumours"`
+	Reserved        []string         `json:"reserved"`
+	Modifiers       []api.Modifier   `json:"modifiers"`
+	Deferred        []PhaseEffect    `json:"deferred"`
+	Draft           Draft            `json:"draft"`
+	Integrity       int              `json:"integrity"`
+	Affinities      map[string]int   `json:"affinities"`
+	VictoryProgress map[string]int   `json:"victoryprogress"`
+	InPlay          []CardInstance   `json:"inplay"`
+	Hand            []CardInstance   `json:"hand"`
+	DrawPile        []CardInstance   `json:"drawpile"`
+	Discard         []CardInstance   `json:"discard"`
 }
 
 type Turn = api.Turn
@@ -72,19 +83,7 @@ func (s *State) Choose(actorID, kind, cardID string) (*State, error) {
 		return nil, ErrUnsupportedVersion
 	}
 
-	// Deep copy mutable wizard zones; immutable instance values are sufficient.
-	state := *s
-	state.Wizards = make(map[string]*Wizard, len(s.Wizards))
-	for id, original := range s.Wizards {
-		if original == nil {
-			return nil, errors.New("missing wizard state")
-		}
-		copy := *original
-		copy.Hand, copy.DrawPile = slices.Clone(original.Hand), slices.Clone(original.DrawPile)
-		copy.InPlay, copy.Discard = slices.Clone(original.InPlay), slices.Clone(original.Discard)
-		copy.Affinities, copy.VictoryProgress = cloneStats(original.Affinities), cloneStats(original.VictoryProgress)
-		state.Wizards[id] = &copy
-	}
+	state := *clone(s)
 	draft := &state.Wizards[actorID].Draft
 	switch step {
 	case "chantry":
@@ -107,6 +106,7 @@ func (s *State) Choose(actorID, kind, cardID string) (*State, error) {
 			return nil, err
 		}
 	}
+	state.RandomDraws = nil // Draft receipts persist the resulting setup, not diagnostics.
 	state.Revision++
 	return &state, nil
 }
@@ -131,6 +131,10 @@ func (s *State) start() error {
 			return errors.New("missing selected Chantry")
 		}
 		wizard.Integrity = 3
+		wizard.Resources = map[string]int{}
+		wizard.Rumours = []api.RumourView{}
+		wizard.Reserved = []string{}
+		wizard.Modifiers = []api.Modifier{}
 		wizard.Affinities = cloneStats(chantry.Affinity)
 		wizard.VictoryProgress = map[string]int{"domination": 0, "arcane": 0, "influence": 0, "council": 0, "fame": 0}
 		newCard := func(design string, index int, location string) CardInstance {
@@ -138,6 +142,7 @@ func (s *State) start() error {
 			return CardInstance{ID: fmt.Sprintf("%s/%s/%02d", s.ID, owner, index), DesignID: design, Owner: owner, Location: location}
 		}
 		wizard.InPlay = []CardInstance{newCard(chantry.ID, 0, "inplay")}
+		wizard.StartingChantry = wizard.InPlay[0].ID
 		deckIDs := []string{"element_" + chantry.Element, "research_spell", "research_artifact", "basic_wis", "basic_wis", wizard.Draft.VictoryPath, "basic_wealth", wizard.Draft.Minion, "arcane_focus", "investigate"}
 		deck := make([]CardInstance, len(deckIDs))
 		for i, id := range deckIDs {
@@ -156,5 +161,5 @@ func (s *State) start() error {
 	s.Random.State = state
 	s.Status = "playing"
 	s.Turn = &Turn{Number: 1, ActiveWizard: s.Ring[0], Phase: "start", Step: "recovery"}
-	return nil
+	return s.advance()
 }

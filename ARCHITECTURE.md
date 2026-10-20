@@ -18,9 +18,10 @@ logic.
 
 ## Service and API
 
-The current implementation is a Go HTTP API with persistent opening drafting,
-atomic game start, and administrative termination; the complete game engine is still in
-development. There is no client application in this repository. `main.go`
+The current implementation is a Go HTTP API with persistent drafting, automatic
+turn execution, the completed opening/rumour/Spell catalogue, victory, and
+administrative termination. Additional victory paths, Artifact research, voting,
+and migrations remain future work. There is no client application in this repository. `main.go`
 creates one Gin router; `internal/server` registers login, user, lobby, and
 match routes using endpoint definitions from `api`, and startup registers Swagger.
 The `api` package owns shared request, response, and nested public types and
@@ -145,12 +146,15 @@ not automatically repaired. This feature requires no schema change.
 | Get participant view | `GET /match/:id` | No body | 200 with `match` |
 | Get current draft options | `GET /match/:id/draft` | No body | 200 with `draft`, `cards`, `revision`, `status` |
 | Choose opening card | `POST /match/:id/draft` | Request ID, expected revision, type, card ID | 200 with `draft`, `cards`, `revision`, `status` |
-| Get pinned opening catalogue | `GET /match/:id/catalogue` | No body | 200 with `catalogue` |
+| Submit action | `POST /match/:id/actions/<operation>` | Operation-specific request, request ID, expected revision | 200 with `match` |
+| Answer required choice | `POST /match/:id/choices/:choiceid/<operation>` | Operation-specific request, request ID, expected revision | 200 with `match` |
+| Submit Priority response | `POST /match/:id/reactions/<operation>` | Reaction card play, defence, or pass; request ID, expected revision | 200 with `match` |
+| Get pinned catalogue | `GET /match/:id/catalogue` | No body | 200 with `catalogue` |
 | Administrative termination | `POST /admin/match/:id/end` | No body or expected revision | 204, no body |
 
 Launch requires the owner to be a member of an open lobby with two to four
 members, all ready. In one transaction it stores match identity/membership,
-schema-version-2 setup state with empty Ring, private initial random state,
+schema-version-3 setup state with empty Ring, private initial random state,
 pinned opening versions, the closed lobby's match link, and the accepted launch
 receipt. Database uniqueness enforces one match
 per source lobby. Closed lobbies remain member-readable and permanently reject
@@ -169,18 +173,18 @@ match for current state. After soft deletion, an accepted launch retry returns
 ID recorded for a different operation conflicts. Failed operations/commits leave
 no partial match, closure, receipt, or changed saved random state.
 
-The `game` package owns HTTP/SQL-independent drafting and game-start transitions,
-opening card definitions, and participant-specific projections. The `match`
+The `game` package owns HTTP/SQL-independent drafting, gameplay transitions,
+card definitions, and participant-specific projections. The `match`
 package owns application services and SQLite persistence; lobby launch calls it
 within the lobby transaction. Launch sorts members by user ID and seeds Go's
 `math/rand/v2` ChaCha8 with 32 bytes from `crypto/rand`, without consuming random
 draws. Draft completion first shuffles the Ring, then each deck in sorted
 participant order. Initial seed, `chacha8-v1` generator identifier, and binary
-generator state remain private. Rules and catalogue are pinned to `opening-v1`.
+generator state remain private. Rules and catalogue are pinned to `playable-v1`.
 Unsupported schemas or pinned versions return `unsupported_state` without
 rewriting state. Snapshot identity/status/revision/outcome must agree with
-searchable match metadata when loading. Fresh database setup is required;
-there is no automatic upgrade or snapshot migration.
+searchable match metadata when loading. Fresh matches are required for the
+playable release; accounts and lobbies need no table changes. There is no automatic snapshot migration or database reset.
 
 The participant view contains `id`, `name`, `lobbyid`, `status`, `revision`,
 `participants`, `ring`, nullable `outcome`, pinned versions, `wizards`, `turn`,
@@ -210,8 +214,8 @@ deletion are checked before receipt lookup; equivalent typed input replays its
 original draft progress and options before revision or snapshot validation.
 Receipts continue storing participant views; draft responses are projected
 from those recorded views instead of current state. Legacy `draftoffers`
-fields are ignored on receipt loading, including launch retries. This API
-change requires no snapshot or receipt migration. Changed input conflicts.
+fields are ignored on receipt loading, including launch retries. Receipt storage requires no migration; new gameplay requires a supported
+snapshot version. Changed input conflicts.
 New commands require the current global revision. Every accepted command saves
 its new snapshot, metadata, incremented revision, and response receipt in one
 transaction. Immediate SQLite transactions serialize writers; the snapshot
@@ -225,12 +229,14 @@ wizard (one Chantry in play plus ten shuffled deck cards), 3 Integrity, five-car
 hands, elemental Affinity, and zero progress on all five victory paths. Instance
 IDs derive from match, owner, and a pre-shuffle construction index; they remain
 stable and never encode draw order. The first Ring wizard starts turn 1 at
-`start`/`recovery`, and status becomes `playing`; no turn step has executed.
-Turn execution and card-effect handlers are deferred.
+`start`/`recovery`; the final draft transaction automatically advances through Income, rumour drawing, and other
+automatic steps to the first required input. No separate start request is needed.
 
-The opening catalogue contains 31 designs, with typed
-effect identifiers and structured printed properties. Four victory cards are
-explicit inert placeholders. Catalogue access applies the same participant,
+The catalogue contains 98 designs (31 original, two ephemeral resources,
+32 Spells, 20 rumours, and 13 rewards), with typed
+effect identifiers and structured printed properties. Four victory definitions
+and Research Artifact are explicit inert placeholders; only Subjugate Rival is
+offered for victory-path drafting. Catalogue access applies the same participant,
 deletion, metadata, and version checks as lookup. Definitions remain available
 before and during drafting, but the catalogue does not identify draft offers.
 Only the dedicated draft endpoint reveals the current offer list. Public playing views contain
@@ -269,8 +275,82 @@ lobby operations retain their older controller success/error formats where appli
 new owner-departure and transfer checks use `owner_must_transfer` (409) and
 `invalid_owner` (400).
 
-Turn execution, card-effect execution, rumours, and player abandonment votes
-are not implemented. Ordered migrations and saved-state upgrades remain future work.
+### Implemented playable engine
+
+`game.State.Apply` applies typed gameplay commands to an isolated state copy;
+rejection leaves the original snapshot and generator unchanged. The engine
+advances through automatic steps until it reaches ordinary action input,
+Priority, a required choice, or match end. Card definitions remain structured
+Go data with typed handlers; there is no scripting interpreter.
+
+The saved snapshot includes local owner-turn counters, resources, deployment
+and recovery state, rumours, reserved Investigate draws, duration anchors,
+deferred expiry effects, elimination, winners, phase-effect choices, and an
+exchange with fixed participants, commitments, Stack, Priority, and pass count.
+Resolutions can pause with explicit stages and persisted choices. No other
+command interleaves while a resolution choice is pending. Random outcomes and
+choices are committed with their generating command, never regenerated by reads.
+
+Each gameplay operation has its own request type in `api`, route definition,
+escaped path helper, controller binding, and Swagger schema. Actions use
+`POST /match/:id/actions/<operation>`; required choices use
+`POST /match/:id/choices/:choiceid/<operation>`; Priority responses use
+`POST /match/:id/reactions/<operation>`. All accept `requestid` and
+`expectedrevision`, reject unknown fields and trailing JSON, and return the
+actor's `api.MatchResponse`. Gameplay bodies have no `type`, `mode`, or `choiceid`.
+The complete route/field contract is in [README.md](README.md#play-through-turns-and-victory).
+
+Narrow requests translate into `game.Command`, the engine's internal input
+representation. Route intent requires the selected card or pending choice to
+support the requested operation. Attack, Research, and standalone Focus healing
+have dedicated actions. Full Moon's hunt has its own choice operation; ordinary
+effect resolution cannot carry hunt commitments. Required choices pause Priority.
+Authentication, membership, soft deletion, revision checks, engine execution,
+receipts, and snapshot/metadata writes share one transactional pipeline.
+
+Receipt identity records the precise operation, path-bound choice ID, revision,
+and normalized input. Request IDs remain shared across routes. Identical accepted
+retries replay before current revision, snapshot decoding, or live timing checks,
+including after choices disappear, Priority changes, restart, or victory. Changed
+operation, choice, revision, or payload conflicts. Historical broad-route receipts
+remain untouched and reserve their UUIDs; new routes never reinterpret them.
+The broad `/commands` and `/reactions` routes and their public request types are
+removed. This requires no table or snapshot migration or rules/catalogue bump.
+Deploy backend and CLI together, rebuild the CLI beside the Bash wrapper, and
+restart wrapper sessions. Unsupported old snapshots remain unsupported for new
+transitions and normal reads.
+
+Views expose the public exchange, resolving effect, Priority, resources,
+commitments, modifiers, and required-choice context. Private discard/scrying
+options and inspected cards appear only for the deciding wizard. Other hands,
+draw contents, generator state, and seeds remain private. Draw order is exposed
+only by the printed private inspection effect. Clients derive legal actions;
+there is no public history, action enumeration, or push delivery.
+
+The current catalogue implements every completed opening card, rumour and
+reward, and all 32 Spells. Research Artifact remains inert in the starting deck;
+unfinished victory cards are retained definitions but cannot be drafted.
+Domination-only drafting ensures each wizard can acquire the designed Attack
+permission. Defensive commitments require ready Might Minions. Immunity lasts
+through the victim's next own turn, including kneeling, independently of Ring
+changes. Other mechanics follow GAME.md and the rumour catalogue.
+
+New matches pin schema 3 and `playable-v1` rules/catalogue. Deployment does not
+rewrite old matches or recreate tables. Unsupported opening-v1 matches can
+still be administratively deleted. Terminal views retain nullable string
+`outcome` (`victory` or `draw`) and add `winners` containing user IDs. Five-step
+victory is checked after its complete awarding resolution/submission; survivor
+victory waits for exchange completion. Further gameplay is rejected.
+
+Post-commit debug diagnostics use Go's structured logger for command identity,
+actor, revision, versions, selections, generated random decisions, and pending
+choice context. Failed transactions emit no accepted-command entry. These
+operator diagnostics are separate from participant projections and contain no
+authentication tokens or credentials. The private seed remains in the snapshot;
+there is no replay store.
+
+Player abandonment votes, ordered migrations, saved-state upgrades, remaining
+victory paths, Artifact research, and new card designs remain deferred.
 
 ## Remaining technical work
 
@@ -281,9 +361,10 @@ existing routes, and logging implementation remain backlog items in
 
 ## Planned match backend
 
-This design is confirmed. The lifecycle subset described above is implemented;
-the remaining design targets the first complete playable match. The delivery
-sequence and acceptance scenarios below define that broader work.
+This confirmed contract describes both the implemented engine and deferred
+extensions. The playable release above delivers complete games using the
+completed designs and Domination-only drafting. Voting, migrations, and further
+content below are future work; they do not gate this narrower playable release.
 
 ### Agreed scope
 
@@ -336,8 +417,10 @@ sequence and acceptance scenarios below define that broader work.
 - The initial API uses HTTP commands and polling for current player views.
   Views respect hidden information and identify who must act next; push
   delivery is deferred.
-- Future gameplay commands use `POST /match/:id/commands` with a typed payload,
-  request ID, and expected revision. `GET /match/:id` returns the requesting
+- Ordinary actions use `POST /match/:id/actions/<operation>`, required-choice
+  answers use `POST /match/:id/choices/:choiceid/<operation>`, and Priority
+  responses use `POST /match/:id/reactions/<operation>`. Every route has a typed
+  payload, request ID, and expected revision. `GET /match/:id` returns the requesting
   participant's view. Readiness and launch remain lobby operations; launch
   must also be atomic and safe to retry. The implemented opening choices use
   `POST /match/:id/draft`; the former draft-only `/commands` route is removed.
@@ -475,14 +558,16 @@ Player views must apply these rules independently of authoritative storage.
 
 ### Separate game-content prerequisites
 
-Completing unfinished game content is a separate design prerequisite for
-accepting the complete-game milestone. The backend plan does not settle those
-card texts or unfinished rules.
+The playable release is accepted with the completed designs and Domination-only
+drafting. Expanding beyond it requires separate card design; the backend
+contract does not settle unfinished card texts.
 
 - Finish the other four victory paths beyond their inert drafting
   placeholders, including the required victory challenges and ranks.
-- Define its Spell and Artifact creation pools and remaining Research rules.
-- Specify Attack Immunity duration and any other required unfinished rules.
+- Design Artifact creation pools and Research Artifact rules. Spell pools and
+  Research Spell are implemented.
+- Revisit immunity and defence only through explicit future rules changes;
+  their playable-release rules are settled above.
 - Playtest the implemented draft procedure and starting offers.
 
 ### Boundaries and stored state
@@ -531,8 +616,10 @@ failures leave authoritative state, revision, and random state unchanged.
 The implemented lifecycle and drafting slices update the database creation
 script directly, without ordered migrations or automatic upgrades. They provide
 launch, opening drafting, atomic game start, version pinning, participant
-projections, command receipts, and administrative termination. Turn execution,
-player abandonment voting, and migrations remain subsequent work.
+projections, command receipts, administrative termination, and complete gameplay
+with the completed catalogue. Player abandonment voting, migrations, and
+additional card systems remain subsequent work. The numbered sequence below
+records the broader design, including those deferred extensions.
 
 1. Add incremental migrations, admin storage/checks, lobby authorization,
    readiness/departure/transfer, match storage, and transactional one-time launch.

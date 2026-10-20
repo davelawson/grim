@@ -111,17 +111,11 @@ the complete lifecycle schema directly.
 
 ## Game Design
 
-- Complete the small first-playable catalogue: working victory challenges
-  and ranks beyond the four drafting placeholders, Spell and Artifact creation
-  pools, and remaining Research rules. These are prerequisites for the
-  complete-game backend milestone defined in [ARCHITECTURE.md](ARCHITECTURE.md).
-- Implement turn execution from the saved first Start.Recovery, including
-  Income, rumours, effects, and ordinary gameplay commands.
-- Playtest the agreed drafting, card anatomy, turn phases, response exchanges, and
-  kneeling flow in [GAME.md](GAME.md).
-- Define immunity duration precisely under continuous turns and changing
-  neighbours.
-- Decide whether separate defensive preparation exists alongside standing
-  Might and response commitments.
-- Resume the [parked Spell design discussion](docs/spell-design-notes.md) when
-  choosing the next design slice.
+- Design the other four victory paths, their ranked Challenges, Research
+  Artifact, and an initial Artifact catalogue. The playable-v1 release uses
+  Domination-only drafting and implements the completed opening designs,
+  twenty rumours with rewards, and thirty-two Spells.
+- Playtest the implemented turn, response, kneeling, Spell, and rumour rules
+  in [GAME.md](GAME.md), especially balance and the route to military growth.
+- Player abandonment voting, ordered database migrations, and saved-state
+  upgrades remain deferred.

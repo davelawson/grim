@@ -2,6 +2,7 @@ package match
 
 import (
 	"database/sql"
+	"log/slog"
 
 	"github.com/davelawson/grim/api"
 	"github.com/davelawson/grim/game"
@@ -35,4 +36,15 @@ func (sf *ServiceFacade) SubmitDraft(id, actorID string, command api.DraftPickRe
 
 func (sf *ServiceFacade) Catalogue(id, actorID string) (*game.Catalogue, error) {
 	return util.InTxWithResult(sf.db, func(tx *sql.Tx) (*game.Catalogue, error) { return sf.service.Catalogue(tx, id, actorID) })()
+}
+
+func (sf *ServiceFacade) submitGameplay(id, actorID string, command game.Command, operation gameplayOperation) (*game.View, error) {
+	diagnostics := &commandDiagnostics{}
+	view, err := util.InTxWithResult(sf.db, func(tx *sql.Tx) (*game.View, error) {
+		return sf.service.submitGameplay(tx, id, actorID, command, operation, diagnostics)
+	})()
+	if err == nil {
+		slog.Debug("match gameplay input", "match", id, "actor", actorID, "operation", operation, "revision", view.Revision, "rules", view.RulesVersion, "catalogue", view.CatalogueVersion, "command", command, "replayed", diagnostics.Replayed, "random", diagnostics.Random, "choice", view.Choice)
+	}
+	return view, err
 }

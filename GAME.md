@@ -185,13 +185,14 @@ participants. Discarded Minions must be drawn and played again, rather than
 being destroyed.
 
 A loss of Integrity grants Immunity, during which the wizard cannot be
-attacked. The exact duration under continuous turns and changing neighbours
-remains an open design decision in [TODO.md](TODO.md).
+attacked. It lasts through the end of that wizard's next own turn, including
+a turn forfeited by kneeling. Changes to the Ring do not change its expiry.
 
 Defence combines standing Might, deliberate commitments, and permitted
 defensive Spell Reactions. Different strategies should have distinct defensive
-tools so every wizard need not develop the same military engine. Whether
-separate defensive preparation exists alongside responses remains open.
+tools so every wizard need not develop the same military engine. Committed defensive Minions must have Might Expertise. Separate defensive
+preparation is deferred; defence uses standing Might, commitments while holding
+Priority, Arcane Focus, and permitted Spell Reactions.
 
 ### Ring movement (provisional)
 
@@ -349,8 +350,9 @@ directs.
 
 At the opening draft, each wizard chooses a victory-path card for a primary
 path. In the first version, Domination provides the Activity Subjugate Rival;
-the other four paths provide inert placeholders. These starting cards do not
-use ranked victory-challenge replacement.
+the other four paths retain inert definitions but are not offered in the
+playable release. These starting cards do not use ranked victory-challenge
+replacement.
 
 For a card offering ranked victory Challenges, a successful attempt immediately
 adds one visible step, removes the attempted card, and puts its costlier next
@@ -401,9 +403,8 @@ when played and costs no resources or Affinity. Generated ephemeral Wis and
 Wealth cards have the same zero cost and one-unit value unless their source
 states otherwise. Research Spell creates either a new Spell or a chosen
 Element card in the discard pile. Its [discovery recipes](#research-spell)
-select an unaligned, elemental, or hybrid Spell pool. Research Artifact creates
-a new Artifact in discard, associated with its paired Element or unaligned
-without one; its selection rules remain to be designed. Association describes
+select an unaligned, elemental, or hybrid Spell pool. Research Artifact is retained in the deck as an inert placeholder. Its
+selection rules and Artifact catalogue remain to be designed. Association describes
 the elemental inputs used during creation; it is not printed on the finished
 card. An Element may also be committed with one other card to provide one
 point of its Affinity for that action. It does not change the wizard's
@@ -456,7 +457,7 @@ Current progress awards are single steps. Future content that permits multiple
 winning paths with unequal scores must specify which winning path is excluded
 from this comparison before that content is introduced.
 
-### Ending by agreement (provisional)
+### Ending by agreement (provisional, not implemented)
 
 An unfinished match may be abandoned by a strict majority of its remaining,
 non-eliminated players, or of all participants during setup. Starting a vote
@@ -972,8 +973,8 @@ additional once-per-turn or once-per-round restriction.
 
 A victory challenge provides a repeatable opportunity to advance one path.
 On success, it scores a step and is replaced by a more advanced version, as
-described above. The first-version draft offers Subjugate Rival and four inert
-placeholders instead of working ranked victory challenges.
+described above. The playable draft offers only Subjugate Rival. Four inert victory definitions
+remain in the catalogue for future design; ranked victory challenges are deferred.
 
 ### Activities
 
@@ -1042,7 +1043,8 @@ does not make this Activity a Spell effect for Counterspell.
 
 ##### Research Artifact
 
-Creates a new artifact card and adds it to the wizard's discard pile.
+An inert placeholder in the playable release. Creating Artifacts and their
+selection rules remain future content.
 
 #### Arcane Focus
 
@@ -1106,12 +1108,13 @@ going back:
 
 1. Choose one Chantry: Fire, Earth, Air, or Water. This also supplies its
    matching Element card for the deck.
-2. Choose one victory path from the shared menu below. Every Chantry offers
-   all five paths, each with one starting card.
+2. Choose Subjugate Rival for Domination. This remains an explicit draft
+   step, with the same single offer for every Chantry. The other paths below
+   are retained catalogue placeholders and are unavailable to draft.
 3. Choose one of the three Starting Minions offered for the chosen Chantry.
    Selecting the Minion completes that wizard's draft.
 
-| Victory path | Starting card | First-version behavior |
+| Victory path | Starting card | Playable-release behavior |
 | --- | --- | --- |
 | Domination | Subjugate Rival | Activity enabling an Attack with eligible Might Minions |
 | Arcane | Arcane (placeholder) | No effect or working primary-path progression |
@@ -1119,8 +1122,8 @@ going back:
 | Council | Council (placeholder) | No effect or working primary-path progression |
 | Fame | Fame (placeholder) | No effect or working primary-path progression |
 
-Each placeholder is a named card clearly marked as a placeholder and occupies
-the same single starting-deck slot as Subjugate Rival. Domination does not
+Each unfinished victory design is clearly marked as a placeholder and is
+not offered. Domination does not
 restrict the Minion choice: its wizard may choose any of the three offers,
 though attacking requires acquiring and playing a Might Minion.
 
@@ -1172,8 +1175,8 @@ one basic Wealth, Arcane Focus, and Investigate.
 
 ### Meta
 
-The two starting Research cards create new Spells, Elements, or Artifacts,
-allowing players to develop their deck over successive turns. The pace of
+Research Spell creates new Spells and Elements, allowing players to develop
+their deck over successive turns. Research Artifact remains an inert placeholder. The pace of
 this growth remains to be tested.
 
 ## Affinities and Expertise

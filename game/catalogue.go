@@ -6,8 +6,8 @@ import (
 )
 
 const (
-	OpeningRulesVersion     = "opening-v1"
-	OpeningCatalogueVersion = "opening-v1"
+	OpeningRulesVersion     = "playable-v1"
+	OpeningCatalogueVersion = "playable-v1"
 )
 
 // Public card definitions are shared with API consumers.
@@ -37,7 +37,7 @@ const (
 func OpeningOffers() Offers {
 	return Offers{
 		Chantries:    []string{"chantry_fire", "chantry_earth", "chantry_air", "chantry_water"},
-		VictoryPaths: []string{"subjugate_rival", "victory_arcane", "victory_influence", "victory_council", "victory_fame"},
+		VictoryPaths: []string{"subjugate_rival"},
 		Minions: map[string][]string{
 			"chantry_fire":  {"vera_coalheart", "bastian_redhand", "orla_nine_cinders"},
 			"chantry_earth": {"hedda_stonewake", "leontine_grange", "rurik_ironvale"},
@@ -67,7 +67,7 @@ func OpeningCatalogue() *Catalogue {
 		card.Element = element.id
 	}
 	add("research_spell", "Research Spell", "activity", EffectResearchSpell)
-	add("research_artifact", "Research Artifact", "activity", EffectResearchArtifact)
+	add("research_artifact", "Research Artifact (placeholder)", "activity").Placeholder = true
 	add("basic_wis", "Basic Wis", "resource", EffectResource).Resources["wis"] = 1
 	add("basic_wealth", "Basic Wealth", "resource", EffectResource).Resources["wealth"] = 1
 	add("arcane_focus", "Arcane Focus", "activity", EffectFocus)
@@ -95,5 +95,6 @@ func OpeningCatalogue() *Catalogue {
 		card.Persistence = "durable"
 		card.Cost["wis"], card.PlayRequirements[minion.element], card.Expertise[minion.expertise] = 1, 1, 1
 	}
+	completeCatalogue(c)
 	return c
 }

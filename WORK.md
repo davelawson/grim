@@ -16,29 +16,21 @@ in a later slice. Label those rules as provisional until they are tested.
 
 ## Active slice
 
-No active implementation slice. Public lobby discovery and self-service joining
-are implemented and verified, including four-member capacity, one-open-lobby
-membership enforcement, readiness resets, safe repeated joins, rollback, and
-concurrent membership/launch/deletion requests. The lasting contract is in
-[ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle), with
-usage in [README.md](README.md#launch-and-end-a-match). No schema changes were
-needed. `go test ./...`, `go vet ./...`, and `go test -race ./...` pass;
-local Swagger definitions have been regenerated.
+No active implementation slice. Gameplay now uses operation-specific action,
+choice, and reaction routes, with coordinated explicit CLI commands and guided
+Bash composition. The lasting contract is in
+[ARCHITECTURE.md](ARCHITECTURE.md#implemented-playable-engine) and
+[README.md](README.md#play-through-turns-and-victory).
 
-Turn execution, rumours, card-effect execution, player votes, and migrations
-remain backlog work.
+Typed inputs share the engine and transactional pipeline. Receipts identify the
+precise route operation and path-bound choice ID; historical broad-route receipts
+reserve their UUIDs without being reinterpreted. Match snapshots, rules/catalogue
+versions, response projections, and tables are unchanged. Existing wrapper
+sessions must be restarted after the coordinated backend/CLI deployment.
 
-### Completed match slices
-
-Lobby-to-match creation, private drafting, atomic game start, pinned opening
-catalogue access, participant lookup, command retries, and administrator
-termination are implemented and verified. Their lasting contract is recorded in
-[ARCHITECTURE.md](ARCHITECTURE.md#implemented-lobby-and-match-lifecycle) and usage
-in [README.md](README.md#launch-and-end-a-match). The drafting release requires
-fresh database setup and rejects previous snapshot versions.
-
-The pending registration design is retained below; it is not part of the
-completed match slices.
+The completed playable-match engine remains in place. Voting, unfinished card
+systems, migrations, and additional clients remain deferred. The retained registration
+design below is separate from this completed slice.
 
 ## Previous slice: user creation (retained)
 

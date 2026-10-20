@@ -18,7 +18,9 @@ The canonical rules and card texts are recorded in [GAME.md](../GAME.md):
   intended outcomes for support, countered costs, Attack failure, recovery,
   stacked assets, and private scrying.
 
-These are provisional playtest rules, not implemented card effects. Balance
+These provisional playtest rules and all 32 Spell effects are implemented in
+the playable-v1 engine, including Research, support, countering, and restart-safe
+private scrying. Balance
 values remain to be tested, particularly stacked lasting Spells, free support
 and defensive Reactions, healing, and removal causing an additional discard
 after a failed Attack. Research Artifact rules and three- or four-Element designs

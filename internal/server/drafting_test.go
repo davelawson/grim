@@ -122,7 +122,7 @@ func TestDraftOptionsAreRevealedOneStepAtATime(t *testing.T) {
 			if err := json.Unmarshal([]byte(response), &result); err != nil {
 				t.Fatal(err)
 			}
-			assertDraftCards(t, &result, "victory_path", []string{"subjugate_rival", "victory_arcane", "victory_influence", "victory_council", "victory_fame"})
+			assertDraftCards(t, &result, "victory_path", []string{"subjugate_rival"})
 			f.choose(launch.ID, "owner", "choose_victory_path", "subjugate_rival")
 			f.restart()
 			options := draftResult(t, f.call(200, "GET", path, "owner", ""))
@@ -159,11 +159,11 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			if err := json.Unmarshal(catalogueResponse.Body.Bytes(), &catalogue); err != nil {
 				t.Fatal(err)
 			}
-			if catalogue.Catalogue.CatalogueVersion != launch.CatalogueVersion || len(catalogue.Catalogue.Cards) != 31 {
+			if catalogue.Catalogue.CatalogueVersion != launch.CatalogueVersion || len(catalogue.Catalogue.Cards) != 98 {
 				t.Fatal("wrong pinned catalogue")
 			}
 			for _, actor := range roster[:size-1] {
-				view := f.draft(launch.ID, actor, "chantry_fire", "victory_fame", "orla_nine_cinders")
+				view := f.draft(launch.ID, actor, "chantry_fire", "subjugate_rival", "orla_nine_cinders")
 				if view.Status != "setup" || len(view.Ring) != 0 || view.Turn != nil || len(view.You.Hand) != 0 {
 					t.Fatal("started before everyone drafted")
 				}
@@ -181,7 +181,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			f.choose(launch.ID, actor, "choose_victory_path", "subjugate_rival")
 			f.restart()
 			view, finalBody, finalResponse := f.choose(launch.ID, actor, "choose_minion", "nadia_rivermark")
-			if view.Status != "playing" || view.Revision != int64(size*3) || view.Turn == nil || view.Turn.ActiveWizard != view.Ring[0] || view.Turn.Phase != "start" || view.Turn.Step != "recovery" {
+			if view.Status != "playing" || view.Revision != int64(size*3) || view.Turn == nil || view.Turn.ActiveWizard != view.Ring[0] {
 				t.Fatalf("bad started view %+v", view)
 			}
 			ring := slices.Clone(view.Ring)
@@ -189,12 +189,16 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 			if !slices.Equal(ring, view.Participants) {
 				t.Fatal("seating lost participants")
 			}
-			for _, public := range view.Wizards {
-				if public.Integrity == nil || *public.Integrity != 3 || public.HandCount != 5 || public.DrawCount != 5 || len(public.InPlay) != 1 || !public.DraftComplete {
+			for id, public := range view.Wizards {
+				handCount := 5
+				if id == view.Turn.ActiveWizard {
+					handCount++
+				}
+				if public.Integrity == nil || *public.Integrity != 3 || public.HandCount != handCount || public.DrawCount != 5 || len(public.InPlay) != 1 || !public.DraftComplete {
 					t.Fatal("wrong public start state")
 				}
 			}
-			if len(view.You.Hand) != 5 || len(view.You.DrawPile) != 5 {
+			if len(view.You.Hand) != view.Wizards[f.ids[actor]].HandCount || len(view.You.DrawPile) != 5 {
 				t.Fatal("incorrect private start state")
 			}
 			// Opponent selections remain absent even when drafting completes.
@@ -203,7 +207,7 @@ func TestDraftingThroughGameStartAndRestart(t *testing.T) {
 					t.Fatalf("leaked %s", hidden)
 				}
 			}
-			if strings.Contains(finalResponse, "orla_nine_cinders") || strings.Contains(finalResponse, "victory_fame") {
+			if strings.Contains(finalResponse, "orla_nine_cinders") {
 				t.Fatal("opponent drafted cards leaked")
 			}
 			before, state := f.saved(launch.ID)
@@ -296,9 +300,9 @@ func TestDraftCommandValidationAuthorizationAndRetries(t *testing.T) {
 		t.Fatal("equivalent retry conflicted")
 	}
 	// Another actor's identical request ID is independent and cannot replay owner data.
-	body = commandBody(reordered.RequestID, 3, "choose_victory_path", "victory_council")
+	body = commandBody(reordered.RequestID, 3, "choose_victory_path", "subjugate_rival")
 	other := draftResult(t, f.call(200, "POST", path, "member", body))
-	if other.Draft.Chantry != "chantry_air" || other.Draft.VictoryPath != "victory_council" {
+	if other.Draft.Chantry != "chantry_air" || other.Draft.VictoryPath != "subjugate_rival" {
 		t.Fatal("receipt leaked another actor's view")
 	}
 	f.call(204, "POST", "/admin/match/"+view.ID+"/end", "admin", "")
@@ -321,7 +325,7 @@ func TestDraftAtomicRollbackIncludingFinalStart(t *testing.T) {
 			view, _, _ := f.launch(id)
 			f.draft(view.ID, "owner", "chantry_fire", "subjugate_rival", "bastian_redhand")
 			f.choose(view.ID, "member", "choose_chantry", "chantry_air")
-			f.choose(view.ID, "member", "choose_victory_path", "victory_fame")
+			f.choose(view.ID, "member", "choose_victory_path", "subjugate_rival")
 			before, state := f.saved(view.ID)
 			expected, err := state.Choose(f.ids["member"], "choose_minion", "elsie_many_tongues")
 			if err != nil {
@@ -356,7 +360,7 @@ func TestConcurrentDraftCommandsAndFinalRetries(t *testing.T) {
 			view, _, _ := f.launch(id)
 			f.draft(view.ID, "owner", "chantry_earth", "subjugate_rival", "rurik_ironvale")
 			f.choose(view.ID, "member", "choose_chantry", "chantry_water")
-			f.choose(view.ID, "member", "choose_victory_path", "victory_influence")
+			f.choose(view.ID, "member", "choose_victory_path", "subjugate_rival")
 			body := commandBody(uuid.NewString(), 5, "choose_minion", "sister_agnes_reed")
 			responses := make(chan *httptest.ResponseRecorder, 8)
 			var wg sync.WaitGroup

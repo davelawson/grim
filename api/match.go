@@ -29,6 +29,9 @@ type MatchView struct {
 	Revision         int64                 `json:"revision"`
 	Participants     []string              `json:"participants"`
 	Ring             []string              `json:"ring"`
+	Winners          []string              `json:"winners"`
+	Exchange         *ExchangeView         `json:"exchange"`
+	Choice           *RequiredChoice       `json:"choice"`
 	Outcome          *string               `json:"outcome"`
 	RulesVersion     string                `json:"rulesversion"`
 	CatalogueVersion string                `json:"catalogueversion"`
@@ -45,11 +48,15 @@ type Draft struct {
 }
 
 type CardInstance struct {
-	ID        string `json:"id"`
-	DesignID  string `json:"designid"`
-	Owner     string `json:"owner"`
-	Location  string `json:"location"`
-	Exhausted bool   `json:"exhausted"`
+	ID           string         `json:"id"`
+	DesignID     string         `json:"designid"`
+	Owner        string         `json:"owner"`
+	Location     string         `json:"location"`
+	Exhausted    bool           `json:"exhausted"`
+	DeployedTurn int            `json:"deployedturn,omitempty"`
+	SkipRecovery bool           `json:"skiprecovery,omitempty"`
+	Expertise    map[string]int `json:"expertise,omitempty"`
+	Ephemeral    bool           `json:"ephemeral,omitempty"`
 }
 
 type Turn struct {
@@ -60,6 +67,17 @@ type Turn struct {
 }
 
 type WizardView struct {
+	Turns           int            `json:"turns"`
+	ImmuneUntil     int            `json:"immuneuntil"`
+	KneelEligible   bool           `json:"kneeleligible"`
+	Reserved        []string       `json:"reserved"`
+	Resources       map[string]int `json:"resources"`
+	Eliminated      bool           `json:"eliminated"`
+	Immune          bool           `json:"immune"`
+	Rumours         []RumourView   `json:"rumours"`
+	Modifiers       []Modifier     `json:"modifiers"`
+	MaximumHandSize int            `json:"maximumhandsize"`
+	AttackUsed      bool           `json:"attackused"`
 	DraftComplete   bool           `json:"draftcomplete"`
 	Integrity       *int           `json:"integrity,omitempty"`
 	Affinities      map[string]int `json:"affinities,omitempty"`
@@ -71,6 +89,7 @@ type WizardView struct {
 }
 
 type PrivateView struct {
+	UserID   string         `json:"userid,omitempty"`
 	Draft    Draft          `json:"draft"`
 	Hand     []CardInstance `json:"hand"`
 	DrawPile []CardInstance `json:"drawpile"`

@@ -615,8 +615,11 @@ func TestUnsupportedStateAndExistingOutcome(t *testing.T) {
 	id = f.createLobby(2)
 	f.ready(id, 2)
 	view, _, _ = f.launch(id)
+	f.draft(view.ID, "owner", "chantry_fire", "subjugate_rival", "bastian_redhand")
+	f.draft(view.ID, "member", "chantry_fire", "subjugate_rival", "bastian_redhand")
 	_, state = f.saved(view.ID)
 	state.SchemaVersion = game.SchemaVersion
+	state.Winners = []string{f.ids["owner"]}
 	outcome := "victory"
 	state.Status, state.Outcome, state.Revision = "finished", &outcome, 7
 	terminal, err := json.Marshal(state)
@@ -770,7 +773,7 @@ func TestAuthenticationErrors(t *testing.T) {
 		}
 	}
 	router := gin.New()
-	router.GET("/match/failure", createAuthedHandler(failedAuthentication{}, func(*gin.Context) { t.Fatal("handler called after auth error") }))
+	router.GET("/match/failure", createAuthedHandler(failedAuthentication{}, router, func(*gin.Context) { t.Fatal("handler called after auth error") }))
 	w := httptest.NewRecorder()
 	router.ServeHTTP(w, httptest.NewRequest(http.MethodGet, "/match/failure", nil))
 	var response api.ErrorResponse

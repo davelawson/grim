@@ -11,27 +11,34 @@ import (
 	"strings"
 )
 
-const SchemaVersion = 2
+const SchemaVersion = 3
 
 var ErrUnsupportedSchema = errors.New("unsupported match schema")
 var ErrUnsupportedVersion = errors.New("unsupported rules or catalogue version")
 
 // State is authoritative and private; only participant projections are served.
 type State struct {
-	SchemaVersion    int                `json:"schemaversion"`
-	ID               string             `json:"id"`
-	Name             string             `json:"name"`
-	LobbyID          string             `json:"lobbyid"`
-	Status           string             `json:"status"`
-	Revision         int64              `json:"revision"`
-	Participants     []string           `json:"participants"`
-	Ring             []string           `json:"ring"`
-	Outcome          *string            `json:"outcome"`
-	RulesVersion     string             `json:"rulesversion"`
-	CatalogueVersion string             `json:"catalogueversion"`
-	Wizards          map[string]*Wizard `json:"wizards"`
-	Turn             *Turn              `json:"turn"`
-	Random           RandomState        `json:"random"`
+	RandomDraws      []RandomDraw        `json:"-"`
+	Winners          []string            `json:"winners"`
+	Sequence         int                 `json:"sequence"`
+	Exchange         *Exchange           `json:"exchange"`
+	Choice           *api.RequiredChoice `json:"choice"`
+	Resolving        *PendingEffect      `json:"resolving"`
+	PhaseEffects     []PhaseEffect       `json:"phaseeffects"`
+	SchemaVersion    int                 `json:"schemaversion"`
+	ID               string              `json:"id"`
+	Name             string              `json:"name"`
+	LobbyID          string              `json:"lobbyid"`
+	Status           string              `json:"status"`
+	Revision         int64               `json:"revision"`
+	Participants     []string            `json:"participants"`
+	Ring             []string            `json:"ring"`
+	Outcome          *string             `json:"outcome"`
+	RulesVersion     string              `json:"rulesversion"`
+	CatalogueVersion string              `json:"catalogueversion"`
+	Wizards          map[string]*Wizard  `json:"wizards"`
+	Turn             *Turn               `json:"turn"`
+	Random           RandomState         `json:"random"`
 }
 
 type RandomState struct {
@@ -63,7 +70,7 @@ func NewSetup(id, name, lobbyID string, participants []string) (*State, error) {
 		SchemaVersion: SchemaVersion, ID: id, Name: name, LobbyID: lobbyID,
 		Status: "setup", Participants: players, Ring: []string{}, Wizards: wizards,
 		RulesVersion: OpeningRulesVersion, CatalogueVersion: OpeningCatalogueVersion,
-		Random: RandomState{Generator: "chacha8-v1", Seed: seed[:], State: randomState},
+		Winners: []string{}, Random: RandomState{Generator: "chacha8-v1", Seed: seed[:], State: randomState},
 	}, nil
 }
 
@@ -92,6 +99,9 @@ func Decode(data []byte) (*State, error) {
 			return nil, errors.New("invalid saved wizard roster")
 		}
 	}
+	if err := state.validateSavedState(); err != nil {
+		return nil, err
+	}
 	return &state, nil
 }
 
@@ -103,7 +113,7 @@ func (s *State) View(actorID string) *View {
 	}
 	view := &View{ID: s.ID, Name: s.Name, LobbyID: s.LobbyID, Status: s.Status,
 		Revision: s.Revision, Participants: slices.Clone(s.Participants),
-		Ring: slices.Clone(s.Ring), Outcome: outcome,
+		Ring: slices.Clone(s.Ring), Outcome: outcome, Winners: slices.Clone(s.Winners),
 		RulesVersion: s.RulesVersion, CatalogueVersion: s.CatalogueVersion,
 		Wizards: make(map[string]WizardView, len(s.Wizards))}
 	if s.Turn != nil {
@@ -111,7 +121,7 @@ func (s *State) View(actorID string) *View {
 		view.Turn = &turn
 	}
 	for id, wizard := range s.Wizards {
-		public := WizardView{DraftComplete: wizard.Draft.Step == "complete"}
+		public := WizardView{Turns: wizard.Turns, ImmuneUntil: wizard.ImmuneUntil, KneelEligible: wizard.Kneel && len(s.Ring) > 2, Reserved: slices.Clone(wizard.Reserved), Resources: cloneStats(wizard.Resources), Eliminated: wizard.Eliminated, Immune: s.immune(id), Rumours: slices.Clone(wizard.Rumours), Modifiers: clone(wizard.Modifiers), MaximumHandSize: s.maxHand(id), AttackUsed: wizard.AttackUsed, DraftComplete: wizard.Draft.Step == "complete"}
 		if s.Turn != nil {
 			integrity := wizard.Integrity
 			public.Integrity = &integrity
@@ -126,10 +136,28 @@ func (s *State) View(actorID string) *View {
 			// Instance identity order is unrelated to shuffled draw order.
 			draw := slices.Clone(wizard.DrawPile)
 			slices.SortFunc(draw, func(a, b CardInstance) int { return strings.Compare(a.ID, b.ID) })
-			view.You = &PrivateView{Draft: wizard.Draft, Hand: slices.Clone(wizard.Hand), DrawPile: draw}
+			view.You = &PrivateView{UserID: actorID, Draft: wizard.Draft, Hand: slices.Clone(wizard.Hand), DrawPile: draw}
 		}
 	}
-	return view
+	if s.Exchange != nil {
+		view.Exchange = &api.ExchangeView{Participants: slices.Clone(s.Exchange.Participants), Priority: s.Exchange.Priority, Passes: s.Exchange.Passes, Stack: []api.PendingEffectView{}}
+		for _, e := range s.Exchange.Stack {
+			view.Exchange.Stack = append(view.Exchange.Stack, clone(e.PendingEffectView))
+		}
+	}
+	if s.Resolving != nil && view.Exchange != nil {
+		e := clone(s.Resolving.PendingEffectView)
+		view.Exchange.Resolving = &e
+	}
+	if s.Choice != nil {
+		view.Choice = clone(s.Choice)
+		if view.Choice.Private && actorID != view.Choice.Actor {
+			view.Choice.Options = nil
+			view.Choice.Cards = nil
+		}
+	}
+	// Deep-copy nested instance traits as well as zones and public continuations.
+	return clone(view)
 }
 
 // Abandon preserves every existing terminal result.
