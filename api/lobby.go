@@ -30,6 +30,7 @@ type LaunchRequest struct {
 }
 
 type Lobby struct {
+	Bots      map[string]Bot  `json:"bots,omitempty"`
 	Id        string          `json:"id"`
 	Name      string          `json:"name"`
 	Owner     string          `json:"owner"`
@@ -37,6 +38,11 @@ type Lobby struct {
 	Status    string          `json:"status"`
 	MatchID   *string         `json:"matchid"`
 	Readiness map[string]bool `json:"readiness"`
+}
+
+// Bot identifies a server-controlled participant. It is not a user account.
+type Bot struct {
+	Name string `json:"name"`
 }
 
 // PublicLobbySummary exposes an available lobby without its roster or readiness.

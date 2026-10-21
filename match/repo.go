@@ -48,6 +48,9 @@ func (r *Repo) create(tx *sql.Tx, state *game.State) error {
 		return err
 	}
 	for _, player := range state.Participants {
+		if _, automated := state.Bots[player]; automated {
+			continue
+		}
 		if _, err := tx.Exec("insert into players(player_id, match_id) values(?, ?)", player, state.ID); err != nil {
 			return err
 		}

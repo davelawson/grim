@@ -86,8 +86,13 @@ func typedGameplay(t *testing.T, view *game.View, c game.Command) (string, any) 
 	}
 	kneel := first == "kneel"
 	elements := []string{}
+	support := []api.CardSupport{}
 	for _, e := range c.Support {
-		elements = append(elements, e.CardID)
+		if len(e.Domains) == 0 {
+			elements = append(elements, e.CardID)
+		} else {
+			support = append(support, e)
+		}
 	}
 	switch operation {
 	case "actions/play-card":
@@ -99,9 +104,9 @@ func typedGameplay(t *testing.T, view *game.View, c game.Command) (string, any) 
 	case "actions/activate-ability":
 		return api.ActivateAbilityPath(view.ID), api.ActivateAbilityRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, AbilityID: c.AbilityID, Support: c.Support, Payment: c.Payment}
 	case "actions/research-element":
-		return api.ResearchElementPath(view.ID), api.ResearchElementRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, Element: c.Element}
+		return api.ResearchElementPath(view.ID), api.ResearchElementRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, Element: c.Element, Support: c.Support}
 	case "actions/research-spell":
-		return api.ResearchSpellPath(view.ID), api.ResearchSpellRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, Elements: elements}
+		return api.ResearchSpellPath(view.ID), api.ResearchSpellRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, Elements: elements, Support: support}
 	case "actions/heal-with-focus":
 		return api.HealWithFocusPath(view.ID), api.HealWithFocusRequest{RequestID: c.RequestID, ExpectedRevision: c.ExpectedRevision, CardID: c.CardID, Support: c.Support, Payment: c.Payment}
 	case "actions/end-turn":

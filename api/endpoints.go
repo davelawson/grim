@@ -31,6 +31,8 @@ var (
 	GetLobby            = Endpoint{Method: http.MethodGet, Route: "/lobby/:id"}
 	UpdateLobby         = Endpoint{Method: http.MethodPut, Route: "/lobby/:id"}
 	AddUserToLobby      = Endpoint{Method: http.MethodPost, Route: "/lobby/:id/user"}
+	AddBotToLobby       = Endpoint{Method: http.MethodPost, Route: "/lobby/:id/bot"}
+	RemoveBotFromLobby  = Endpoint{Method: http.MethodDelete, Route: "/lobby/:id/bot/:botid"}
 	LeaveLobby          = Endpoint{Method: http.MethodDelete, Route: "/lobby/:id/leave"}
 	RemoveUserFromLobby = Endpoint{Method: http.MethodDelete, Route: "/lobby/:id/user/:user_id"}
 	SetReady            = Endpoint{Method: http.MethodPut, Route: "/lobby/:id/ready"}
@@ -51,6 +53,11 @@ func DeleteLobbyPath(id string) string    { return idPath(DeleteLobby.Route, id)
 func GetLobbyPath(id string) string       { return idPath(GetLobby.Route, id) }
 func UpdateLobbyPath(id string) string    { return idPath(UpdateLobby.Route, id) }
 func AddUserToLobbyPath(id string) string { return idPath(AddUserToLobby.Route, id) }
+
+func AddBotToLobbyPath(id string) string { return idPath(AddBotToLobby.Route, id) }
+func RemoveBotFromLobbyPath(lobbyID, botID string) string {
+	return strings.NewReplacer(":id", url.PathEscape(lobbyID), ":botid", url.PathEscape(botID)).Replace(RemoveBotFromLobby.Route)
+}
 
 func RemoveUserFromLobbyPath(lobbyID, userID string) string {
 	return strings.NewReplacer(

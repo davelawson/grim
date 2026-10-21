@@ -4,6 +4,7 @@ drop table if exists card_designs;
 drop table if exists launch_receipts;
 drop table if exists command_receipts;
 drop table if exists players;
+drop table if exists lobby_bots;
 drop table if exists lobby_users;
 drop table if exists matches;
 drop table if exists lobbies;
@@ -63,6 +64,14 @@ create table lobby_users (
     foreign key(lobby_id) references lobbies (id) on delete cascade,
     foreign key(user_id) references users (id)
 );
+
+create table lobby_bots (
+    id text primary key,
+    lobby_id text not null,
+    name text not null,
+    foreign key(lobby_id) references lobbies (id) on delete cascade
+);
+create index lobby_bots_lobby on lobby_bots(lobby_id);
 
 create table launch_receipts (
     lobby_id text not null,

@@ -208,6 +208,10 @@ func (ls *Service) GetLobby(tx *sql.Tx, id string) (*api.Lobby, error) {
 		return nil, err
 	}
 	lobby.Members = members
+	lobby.Bots, err = ls.repo.GetBots(tx, id)
+	if err != nil {
+		return nil, err
+	}
 	lobby.Readiness, err = ls.repo.GetReadiness(tx, id)
 	return lobby, err
 }
@@ -258,7 +262,7 @@ func (ls *Service) Launch(tx *sql.Tx, id, actorID, requestID string) (*game.View
 	if lobby.Status != "open" {
 		return nil, util.ErrLobbyClosed
 	}
-	if len(lobby.Members) < 2 || len(lobby.Members) > maxLobbyMembers {
+	if len(lobby.Members)+len(lobby.Bots) < 2 || len(lobby.Members)+len(lobby.Bots) > maxLobbyMembers {
 		return nil, &util.APIError{Status: 409, Code: "invalid_roster_size", Message: "Launch requires two to four members"}
 	}
 	for _, member := range lobby.Members {
@@ -266,7 +270,7 @@ func (ls *Service) Launch(tx *sql.Tx, id, actorID, requestID string) (*game.View
 			return nil, &util.APIError{Status: 409, Code: "lobby_not_ready", Message: "Every member must be ready before launch"}
 		}
 	}
-	view, err := ls.matches.CreateSetup(tx, lobby.Name, id, lobby.Members, actorID)
+	view, err := ls.matches.CreateSetupWithBots(tx, lobby.Name, id, lobby.Members, lobby.Bots, actorID)
 	if err != nil {
 		return nil, err
 	}
@@ -298,7 +302,7 @@ func (ls *Service) checkOpenMembership(tx *sql.Tx, userID, exceptID string) erro
 }
 
 func (ls *Service) checkNewMember(tx *sql.Tx, lobby *api.Lobby, userID string) error {
-	if len(lobby.Members) >= maxLobbyMembers {
+	if len(lobby.Members)+len(lobby.Bots) >= maxLobbyMembers {
 		return errLobbyFull
 	}
 	return ls.checkOpenMembership(tx, userID, lobby.Id)

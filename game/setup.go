@@ -18,6 +18,7 @@ var ErrUnsupportedVersion = errors.New("unsupported rules or catalogue version")
 
 // State is authoritative and private; only participant projections are served.
 type State struct {
+	Bots             map[string]api.Bot `json:"bots,omitempty"`
 	definitions      *Definitions
 	RandomDraws      []RandomDraw        `json:"-"`
 	Winners          []string            `json:"winners"`
@@ -104,6 +105,21 @@ func Decode(data []byte, definitions *Definitions) (*State, error) {
 			return nil, errors.New("invalid saved wizard roster")
 		}
 	}
+	if len(state.Bots) >= len(state.Participants) {
+		return nil, errors.New("saved match has no human participants")
+	}
+	for id, bot := range state.Bots {
+		if !slices.Contains(state.Participants, id) || !strings.HasPrefix(id, "bot-") || bot.Name == "" {
+			return nil, errors.New("invalid saved automated roster")
+		}
+	}
+	for _, id := range state.Participants {
+		if strings.HasPrefix(id, "bot-") {
+			if _, ok := state.Bots[id]; !ok {
+				return nil, errors.New("missing saved automated participant")
+			}
+		}
+	}
 	if err := state.validateSavedState(); err != nil {
 		return nil, err
 	}
@@ -117,6 +133,7 @@ func (s *State) View(actorID string) *View {
 		outcome = &value
 	}
 	view := &View{ID: s.ID, Name: s.Name, LobbyID: s.LobbyID, Status: s.Status,
+		Bots:     clone(s.Bots),
 		Revision: s.Revision, Participants: slices.Clone(s.Participants),
 		Ring: slices.Clone(s.Ring), Outcome: outcome, Winners: slices.Clone(s.Winners),
 		RulesVersion: s.RulesVersion, CatalogueVersion: s.CatalogueVersion,

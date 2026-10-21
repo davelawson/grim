@@ -27,6 +27,8 @@ func TestSharedEndpointsMatchProductionRoutes(t *testing.T) {
 		{"get lobby", api.GetLobby.Method, api.GetLobby.Route, api.GetLobbyPath(lobbyID), 401},
 		{"update lobby", api.UpdateLobby.Method, api.UpdateLobby.Route, api.UpdateLobbyPath(lobbyID), 401},
 		{"add user", api.AddUserToLobby.Method, api.AddUserToLobby.Route, api.AddUserToLobbyPath(lobbyID), 401},
+		{"add bot", api.AddBotToLobby.Method, api.AddBotToLobby.Route, api.AddBotToLobbyPath(lobbyID), 401},
+		{"remove bot", api.RemoveBotFromLobby.Method, api.RemoveBotFromLobby.Route, api.RemoveBotFromLobbyPath(lobbyID, "bot-example"), 401},
 		{"remove user", api.RemoveUserFromLobby.Method, api.RemoveUserFromLobby.Route, api.RemoveUserFromLobbyPath(lobbyID, userID), 401},
 		{"ready", api.SetReady.Method, api.SetReady.Route, api.SetReadyPath(lobbyID), 401},
 		{"launch", api.LaunchMatch.Method, api.LaunchMatch.Route, api.LaunchMatchPath(lobbyID), 401},

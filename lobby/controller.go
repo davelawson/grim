@@ -228,7 +228,7 @@ func (lc *Controller) SetReady(c *gin.Context) {
 
 // Launch creates a persistent match in setup and permanently closes the lobby.
 // @Summary Launch a lobby once
-// @Description Owner only, with two to four ready members. Identical request-ID retries replay the original response while the match is active, or return 404 after deletion; a new ID on a closed lobby conflicts.
+// @Description Owner only, with two to four total participants and all humans ready. Automated opponents draft immediately. Identical request-ID retries replay the original response while the match is active, or return 404 after deletion; a new ID on a closed lobby conflicts.
 // @Security ApiKeyAuth
 // @Tags lobby
 // @Accept json

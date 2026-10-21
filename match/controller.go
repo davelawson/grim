@@ -267,6 +267,7 @@ func (c *Controller) ResearchElement(ctx *gin.Context) {
 		command.CardID = r.CardID
 		command.Element = r.Element
 		command.Mode = "element"
+		command.Support = r.Support
 		return command
 	}, "actions/research-element")
 }
@@ -291,6 +292,7 @@ func (c *Controller) ResearchSpell(ctx *gin.Context) {
 		for _, id := range r.Elements {
 			command.Support = append(command.Support, api.CardSupport{CardID: id})
 		}
+		command.Support = append(command.Support, r.Support...)
 		return command
 	}, "actions/research-spell")
 }

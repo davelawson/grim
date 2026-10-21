@@ -63,6 +63,10 @@ func main() {
 		fmt.Fprintln(os.Stderr, "Catalogue configuration is invalid; install the catalogue before starting:", err)
 		return
 	}
+	if err := util.InTx(db, lobbyRepo.ValidateStorage)(); err != nil {
+		fmt.Fprintln(os.Stderr, "Automated lobby storage is missing or invalid; run sql/install-lobby-bots.sql before starting:", err)
+		return
+	}
 	matchController := match.NewController(match.NewServiceFacade(matchService))
 	server.AddMatchRoutes(authFacade, router, matchController)
 	lobbyService := lobby.NewService(lobbyRepo, userRepo, matchService)

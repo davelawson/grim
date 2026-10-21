@@ -88,6 +88,40 @@ preserves its snapshot, metadata, participation, receipts, and closed-lobby link
 SQLite uses immediate transactions and a five-second busy timeout, serializing
 competing operations before they read mutable lobby/match state.
 
+## Automated participants
+
+Lobby owners add and remove automated seats through `POST /lobby/:id/bot` and
+`DELETE /lobby/:id/bot/:botid`. `lobby_bots` stores their stable `bot-<UUID>` IDs
+and generated names, independently of user accounts. Humans remain in
+`lobby_users`; capacity and public discovery count both tables. Only humans
+have readiness and can own a lobby. Automated seats are always ready, and
+changing either roster clears human readiness. Open lobbies remain public.
+
+Launch fixes the combined roster in the snapshot and copies names into the
+optional `bots` map. Match `players` rows remain human-only and continue to
+authorize requests. Existing schema-3 snapshots without `bots` remain valid.
+Fresh database setup includes `lobby_bots`; existing deployments explicitly run
+`sql/install-lobby-bots.sql` before restarting. Startup checks this storage and
+never installs it automatically.
+
+The `bot` package owns deterministic draft and gameplay strategy, receiving only
+an opponent's participant projection, draft offers, and pinned catalogue. It
+returns ranked candidate commands; the match service validates them with the
+same immutable `Choose`/`Apply` engine used for humans. Failed candidates cannot
+advance the saved random generator. Match orchestration handles scheduling and
+storage, with no strategy in the engine, controllers, or repositories.
+
+After launch or a new human command, the service runs automated inputs until a
+human decision boundary or victory. Setup completes all automated drafts before
+returning. Human transitions, automated transitions, final snapshot, and the
+human response receipt commit together. Each accepted transition increments the
+revision, so clients must use the returned revision rather than add one. Exact
+retries replay before running automation, and reads are side-effect free.
+No background worker or additional startup recovery is necessary. A per-turn
+proactive-input budget and a per-request transition guard bound execution;
+unexpected failures roll back and log an operator diagnostic. Automated play
+can finish the match after all humans have been eliminated.
+
 ## Authentication and runtime
 
 User creation hashes passwords with scrypt, using the normalized email address
@@ -193,8 +227,9 @@ playable release; accounts and lobbies need no table changes. There is no automa
 The participant view contains `id`, `name`, `lobbyid`, `status`, `revision`,
 `participants`, `ring`, nullable `outcome`, pinned versions, `wizards`, `turn`,
 and the caller's private `you` object, without draft offers. Participants and Ring entries
-are user IDs. Launch inherits the lobby name and starts at `status:"setup"`,
-revision 0, and null outcome. Views never include the private snapshot, seed,
+are human user IDs or automated participant IDs. Launch inherits the lobby name
+and starts at `status:"setup"`, revision 0 plus three picks per automated
+participant, and null outcome. Views never include the private snapshot, seed,
 generator state, or administrator flag. Administrators have no extra lookup
 access unless they are participants.
 
@@ -210,7 +245,7 @@ path locks a choice and returns the next step's options. Both return
 `draft`, `cards`, `revision`, and match `status`. Completed drafts return
 `step:"complete"` and `cards:[]`, while other players finish or after game start.
 Copies are unlimited, and selections cannot be revised. The caller sees their own draft; rivals see
-only completion flags. There are no deadlines, automatic picks, or readiness
+only completion flags. There are no deadlines, automatic picks for humans, or readiness
 vote after drafting.
 
 Command receipts are scoped to match, actor, and request ID. Membership and

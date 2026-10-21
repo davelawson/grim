@@ -35,6 +35,8 @@ func AddLobbyRoutes(authService authService, router *gin.Engine, controller *lob
 	router.Handle(api.GetLobby.Method, api.GetLobby.Route, createAuthedHandler(authService, router, controller.GetLobby))
 	router.Handle(api.UpdateLobby.Method, api.UpdateLobby.Route, createAuthedHandler(authService, router, controller.UpdateLobby))
 	router.Handle(api.AddUserToLobby.Method, api.AddUserToLobby.Route, createAuthedHandler(authService, router, controller.AddUserToLobby))
+	router.Handle(api.AddBotToLobby.Method, api.AddBotToLobby.Route, createAuthedHandler(authService, router, controller.AddBot))
+	router.Handle(api.RemoveBotFromLobby.Method, api.RemoveBotFromLobby.Route, createAuthedHandler(authService, router, controller.RemoveBot))
 	router.Handle(api.LeaveLobby.Method, api.LeaveLobby.Route, createAuthedHandler(authService, router, controller.Leave))
 	router.Handle(api.RemoveUserFromLobby.Method, api.RemoveUserFromLobby.Route, createAuthedHandler(authService, router, controller.RemoveUserFromLobby))
 	router.Handle(api.SetReady.Method, api.SetReady.Route, createAuthedHandler(authService, router, controller.SetReady))

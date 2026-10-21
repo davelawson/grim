@@ -79,6 +79,10 @@ func (s *Service) submitGameplay(tx *sql.Tx, id, actorID string, c game.Command,
 	if err != nil {
 		return nil, gameplayError(err)
 	}
+	next, err = advanceBots(next, next.Definitions())
+	if err != nil {
+		return nil, err
+	}
 	if err := s.repo.save(tx, next, state.Revision); err != nil {
 		return nil, err
 	}

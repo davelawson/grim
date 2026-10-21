@@ -42,20 +42,22 @@ type ActivateAbilityRequest struct {
 	Payment          []string      `json:"payment,omitempty"`
 }
 
-// ResearchElementRequest uses Research to gain the selected Element.
+// ResearchElementRequest uses Research to gain the selected Element, optionally supported by Focus.
 type ResearchElementRequest struct {
-	RequestID        string `json:"requestid" binding:"required" format:"uuid"`
-	ExpectedRevision *int64 `json:"expectedrevision" binding:"required" minimum:"0"`
-	CardID           string `json:"cardid" binding:"required"`
-	Element          string `json:"element" binding:"required" enums:"fire,earth,air,water"`
+	RequestID        string        `json:"requestid" binding:"required" format:"uuid"`
+	ExpectedRevision *int64        `json:"expectedrevision" binding:"required" minimum:"0"`
+	CardID           string        `json:"cardid" binding:"required"`
+	Element          string        `json:"element" binding:"required" enums:"fire,earth,air,water"`
+	Support          []CardSupport `json:"support,omitempty"`
 }
 
-// ResearchSpellRequest uses Research with supporting Element-card instance IDs.
+// ResearchSpellRequest uses Element-card inputs to select a pool; Focus can support its payment.
 type ResearchSpellRequest struct {
-	RequestID        string   `json:"requestid" binding:"required" format:"uuid"`
-	ExpectedRevision *int64   `json:"expectedrevision" binding:"required" minimum:"0"`
-	CardID           string   `json:"cardid" binding:"required"`
-	Elements         []string `json:"elements,omitempty"`
+	RequestID        string        `json:"requestid" binding:"required" format:"uuid"`
+	ExpectedRevision *int64        `json:"expectedrevision" binding:"required" minimum:"0"`
+	CardID           string        `json:"cardid" binding:"required"`
+	Elements         []string      `json:"elements,omitempty"`
+	Support          []CardSupport `json:"support,omitempty"`
 }
 
 // HealWithFocusRequest uses Focus for healing; another Focus can contribute through support.

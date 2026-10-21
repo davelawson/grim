@@ -29,11 +29,32 @@ func NewService(repo *Repo, users adminRepo, catalogueVersion string) *Service {
 
 // CreateSetup participates in the lobby's transaction; it never commits alone.
 func (s *Service) CreateSetup(tx *sql.Tx, name, lobbyID string, participants []string, actorID string) (*game.View, error) {
+	return s.CreateSetupWithBots(tx, name, lobbyID, participants, nil, actorID)
+}
+
+func (s *Service) CreateSetupWithBots(tx *sql.Tx, name, lobbyID string, humans []string, bots map[string]api.Bot, actorID string) (*game.View, error) {
+	if len(humans) == 0 || len(humans)+len(bots) < 2 || len(humans)+len(bots) > 4 {
+		return nil, util.ErrInvalidRequest
+	}
+	for id, opponent := range bots {
+		if !strings.HasPrefix(id, "bot-") || opponent.Name == "" {
+			return nil, util.ErrInvalidRequest
+		}
+	}
 	definitions, err := s.definitions(tx, s.catalogueVersion)
 	if err != nil {
 		return nil, err
 	}
+	participants := append([]string{}, humans...)
+	for id := range bots {
+		participants = append(participants, id)
+	}
 	state, err := game.NewSetup(uuid.NewString(), name, lobbyID, participants, definitions)
+	if err != nil {
+		return nil, err
+	}
+	state.Bots = bots
+	state, err = advanceBots(state, definitions)
 	if err != nil {
 		return nil, err
 	}
@@ -182,6 +203,10 @@ func (s *Service) command(tx *sql.Tx, id, actorID string, command api.DraftPickR
 	case errors.Is(err, game.ErrUnsupportedVersion):
 		return nil, util.ErrUnsupportedState
 	case err != nil:
+		return nil, err
+	}
+	next, err = advanceBots(next, next.Definitions())
+	if err != nil {
 		return nil, err
 	}
 	if err := s.repo.save(tx, next, state.Revision); err != nil {

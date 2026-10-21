@@ -130,6 +130,16 @@ State is stored in a simple sqlite3 database.
 The creation script resets the database and must only be used for fresh setup.
 The server does not automatically install, migrate, seed, or reset data.
 
+When upgrading a database created before automated opponents were supported,
+stop the server and install their lobby storage before restarting:
+
+```sh
+sqlite3 -bail "$GRIM_DB" < ./sql/install-lobby-bots.sql
+```
+
+This additive script can be rerun safely and preserves existing data. Fresh
+databases already include this table. Startup checks that it is installed.
+
 To upgrade an existing database, stop the backend and run only:
 
 ```sh
@@ -260,7 +270,7 @@ case-insensitively.
 Create a public lobby with `POST /lobby` and `{"name":"Friday game"}`. It
 returns `200 {"id":"…"}` and makes the authenticated creator its owner and
 first member, initially unready. All lobbies are public and hold at most four
-members; each user may belong to only one nondeleted open lobby.
+total participants; each user may belong to only one nondeleted open lobby.
 
 Browse available lobbies using authenticated `GET /lobbies/public`:
 
@@ -297,7 +307,7 @@ Launch or deletion releases members to enter another lobby while preserving
 historical memberships. Existing conflicting legacy memberships are not
 rewritten automatically. No database migration is required for this feature.
 
-Once at least two members have joined, each member sets their own readiness:
+Once the roster has at least two participants, each human sets their own readiness:
 
 ```sh
 curl -k -X PUT 'https://localhost:8080/lobby/<lobby-id>/ready' \
@@ -335,12 +345,53 @@ Launch returns 201 with `{"match":{...}}`, containing `id`, `name`, `lobbyid`,
 `status`, `revision`, `participants`, `ring`, `outcome`, `rulesversion`,
 `catalogueversion`, `wizards`, `turn`, and the owner's `you` view. Match responses
 do not contain draft options.
-The match starts in setup at revision 0 with an empty Ring, null turn and
+Without automated opponents, the match starts in setup at revision 0 with an empty Ring, null turn and
 outcome, `playable-v1` rules, and the configured catalogue version. The lobby closes permanently
 and points to the match. Identical retries
 replay the original result; a new request ID on the closed lobby returns 409.
 Once the match is deleted, retries using its accepted request ID return 404.
 Authenticated participants fetch current state with `GET /match/<match-id>`.
+
+### Automated opponents and single-player games
+
+Create an ordinary lobby, then add one opponent per request as its owner:
+
+```sh
+curl -k -X POST 'https://localhost:8080/lobby/<lobby-id>/bot' \
+  -H 'Authorization: <owner-token>'
+```
+
+No body is required. Success returns `201 {"lobby":{...}}`. Remove an opponent
+before launch with `DELETE /lobby/<lobby-id>/bot/<bot-id>`; success returns 200
+with the updated lobby. These operations are owner-only and reject closed or
+deleted lobbies. Each successful POST adds a new opponent; it is not a replayable
+request. Use the returned roster to confirm additions before retrying.
+
+Lobby and match views include `bots`, a map from stable opponent ID to
+`{"name":"Bot 1"}`. The field is omitted when there are none. IDs begin with
+`bot-`; opponents have no user accounts, passwords, or login tokens. Lobby
+`members` and `readiness` contain humans only. Public `membercount` includes
+automated seats. Match `participants`, `wizards`, and the Ring include everyone.
+
+One human can play against one to three opponents; mixed games also work, with
+two to four total participants. Lobbies remain public. Adding or removing an
+opponent clears human readiness. Opponents are always ready; only humans set
+their readiness. Ownership can transfer only to another human member.
+
+Launch automatically drafts opponents and returns revision `3 × bot count`.
+Humans still make their own three draft picks. After each accepted human draft
+or gameplay command, the server runs automated decisions until a human must act
+or the match finishes. Responses and receipts include the resulting revision,
+which can advance by more than one. Identical accepted retries replay that
+response without running opponents again. Reads never advance gameplay.
+
+Opponents use a basic deterministic Domination strategy and only their own
+participant projection and pinned card definitions. They develop assets, attack,
+defend, research, and answer every required choice. Automated play continues
+after human elimination, and stops on victory. There is one strategy and no
+difficulty setting. Proactive play is limited to 64 inputs per automated turn
+within a request; a 20,000-transition request guard rolls back and logs an error
+if automated play cannot reach a human boundary or finish.
 
 ### Draft starting cards
 
@@ -404,7 +455,7 @@ The `you.draft` object shows only the caller's step and selected design IDs.
 Other wizards expose only `draftcomplete` while setup is pending. A completed
 player's draft endpoint returns `step:"complete"` and `cards:[]`, with status
 `setup` while waiting for others or `playing` once the game starts. Choices have
-unlimited copies, no deadline, and no automatic picks. The final Minion choice
+unlimited copies, no deadline, and no automatic picks for humans. The final Minion choice
 atomically creates a random Ring, gives each wizard 3 Integrity and a Chantry
 in play, independently shuffles their ten-card deck, and deals five cards.
 It enters `playing` and advances Ring's first wizard through automatic Start
@@ -454,8 +505,8 @@ Draft choices continue using `/draft` with their existing request format.
 | `attack` | `cardid`, `minions`, optional `support`, optional `payment` |
 | `attempt-challenge` | `cardid`, `challengeid`, optional `minions`, optional `support`, optional `payment` |
 | `activate-ability` | `cardid`, `abilityid`, optional `support`, optional `payment` |
-| `research-element` | `cardid`, `element` |
-| `research-spell` | `cardid`, optional `elements` |
+| `research-element` | `cardid`, `element`, optional `support` |
+| `research-spell` | `cardid`, optional `elements`, `support` |
 | `heal-with-focus` | `cardid`, optional `support`, optional `payment` |
 | `end-turn` | None |
 
@@ -533,7 +584,9 @@ or return target first and the optional different recovery-delay target second.
 
 Research uses `actions/research-element` with an `element`, or
 `actions/research-spell` with zero, one, or two supporting Element-card instance
-IDs in `elements`. Its persisted `research` choice supplies the design offer.
+IDs in `elements`. Either mode accepts one Arcane Focus in `support`, with one
+chosen Affinity in its `domains`, to cover the 1 Wis cost. Focus does not replace
+Element inputs or change the discovery pool. Its persisted `research` choice supplies the design offer.
 Standalone Focus healing uses `actions/heal-with-focus`; another Focus in
 `support` can contribute toward its 2 Wis cost. Generic `play-card` excludes
 Attack, Research, and standalone Focus healing. Purifying Steam requires one

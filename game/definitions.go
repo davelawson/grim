@@ -53,6 +53,9 @@ func NewDefinitions(c Catalogue) (*Definitions, error) {
 // Catalogue returns a copy; callers cannot alter another match's definitions.
 func (d *Definitions) Catalogue() *Catalogue { c := clone(d.catalogue); return &c }
 
+// Definitions returns the immutable definitions pinned to this state.
+func (s *State) Definitions() *Definitions { return s.definitions }
+
 func (s *State) compatibleDefinitions() bool {
 	return s.definitions != nil && s.RulesVersion == OpeningRulesVersion && s.RulesVersion == s.definitions.catalogue.RulesVersion && s.CatalogueVersion == s.definitions.catalogue.CatalogueVersion
 }

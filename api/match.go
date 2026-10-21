@@ -22,6 +22,7 @@ type DraftResponse struct {
 
 // MatchView excludes authoritative private state and random generator data.
 type MatchView struct {
+	Bots             map[string]Bot        `json:"bots,omitempty"`
 	ID               string                `json:"id"`
 	Name             string                `json:"name"`
 	LobbyID          string                `json:"lobbyid"`

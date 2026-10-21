@@ -58,10 +58,11 @@ func (c *Controller) List(ctx *gin.Context) {
 }
 
 func (r *LobbyRepo) listPublic(tx *sql.Tx) ([]api.PublicLobbySummary, error) {
-	rows, err := tx.Query(`select lobby.id, lobby.name, lobby.owner_id, count(membership.user_id)
+	rows, err := tx.Query(`select lobby.id, lobby.name, lobby.owner_id,
+ count(membership.user_id) + (select count(*) from lobby_bots bots where bots.lobby_id = lobby.id) as seats
  from lobbies lobby left join lobby_users membership on membership.lobby_id = lobby.id
  where lobby.status = 'open' and lobby.deleted_at is null
- group by lobby.id having count(membership.user_id) < ? order by lobby.id`, maxLobbyMembers)
+ group by lobby.id having seats < ? order by lobby.id`, maxLobbyMembers)
 	if err != nil {
 		return nil, err
 	}

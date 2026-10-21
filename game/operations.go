@@ -64,10 +64,16 @@ func (s *State) ValidateOperation(actor string, c Command, operation string) err
 		if operation == "actions/play-card" && (card.DesignID == "subjugate_rival" || card.DesignID == "research_spell" || card.DesignID == "arcane_focus") {
 			return ErrInvalidChoice
 		}
-		if operation == "actions/research-spell" {
+		if operation == "actions/research-spell" || operation == "actions/research-element" {
 			for _, support := range c.Support {
-				_, element := find(w.Hand, support.CardID)
-				if element == nil || !category(s.definition(element.DesignID), "element") {
+				_, paired := find(w.Hand, support.CardID)
+				if paired == nil {
+					return ErrInvalidChoice
+				}
+				if paired.DesignID == "arcane_focus" && len(support.Domains) == 1 {
+					continue // The engine validates the chosen Affinity and single-Focus limit.
+				}
+				if operation != "actions/research-spell" || !category(s.definition(paired.DesignID), "element") || len(support.Domains) != 0 {
 					return ErrInvalidChoice
 				}
 			}
